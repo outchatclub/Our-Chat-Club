@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Chat Club</title>
+    <title>Our Chat Club | Purely Text</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -11,7 +11,6 @@
         .nav-blur { backdrop-filter: blur(12px); background: rgba(255, 255, 255, 0.8); }
         .modal { display: none; }
         .modal.active { display: flex; }
-        /* Prevent UI breakage on small screens */
         .header-grid { display: grid; grid-template-columns: 40px 1fr 60px; align-items: center; gap: 8px; }
     </style>
 </head>
@@ -21,24 +20,18 @@
         <div class="max-w-2xl mx-auto w-full px-4 header-grid">
             <button id="nav-dm" class="relative p-2 text-indigo-600 active:scale-90 transition-transform">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                <div id="dm-badge" class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></div>
             </button>
-
             <div class="relative">
-                <input type="text" id="search-input" placeholder="Search @username..." class="w-full bg-gray-100 border-none rounded-2xl px-4 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+                <input type="text" id="search-input" placeholder="Enter username (Enter to search)..." class="w-full bg-gray-100 border-none rounded-2xl px-4 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20">
             </div>
-
-            <button id="logout-btn" class="text-[10px] font-black text-gray-300 hover:text-red-400 hidden uppercase tracking-tighter">Sign Out</button>
+            <button id="logout-btn" class="text-[10px] font-black text-gray-300 hidden uppercase tracking-tighter">Sign Out</button>
         </div>
     </header>
 
     <main class="max-w-2xl mx-auto p-4">
         
         <section id="login-section" class="mt-10 space-y-6">
-            <div class="text-center">
-                <h2 class="text-3xl font-bold">Our Chat Club</h2>
-                <p class="text-gray-500 mt-2">Join the new era of social media.</p>
-            </div>
+            <div class="text-center"><h2 class="text-3xl font-bold">Our Chat Club</h2></div>
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
                 <input type="email" id="login-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
                 <input type="password" id="login-password" placeholder="Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
@@ -48,11 +41,10 @@
         </section>
 
         <section id="signup-section" class="hidden mt-10 space-y-6">
-            <div class="text-center"><h2 class="text-3xl font-bold">Register</h2></div>
             <div class="bg-white p-6 rounded-3xl border border-gray-100 space-y-4">
                 <input type="email" id="signup-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
                 <input type="password" id="signup-password" placeholder="Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
-                <button id="do-signup-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Create Account</button>
+                <button id="do-signup-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Register</button>
             </div>
         </section>
 
@@ -62,32 +54,22 @@
 
         <section id="profile-section" class="hidden mt-4">
             <div class="bg-white p-8 rounded-3xl text-center shadow-sm border border-gray-100">
-                <div class="w-24 h-24 bg-indigo-600 text-white rounded-full flex items-center justify-center text-4xl font-black mx-auto mb-4" id="profile-initial">?</div>
+                <div class="w-24 h-24 bg-indigo-600 text-white rounded-full flex items-center justify-center text-4xl font-black mx-auto mb-4 shadow-lg shadow-indigo-100" id="profile-initial">?</div>
                 <h2 class="text-2xl font-bold" id="profile-handle">@username</h2>
-                <p id="profile-email" class="text-gray-300 text-xs mb-4 uppercase tracking-widest font-bold"></p>
-                <p id="profile-bio" class="text-gray-500 italic text-sm">No bio yet.</p>
-                <div class="flex gap-2 justify-center mt-6">
+                <p id="profile-bio" class="text-gray-500 italic text-sm my-4">No bio yet.</p>
+                <div class="flex gap-2 justify-center">
                     <button id="edit-bio-btn" class="hidden bg-gray-100 text-gray-600 px-6 py-2 rounded-full font-bold text-xs">Edit Bio</button>
-                    <button id="message-user-btn" class="hidden bg-indigo-600 text-white px-6 py-2 rounded-full font-bold text-xs">Send Message</button>
+                    <button id="msg-btn" class="hidden bg-indigo-600 text-white px-6 py-2 rounded-full font-bold text-xs">Message</button>
                 </div>
             </div>
-        </section>
-
-        <section id="dm-section" class="hidden mt-4">
-            <div id="chat-list" class="space-y-3">
-                <h3 class="font-bold text-gray-400 text-xs uppercase tracking-widest mb-4">Messages</h3>
-                </div>
         </section>
     </main>
 
     <div id="post-modal" class="modal fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-end sm:items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold">New Post</h3>
-                <button id="close-modal" class="text-2xl">&times;</button>
-            </div>
-            <textarea id="post-content" maxlength="2000" rows="6" class="w-full p-4 bg-gray-50 rounded-2xl resize-none outline-none"></textarea>
-            <button id="submit-post" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 rounded-2xl">Post to Club</button>
+            <textarea id="post-content" maxlength="2000" rows="6" class="w-full p-4 bg-gray-50 rounded-2xl outline-none resize-none mb-4" placeholder="What's on your mind?"></textarea>
+            <button id="submit-post" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-2xl">Post Now</button>
+            <button id="close-modal" class="w-full mt-2 text-gray-400 font-bold text-xs uppercase">Cancel</button>
         </div>
     </div>
 
@@ -100,7 +82,6 @@
     </nav>
 
     <script type="module">
-        // Import logic exactly as before with your API key
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
@@ -118,14 +99,10 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let userHandle = "";
+        let currentUserHandle = "";
 
-        // UI NAVIGATION
         function showScreen(id) {
-            ['login-section', 'signup-section', 'feed-section', 'profile-section', 'dm-section', 'username-section'].forEach(s => {
-                const el = document.getElementById(s);
-                if(el) el.classList.add('hidden');
-            });
+            ['login-section', 'signup-section', 'feed-section', 'profile-section'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
             const isAuth = id === 'login-section' || id === 'signup-section';
             document.getElementById('bottom-nav').classList.toggle('hidden', isAuth);
@@ -136,22 +113,26 @@
             if (user) {
                 const snap = await getDoc(doc(db, "users", user.uid));
                 if (snap.exists()) {
-                    userHandle = snap.data().username;
+                    currentUserHandle = snap.data().username;
                     showScreen('feed-section');
                     loadPosts();
-                } else { showScreen('username-section'); }
+                } else { 
+                    const name = prompt("Claim your username:");
+                    await setDoc(doc(db, "users", user.uid), { username: name.toLowerCase(), email: user.email, bio: "" });
+                    location.reload();
+                }
             } else { showScreen('login-section'); }
         });
 
-        // USER SEARCH
+        // SEARCH FIX
         document.getElementById('search-input').onkeydown = async (e) => {
             if(e.key === 'Enter') {
-                const term = e.target.value.toLowerCase().replace('@', '');
+                const term = e.target.value.toLowerCase().trim().replace('@', '');
                 viewProfile(term);
             }
         };
 
-        // PROFILE VIEW LOGIC
+        // PROFILE & BIO FIX
         window.viewProfile = async (username) => {
             const q = query(collection(db, "users"), where("username", "==", username));
             const snap = await getDocs(q);
@@ -162,43 +143,66 @@
                 document.getElementById('profile-handle').innerText = `@${data.username}`;
                 document.getElementById('profile-bio').innerText = data.bio || "No bio yet.";
                 document.getElementById('profile-initial').innerText = data.username[0].toUpperCase();
-                document.getElementById('profile-email').innerText = data.email || "";
 
                 const isMe = userId === auth.currentUser.uid;
                 document.getElementById('edit-bio-btn').classList.toggle('hidden', !isMe);
-                document.getElementById('message-user-btn').classList.toggle('hidden', isMe);
-            } else { alert("User not found"); }
+                
+                if(isMe) {
+                    document.getElementById('edit-bio-btn').onclick = async () => {
+                        const newBio = prompt("New Bio:", data.bio);
+                        if(newBio !== null) await updateDoc(doc(db, "users", userId), { bio: newBio });
+                        document.getElementById('profile-bio').innerText = newBio;
+                    };
+                }
+            } else { alert("User not found!"); }
         };
 
-        // POST LOADING
+        // LOAD POSTS & DELETE FIX
         function loadPosts() {
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snap) => {
                 const container = document.getElementById('posts-container');
                 container.innerHTML = "";
                 snap.forEach(d => {
                     const p = d.data();
+                    const isOwner = p.uid === auth.currentUser.uid;
                     const card = document.createElement('div');
                     card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative";
                     card.innerHTML = `
-                        <button onclick="viewProfile('${p.author}')" class="text-sm font-bold text-indigo-600 mb-2">@${p.author}</button>
-                        <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">${p.text}</p>
-                        <div class="flex items-center gap-4 mt-4 pt-4 border-t border-gray-50">
+                        <button class="user-link text-sm font-bold text-indigo-600 mb-2">@${p.author}</button>
+                        <p class="text-gray-800 whitespace-pre-wrap">${p.text}</p>
+                        <div class="flex justify-between items-center mt-6">
                             <span class="text-[10px] text-gray-300 font-bold uppercase">${p.likes?.length || 0} LIKES • ${p.views?.length || 0} VIEWS</span>
+                            ${isOwner ? `<button class="del-trigger text-red-400 text-[10px] font-black">DELETE</button>` : ''}
                         </div>`;
+                    
+                    card.querySelector('.user-link').onclick = () => viewProfile(p.author);
+                    if(isOwner) {
+                        card.querySelector('.del-trigger').onclick = async () => {
+                            if(confirm("Delete post?")) await deleteDoc(doc(db, "posts", d.id));
+                        };
+                    }
                     container.appendChild(card);
                 });
             });
         }
 
-        // Basic Navigation Listeners
+        // Action Buttons
         document.getElementById('btn-home').onclick = () => showScreen('feed-section');
-        document.getElementById('btn-profile').onclick = () => viewProfile(userHandle);
+        document.getElementById('btn-profile').onclick = () => viewProfile(currentUserHandle);
         document.getElementById('btn-add').onclick = () => document.getElementById('post-modal').classList.add('active');
         document.getElementById('close-modal').onclick = () => document.getElementById('post-modal').classList.remove('active');
         document.getElementById('logout-btn').onclick = () => signOut(auth);
         document.getElementById('go-to-signup').onclick = () => showScreen('signup-section');
-        document.getElementById('do-login-btn').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value);
+        document.getElementById('do-login-btn').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value).catch(e => alert(e.message));
+        document.getElementById('do-signup-btn').onclick = () => createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-password').value).catch(e => alert(e.message));
+        
+        document.getElementById('submit-post').onclick = async () => {
+            const text = document.getElementById('post-content').value;
+            if(!text.trim()) return;
+            await addDoc(collection(db, "posts"), { text, author: currentUserHandle, uid: auth.currentUser.uid, createdAt: serverTimestamp(), likes: [], views: [] });
+            document.getElementById('post-content').value = "";
+            document.getElementById('post-modal').classList.remove('active');
+        };
     </script>
 </body>
 </html>
-
