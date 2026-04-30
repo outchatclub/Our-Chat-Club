@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; padding-bottom: 90px; }
+        body { font-family: 'Inter', sans-serif; padding-bottom: 100px; }
         .nav-blur { backdrop-filter: blur(12px); background: rgba(255, 255, 255, 0.8); }
         .modal { display: none; }
         .modal.active { display: flex; }
@@ -29,10 +29,10 @@
                 <h2 class="text-3xl font-bold">Welcome Back</h2>
                 <p class="text-gray-500 mt-2">Join the new era of social media.</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                <input type="email" id="login-email" placeholder="Email" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
-                <input type="password" id="login-password" placeholder="Password" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
-                <button id="do-login-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100">Login</button>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+                <input type="email" id="login-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                <input type="password" id="login-password" placeholder="Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                <button id="do-login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100">Login</button>
                 <p class="text-center text-sm text-gray-500">New here? <button id="go-to-signup" class="text-indigo-600 font-bold">Create Account</button></p>
             </div>
         </section>
@@ -42,10 +42,10 @@
                 <h2 class="text-3xl font-bold">Create Account</h2>
                 <p class="text-gray-500 mt-2">Join the new era of social media.</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                <input type="email" id="signup-email" placeholder="Email Address" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
-                <input type="password" id="signup-password" placeholder="Create Password" class="w-full p-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
-                <button id="do-signup-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100">Register</button>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
+                <input type="email" id="signup-email" placeholder="Email Address" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="signup-password" placeholder="Create Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                <button id="do-signup-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100">Register</button>
                 <p class="text-center text-sm text-gray-500">Already have an account? <button id="go-to-login" class="text-indigo-600 font-bold">Login</button></p>
             </div>
         </section>
@@ -78,7 +78,7 @@
             <textarea id="post-content" maxlength="2000" rows="8" placeholder="What's happening?" class="w-full p-5 bg-gray-50 rounded-2xl resize-none text-lg border-none focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
             <div class="flex justify-between items-center mt-6">
                 <span id="char-count" class="text-xs font-bold text-gray-300">0 / 2000</span>
-                <button id="submit-post" class="bg-indigo-600 text-white px-10 py-3 rounded-full font-bold shadow-lg shadow-indigo-100">Post</button>
+                <button id="submit-post" class="bg-indigo-600 text-white px-10 py-3 rounded-full font-bold">Post</button>
             </div>
         </div>
     </div>
@@ -94,7 +94,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE",
@@ -134,7 +134,6 @@
             } else { showScreen('login-section'); }
         });
 
-        // Navigation UI Logic
         document.getElementById('go-to-signup').onclick = () => showScreen('signup-section');
         document.getElementById('go-to-login').onclick = () => showScreen('login-section');
         document.getElementById('nav-home').onclick = () => showScreen('feed-section');
@@ -142,12 +141,10 @@
         document.getElementById('nav-post').onclick = () => document.getElementById('post-modal').classList.add('active');
         document.getElementById('close-modal').onclick = () => document.getElementById('post-modal').classList.remove('active');
 
-        // Login/Signup Logic
         document.getElementById('do-login-btn').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value).catch(e => alert(e.message));
         document.getElementById('do-signup-btn').onclick = () => createUserWithEmailAndPassword(auth, document.getElementById('signup-email').value, document.getElementById('signup-password').value).catch(e => alert(e.message));
         document.getElementById('logout-btn').onclick = () => signOut(auth);
 
-        // Username Logic
         document.getElementById('save-username-btn').onclick = async () => {
             const name = document.getElementById('new-username').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
             if (name.length < 3) return alert("Min 3 characters required.");
@@ -158,41 +155,69 @@
             location.reload();
         };
 
-        // Post Logic
         document.getElementById('submit-post').onclick = async () => {
             const text = document.getElementById('post-content').value;
             if (!text.trim()) return;
-            await addDoc(collection(db, "posts"), { text, author: userHandle, uid: auth.currentUser.uid, createdAt: serverTimestamp() });
+            await addDoc(collection(db, "posts"), { 
+                text, 
+                author: userHandle, 
+                uid: auth.currentUser.uid, 
+                createdAt: serverTimestamp(),
+                likes: [],
+                views: []
+            });
             document.getElementById('post-content').value = "";
             document.getElementById('post-modal').classList.remove('active');
         };
 
-        // Load Posts & Handled Deletion internally to fix scope bug
         function loadPosts() {
             onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snap) => {
                 const container = document.getElementById('posts-container');
                 container.innerHTML = "";
-                snap.forEach(d => {
+                snap.forEach(async (d) => {
                     const p = d.data();
-                    const isOwner = p.uid === auth.currentUser.uid;
+                    const postId = d.id;
+                    const uid = auth.currentUser.uid;
+                    const isOwner = p.uid === uid;
+
+                    // Unique view tracking
+                    if (p.views && !p.views.includes(uid)) {
+                        await updateDoc(doc(db, "posts", postId), { views: arrayUnion(uid) });
+                    }
+
+                    const hasLiked = p.likes?.includes(uid);
                     const card = document.createElement('div');
                     card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative";
                     card.innerHTML = `
-                        <p class="text-sm font-bold text-indigo-600 mb-2">@${p.author}</p>
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-sm font-bold text-indigo-600">@${p.author}</p>
+                        </div>
                         <p class="text-gray-800 leading-relaxed whitespace-pre-wrap">${p.text}</p>
-                        <div class="flex justify-between items-center mt-6">
-                            <span class="text-[10px] text-gray-300 font-bold uppercase">${p.createdAt?.toDate().toLocaleString('en-IN') || ''}</span>
-                        </div>`;
+                        <div class="flex items-center gap-6 mt-6 pt-4 border-t border-gray-50">
+                            <button class="like-btn flex items-center gap-1.5 group">
+                                <svg class="w-5 h-5 ${hasLiked ? 'fill-red-500 stroke-red-500' : 'stroke-gray-400 fill-none'}" viewBox="0 0 24 24"><path stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                <span class="text-xs font-bold ${hasLiked ? 'text-red-500' : 'text-gray-400'}">${p.likes?.length || 0}</span>
+                            </button>
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-5 h-5 stroke-gray-400 fill-none" viewBox="0 0 24 24"><path stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                <span class="text-xs font-bold text-gray-400">${p.views?.length || 0}</span>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-300 font-bold uppercase mt-4">${p.createdAt?.toDate().toLocaleString('en-IN') || ''}</p>`;
                     
                     if (isOwner) {
                         const delBtn = document.createElement('button');
                         delBtn.className = "absolute top-6 right-6 text-red-400 text-[10px] font-black";
                         delBtn.innerText = "DELETE";
-                        delBtn.onclick = async () => {
-                            if(confirm("Delete post?")) await deleteDoc(doc(db, "posts", d.id));
-                        };
+                        delBtn.onclick = async () => { if(confirm("Delete post?")) await deleteDoc(doc(db, "posts", postId)); };
                         card.appendChild(delBtn);
                     }
+
+                    card.querySelector('.like-btn').onclick = async () => {
+                        const ref = doc(db, "posts", postId);
+                        await updateDoc(ref, { likes: hasLiked ? arrayRemove(uid) : arrayUnion(uid) });
+                    };
+
                     container.appendChild(card);
                 });
             });
