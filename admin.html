@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OCC Admin</title>
+    <title>OCC Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-white p-5 pb-24 font-sans">
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-2xl font-black text-indigo-400">ADMIN CONTROL</h1>
-            <a href="index.html" class="bg-slate-800 p-3 rounded-2xl text-xs font-bold uppercase">Back</a>
+            <a href="index.html" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Exit</a>
         </div>
         
         <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl shadow-indigo-500/20">
             <h2 class="text-xs font-black uppercase tracking-widest text-indigo-200 mb-4">📢 Top Announcement</h2>
-            <input id="ann-text" placeholder="The big news..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 border-none text-white placeholder-indigo-300 outline-none">
+            <input id="ann-text" placeholder="Important notice..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 border-none text-white placeholder-indigo-300 outline-none">
             <div class="flex gap-2 mb-4">
-                <input id="ann-hours" type="number" placeholder="Hours" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none" min="0" max="240">
+                <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none" min="0" max="240">
                 <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none" min="1" max="59">
             </div>
             <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black shadow-lg active:scale-95 transition-all">PUBLISH LIVE</button>
@@ -25,13 +25,13 @@
 
         <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
             <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">📰 Create Post</h2>
-            <input id="news-title" placeholder="Catchy Headline" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
-            <textarea id="news-content" placeholder="Full story goes here..." class="w-full p-4 bg-slate-100 rounded-2xl h-32 mb-4 outline-none"></textarea>
+            <input id="news-title" placeholder="News Headline" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <textarea id="news-content" placeholder="Full story..." class="w-full p-4 bg-slate-100 rounded-2xl h-32 mb-4 outline-none"></textarea>
             <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black active:scale-95 transition-all">UPLOAD NEWS</button>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-8">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">🚫 Manage Users</h2>
+            <h2 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">🚫 User Moderation</h2>
             <input id="ban-email" placeholder="user@email.com" class="w-full p-4 bg-slate-700 rounded-2xl mb-4 outline-none text-white">
             <div class="flex gap-3">
                 <button onclick="handleBan(true)" class="w-1/2 p-4 bg-red-500/20 text-red-500 rounded-2xl font-bold border border-red-500/30">BAN</button>
@@ -46,30 +46,43 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
+        // SECURITY CHECK: Redirect if not logged in via @Admin bypass
+        if(localStorage.getItem("occ_admin_access") !== "true") {
+            window.location.href = "index.html";
+        }
+
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const db = getFirestore(initializeApp(firebaseConfig));
 
-        // 1. Post News
+        // Post News
         document.getElementById("post-news").onclick = async () => {
             const title = document.getElementById("news-title").value;
             const content = document.getElementById("news-content").value;
             if(!title || !content) return;
             await addDoc(collection(db, "news"), { title, content, likes: [], createdAt: serverTimestamp() });
             alert("News Uploaded!");
-            document.getElementById("news-title").value = ""; document.getElementById("news-content").value = "";
+            document.getElementById("news-title").value = ""; 
+            document.getElementById("news-content").value = "";
         };
 
-        // 2. Announcements
+        // Timed Announcements (1 min to 240 hours)
         document.getElementById("pub-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
             const hrs = parseInt(document.getElementById("ann-hours").value) || 0;
             const mins = parseInt(document.getElementById("ann-mins").value) || 0;
-            const expiry = Date.now() + ((hrs * 60) + mins) * 60000;
+            const totalMins = (hrs * 60) + mins;
+
+            if(totalMins < 1 || totalMins > 14400) {
+                alert("Duration must be between 1 minute and 240 hours.");
+                return;
+            }
+
+            const expiry = Date.now() + (totalMins * 60000);
             await setDoc(doc(db, "settings", "announcement"), { text, expiry });
             alert("Announcement Live!");
         };
 
-        // 3. User Banning
+        // User Banning logic
         window.handleBan = async (status) => {
             const email = document.getElementById("ban-email").value.toLowerCase();
             if(!email) return;
@@ -77,7 +90,7 @@
             alert(`User ${status ? 'BANNED' : 'UNBANNED'}`);
         };
 
-        // 4. Delete List
+        // Live list for deleting news
         onSnapshot(collection(db, "news"), snap => {
             const list = document.getElementById("news-list");
             list.innerHTML = "";
