@@ -299,7 +299,7 @@
     document.getElementById('submit-post').onclick = async () => {
         const text = document.getElementById('post-content').value;
         if(!text.trim()) return;
-        await addDoc(collection(db, "posts"), { text, author: currentUserHandle, uid: auth.currentUser.uid, createdAt: serverTimestamp(), likes: [] });
+ws         await addDoc(collection(db, "posts"), { text, author: currentUserHandle, uid: auth.currentUser.uid, createdAt: serverTimestamp(), likes: [], views"0"});
         document.getElementById('post-content').value = ""; document.getElementById('post-modal').classList.remove('active');
     };
 </script>
