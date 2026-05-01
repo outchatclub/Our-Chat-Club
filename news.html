@@ -1,21 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>OCC News</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCC News</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 p-4">
-    <div class="max-w-xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-indigo-700">Latest News</h1>
-            <a href="index.html" class="text-gray-500">Back</a>
-        </div>
-        <div id="news-feed" class="space-y-4"></div>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+    <div id="ann-bar" class="hidden bg-indigo-600 text-white p-4 text-center font-extrabold text-sm shadow-xl sticky top-0 z-50">
+        <span id="ann-msg"></span>
     </div>
+
+    <header class="p-6 flex justify-between items-center bg-white border-b">
+        <h1 class="text-2xl font-black text-indigo-700">OCC FEED</h1>
+        <a href="index.html" class="p-2 px-4 bg-gray-100 rounded-xl font-bold text-gray-500">BACK</a>
+    </header>
+
+    <main class="flex-grow p-5 space-y-4" id="feed"></main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -23,41 +29,50 @@
         const db = getFirestore();
         const auth = getAuth();
 
-        onAuthStateChanged(auth, user => {
-            if(!user) window.location.href = "index.html";
-            loadNews(user.uid);
+        // 1. Handle Announcement Visibility
+        onSnapshot(doc(db, "settings", "announcement"), sDoc => {
+            if(sDoc.exists()){
+                const data = sDoc.data();
+                if(Date.now() < data.expiry) {
+                    document.getElementById("ann-bar").classList.remove("hidden");
+                    document.getElementById("ann-msg").innerText = "🚨 " + data.text;
+                } else {
+                    document.getElementById("ann-bar").classList.add("hidden");
+                }
+            }
         });
 
-        function loadNews(uid) {
+        // 2. Load Feed
+        onAuthStateChanged(auth, user => {
+            if(!user && localStorage.getItem("occ_admin_access") !== "true") window.location.href = "index.html";
+            const uid = user?.uid || "admin";
             const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+            
             onSnapshot(q, snap => {
-                const feed = document.getElementById("news-feed");
+                const feed = document.getElementById("feed");
                 feed.innerHTML = "";
                 snap.forEach(sDoc => {
                     const data = sDoc.data();
                     const likes = data.likes || [];
-                    const hasLiked = likes.includes(uid);
+                    const isLiked = likes.includes(uid);
                     
                     const card = document.createElement("div");
-                    card.className = "bg-white p-6 rounded-3xl shadow-sm";
+                    card.className = "bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100";
                     card.innerHTML = `
-                        <h2 class="font-bold text-xl mb-2">${data.title}</h2>
-                        <p class="text-gray-600 mb-4">${data.content}</p>
-                        <button onclick="toggleLike('${sDoc.id}', ${hasLiked})" class="flex items-center gap-2 ${hasLiked ? 'text-red-500' : 'text-gray-400'}">
-                            <span>${hasLiked ? '❤️' : '🤍'}</span> <b>${likes.length}</b>
-                        </button>
-                    `;
+                        <h2 class="text-xl font-black text-slate-800 mb-2">${data.title}</h2>
+                        <p class="text-slate-500 mb-4 leading-relaxed">${data.content}</p>
+                        <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 p-3 px-5 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} transition-all">
+                            <span class="text-xl">${isLiked ? '❤️' : '🤍'}</span> <b>${likes.length}</b>
+                        </button>`;
                     feed.appendChild(card);
                 });
             });
-        }
+        });
 
-        window.toggleLike = async (id, hasLiked) => {
+        window.handleLike = async (id, isLiked) => {
+            const uid = auth.currentUser?.uid || "admin";
             const ref = doc(db, "news", id);
-            const uid = auth.currentUser.uid;
-            await updateDoc(ref, {
-                likes: hasLiked ? arrayRemove(uid) : arrayUnion(uid)
-            });
+            await updateDoc(ref, { likes: isLiked ? arrayRemove(uid) : arrayUnion(uid) });
         };
     </script>
 </body>
