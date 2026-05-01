@@ -111,208 +111,185 @@
     </nav>
 
         <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
-    import { getFirestore, doc, getDocs, collection, addDoc, updateDoc, increment, query, orderBy, onSnapshot, serverTimestamp, where, setDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-            
-    const firebaseConfig = { 
-        apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE",
-        authDomain: "our-chat-club.firebaseapp.com",
-        projectId: "our-chat-club",
-        storageBucket: "our-chat-club.firebasestorage.app",
-        messagingSenderId: "533265719248",
-        appId: "1:533265719248:web:e4f61e9267c64b0b3663d5"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, getDocs, collection, addDoc, updateDoc, increment, query, orderBy, onSnapshot, serverTimestamp, where, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+                
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE",
+            authDomain: "our-chat-club.firebaseapp.com",
+            projectId: "our-chat-club",
+            storageBucket: "our-chat-club.firebasestorage.app",
+            messagingSenderId: "533265719248",
+            appId: "1:533265719248:web:e4f61e9267c64b0b3663d5"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    let currentUserHandle = "";
-    let currentChatPartner = null;
+        let currentUserHandle = "";
+        let currentChatPartner = null;
 
-    function showScreen(id) {
-        ['login-section', 'signup-section', 'feed-section', 'profile-section', 'dm-section'].forEach(s => {
-            const el = document.getElementById(s);
-            if(el) el.classList.add('hidden');
+        function showScreen(id) {
+            ['login-section', 'signup-section', 'feed-section', 'profile-section', 'dm-section'].forEach(s => {
+                const el = document.getElementById(s);
+                if(el) el.classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+            const isAuth = id === 'login-section' || id === 'signup-section';
+            document.getElementById('bottom-nav').classList.toggle('hidden', isAuth);
+            document.getElementById('logout-btn').classList.toggle('hidden', isAuth);
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const snap = await getDoc(doc(db, "users", user.uid));
+                if (snap.exists()) {
+                    currentUserHandle = snap.data().username;
+                    showScreen('feed-section');
+                    loadPosts();
+                } else { showScreen('login-section'); }
+            } else { showScreen('login-section'); }
         });
-        document.getElementById(id).classList.remove('hidden');
-        const isAuth = id === 'login-section' || id === 'signup-section';
-        document.getElementById('bottom-nav').classList.toggle('hidden', isAuth);
-        document.getElementById('logout-btn').classList.toggle('hidden', isAuth);
-    }
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if (snap.exists()) {
-                currentUserHandle = snap.data().username;
-                showScreen('feed-section');
-                loadPosts();
-            } else { 
-                showScreen('login-section'); 
-            }
-        } else { showScreen('login-section'); }
-    });
-
-    // SEARCH & VIEW PROFILE (Case-Insensitive)
-    window.viewProfile = async (username) => {
-        const cleanName = username.toLowerCase().trim().replace('@', '');
-        const q = query(collection(db, "users"), where("username", "==", cleanName));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-            const data = snap.docs[0].data(), userId = snap.docs[0].id;
-            showScreen('profile-section');
-            document.getElementById('profile-handle').innerText = `@${data.username}`;
-            document.getElementById('profile-bio').innerText = data.bio || "No bio yet.";
-            document.getElementById('profile-initial').innerText = data.username[0].toUpperCase();
-            const isMe = userId === auth.currentUser?.uid;
-            document.getElementById('edit-bio-btn').classList.toggle('hidden', !isMe);
-            document.getElementById('message-user-btn').classList.toggle('hidden', isMe);
-            if(!isMe) document.getElementById('message-user-btn').onclick = () => startChat(userId, data.username);
-            else document.getElementById('edit-bio-btn').onclick = async () => {
-                const b = prompt("Edit Bio:", data.bio);
-                if(b !== null) {
-                    await updateDoc(doc(db, "users", userId), { bio: b });
-                    document.getElementById('profile-bio').innerText = b;
-                }
-            };
-        } else { alert("User not found!"); }
-    };
-
-    document.getElementById('search-input').onkeydown = (e) => {
-        if(e.key === 'Enter') viewProfile(e.target.value);
-    };
-
-    // REGISTRATION WITH DUPLICATE CHECK
-    document.getElementById('do-signup-btn').onclick = async () => {
-        const userField = document.getElementById('signup-username').value.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
-        const email = document.getElementById('signup-email').value, pass = document.getElementById('signup-password').value;
-        
-        if(!userField || !email || !pass) return alert("Fill all fields");
-        if(userField.length < 3) return alert("Username too short");
-
-        try {
-            const q = query(collection(db, "users"), where("username", "==", userField));
+        window.viewProfile = async (username) => {
+            const cleanName = username.toLowerCase().trim().replace('@', '');
+            const q = query(collection(db, "users"), where("username", "==", cleanName));
             const snap = await getDocs(q);
-            if(!snap.empty) return alert("Username already taken!");
+            if (!snap.empty) {
+                const data = snap.docs[0].data(), userId = snap.docs[0].id;
+                showScreen('profile-section');
+                document.getElementById('profile-handle').innerText = `@${data.username}`;
+                document.getElementById('profile-bio').innerText = data.bio || "No bio yet.";
+                document.getElementById('profile-initial').innerText = data.username[0].toUpperCase();
+                const isMe = userId === auth.currentUser?.uid;
+                document.getElementById('edit-bio-btn').classList.toggle('hidden', !isMe);
+                document.getElementById('message-user-btn').classList.toggle('hidden', isMe);
+                if(!isMe) document.getElementById('message-user-btn').onclick = () => startChat(userId, data.username);
+                else document.getElementById('edit-bio-btn').onclick = async () => {
+                    const b = prompt("Edit Bio:", data.bio);
+                    if(b !== null) {
+                        await updateDoc(doc(db, "users", userId), { bio: b });
+                        document.getElementById('profile-bio').innerText = b;
+                    }
+                };
+            } else { alert("User not found!"); }
+        };
 
-            const cred = await createUserWithEmailAndPassword(auth, email, pass);
-            await setDoc(doc(db, "users", cred.user.uid), { 
-                username: userField, 
-                email: email, 
-                bio: "",
-                createdAt: serverTimestamp() 
+        document.getElementById('search-input').onkeydown = (e) => {
+            if(e.key === 'Enter') viewProfile(e.target.value);
+        };
+
+        document.getElementById('do-signup-btn').onclick = async () => {
+            const userField = document.getElementById('signup-username').value.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
+            const email = document.getElementById('signup-email').value, pass = document.getElementById('signup-password').value;
+            if(!userField || !email || !pass) return alert("Fill all fields");
+            try {
+                const q = query(collection(db, "users"), where("username", "==", userField));
+                const snap = await getDocs(q);
+                if(!snap.empty) return alert("Username already taken!");
+                const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                await setDoc(doc(db, "users", cred.user.uid), { username: userField, email, bio: "", createdAt: serverTimestamp() });
+                location.reload();
+            } catch(e) { alert(e.message); }
+        };
+
+        document.getElementById('do-login-btn').onclick = () => {
+            const email = document.getElementById('login-email').value, pass = document.getElementById('login-password').value;
+            signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+        };
+
+        function loadPosts() {
+            onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snap) => {
+                const container = document.getElementById('posts-container');
+                container.innerHTML = "";
+                snap.forEach(async (d) => {
+                    const p = d.data(), pid = d.id, uid = auth.currentUser.uid;
+                    const postRef = doc(db, "posts", pid);
+                    await updateDoc(postRef, { views: increment(1) });
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm";
+                    card.innerHTML = `
+                        <button class="user-link text-sm font-bold text-indigo-600 mb-2">@${p.author}</button>
+                        <p class="text-gray-800 whitespace-pre-wrap leading-relaxed">${p.text}</p>
+                        <div class="flex items-center gap-6 mt-4 border-t border-gray-50 pt-4">
+                            <button class="like-btn flex items-center gap-1.5">
+                                <svg class="w-5 h-5 ${p.likes?.includes(uid) ? 'fill-red-500 stroke-red-500' : 'stroke-gray-400'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <span class="text-xs font-bold">${p.likes?.length || 0}</span>
+                                <span class="views-count" style="margin-left: 8px;">👁️ ${p.views || 0} Views</span>
+                            </button>
+                            ${p.uid === uid ? `<button class="del-btn ml-auto text-red-400 text-[10px] font-black uppercase tracking-tighter">Delete</button>` : ''}
+                        </div>`;
+                    card.querySelector('.user-link').onclick = () => viewProfile(p.author);
+                    card.querySelector('.like-btn').onclick = () => updateDoc(doc(db, "posts", pid), { likes: p.likes?.includes(uid) ? p.likes.filter(id => id !== uid) : [...(p.likes || []), uid] });
+                    if(p.uid === uid) card.querySelector('.del-btn').onclick = () => confirm("Delete?") && deleteDoc(doc(db, "posts", pid));
+                    container.appendChild(card);
+                });
             });
-            location.reload();
-        } catch(e) { alert("Error: " + e.message); }
-    };
+        }
 
-    document.getElementById('do-login-btn').onclick = () => {
-        const email = document.getElementById('login-email').value, pass = document.getElementById('login-password').value;
-        if(!email || !pass) return alert("Fill all fields");
-        signInWithEmailAndPassword(auth, email, pass).catch(e => alert("Login Failed: " + e.message));
-    };
-
-    // POSTS LOGIC
-    function loadPosts() {
-    onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snap) => {
-        const container = document.getElementById('posts-container');
-        container.innerHTML = "";
-        snap.forEach(async (d) => {
-            const p = d.data(), pid = d.id, uid = auth.currentUser.uid;
-            const postRef = doc(db, "posts", pid);
-            await updateDoc(postRef, { views: increment(1) });
-
-            const card = document.createElement('div');
-            card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm";
-            card.innerHTML = `
-                <button class="user-link text-sm font-bold text-indigo-600 mb-2">@${p.author}</button>
-                <p class="text-gray-800 whitespace-pre-wrap leading-relaxed">${p.text}</p>
-                <div class="flex items-center gap-6 mt-4 border-t border-gray-50 pt-4">
-                    <button class="like-btn flex items-center gap-1.5">
-                        <svg class="w-5 h-5 ${p.likes?.includes(uid) ? 'fill-red-500 stroke-red-500' : 'stroke-gray-400'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                        <span class="text-xs font-bold">${p.likes?.length || 0}</span>
-                        <span class="views-count" style="margin-left: 8px;">👁️ ${p.views || 0} Views</span>
-                    </button>
-                    ${p.uid === uid ? `<button class="del-btn ml-auto text-red-400 text-[10px] font-black uppercase tracking-tighter">Delete</button>` : ''}
-                </div>`;
-
-            card.querySelector('.user-link').onclick = () => viewProfile(p.author);
-            card.querySelector('.like-btn').onclick = () => updateDoc(doc(db, "posts", pid), { 
-    likes: p.likes?.includes(uid) ? p.likes.filter(id => id !== uid) : [...(p.likes || []), uid] 
-});
-            
-            if(p.uid === uid) card.querySelector('.del-btn').onclick = () => confirm("Delete?") && deleteDoc(doc(db, "posts", pid));
-            container.appendChild(card);
-        });
-    });
-    }
-            
-        });
-    }
-
-    // DM & INBOX (Simplified)
-    document.getElementById('nav-dm').onclick = async () => { 
-        showScreen('dm-section'); 
-        const list = document.getElementById('chat-list');
-        list.innerHTML = "Loading...";
-        const snap = await getDocs(collection(db, "users"));
-        list.innerHTML = "";
-        snap.forEach(doc => {
-            if(doc.id !== auth.currentUser.uid) {
-           
-                const u = doc.data();
-                const item = document.createElement('div');
-                item.className = "bg-white p-4 rounded-2xl flex items-center gap-3 border border-gray-100 cursor-pointer";
-                item.innerHTML = `<div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600">${u.username[0].toUpperCase()}</div><p class="font-bold text-sm">@${u.username}</p>`;
-                item.onclick = () => startChat(doc.id, u.username);
-                list.appendChild(item);
-            }
-        });
-    };
-
-    async function startChat(uid, username) {
-        currentChatPartner = { uid, username };
-        document.getElementById('dm-inbox').classList.add('hidden');
-        document.getElementById('active-chat').classList.remove('hidden');
-        document.getElementById('chat-with-name').innerText = `@${username}`;
-        const chatId = [auth.currentUser.uid, uid].sort().join('_');
-        onSnapshot(query(collection(db, `chats/${chatId}/messages`), orderBy("time", "asc")), (snap) => {
-            const box = document.getElementById('chat-messages');
-            box.innerHTML = "";
-            snap.forEach(m => {
-                const msg = m.data(), isMe = msg.sender === auth.currentUser.uid;
-                const el = document.createElement('div');
-                el.className = `p-3 rounded-2xl text-sm max-w-[85%] ${isMe ? 'bg-indigo-600 text-white self-end ml-auto' : 'bg-gray-100 text-gray-800 self-start mr-auto'}`;
-                el.innerText = msg.text;
-                box.appendChild(el);
+        document.getElementById('nav-dm').onclick = async () => { 
+            showScreen('dm-section'); 
+            const list = document.getElementById('chat-list');
+            list.innerHTML = "Loading...";
+            const snap = await getDocs(collection(db, "users"));
+            list.innerHTML = "";
+            snap.forEach(doc => {
+                if(doc.id !== auth.currentUser.uid) {
+                    const u = doc.data();
+                    const item = document.createElement('div');
+                    item.className = "bg-white p-4 rounded-2xl flex items-center gap-3 border border-gray-100 cursor-pointer";
+                    item.innerHTML = `<div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600">${u.username[0].toUpperCase()}</div><p class="font-bold text-sm">@${u.username}</p>`;
+                    item.onclick = () => startChat(doc.id, u.username);
+                    list.appendChild(item);
+                }
             });
-            box.scrollTop = box.scrollHeight;
-        });
-    }
+        };
 
-    document.getElementById('send-dm').onclick = async () => {
-        const text = document.getElementById('dm-input').value;
-        if(!text.trim() || !currentChatPartner) return;
-        const chatId = [auth.currentUser.uid, currentChatPartner.uid].sort().join('_');
-        await addDoc(collection(db, `chats/${chatId}/messages`), { text, sender: auth.currentUser.uid, time: serverTimestamp() });
-        document.getElementById('dm-input').value = "";
-    };
+        async function startChat(uid, username) {
+            currentChatPartner = { uid, username };
+            document.getElementById('dm-inbox').classList.add('hidden');
+            document.getElementById('active-chat').classList.remove('hidden');
+            document.getElementById('chat-with-name').innerText = `@${username}`;
+            const chatId = [auth.currentUser.uid, uid].sort().join('_');
+            onSnapshot(query(collection(db, `chats/${chatId}/messages`), orderBy("time", "asc")), (snap) => {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = "";
+                snap.forEach(m => {
+                    const msg = m.data(), isMe = msg.sender === auth.currentUser.uid;
+                    const el = document.createElement('div');
+                    el.className = `p-3 rounded-2xl text-sm max-w-[85%] ${isMe ? 'bg-indigo-600 text-white self-end ml-auto' : 'bg-gray-100 text-gray-800 self-start mr-auto'}`;
+                    el.innerText = msg.text;
+                    box.appendChild(el);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
 
-    // BUTTONS
-    document.getElementById('btn-home').onclick = () => showScreen('feed-section');
-    document.getElementById('btn-profile').onclick = () => viewProfile(currentUserHandle);
-    document.getElementById('btn-add').onclick = () => document.getElementById('post-modal').classList.add('active');
-    document.getElementById('close-modal').onclick = () => document.getElementById('post-modal').classList.remove('active');
-    document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
-    document.getElementById('go-to-signup').onclick = () => showScreen('signup-section');
-    document.getElementById('back-to-login').onclick = () => showScreen('login-section');
-    document.getElementById('close-chat').onclick = () => { document.getElementById('dm-inbox').classList.remove('hidden'); document.getElementById('active-chat').classList.add('hidden'); };
-    document.getElementById('submit-post').onclick = async () => {
-        const text = document.getElementById('post-content').value;
-        if(!text.trim()) return;
-ws         await addDoc(collection(db, "posts"), { text, author: currentUserHandle, uid: auth.currentUser.uid, createdAt: serverTimestamp(), likes: [], views"0"});
-        document.getElementById('post-content').value = ""; document.getElementById('post-modal').classList.remove('active');
-    };
-</script>
-</body></html>
+        document.getElementById('send-dm').onclick = async () => {
+            const text = document.getElementById('dm-input').value;
+            if(!text.trim() || !currentChatPartner) return;
+            const chatId = [auth.currentUser.uid, currentChatPartner.uid].sort().join('_');
+            await addDoc(collection(db, `chats/${chatId}/messages`), { text, sender: auth.currentUser.uid, time: serverTimestamp() });
+            document.getElementById('dm-input').value = "";
+        };
+
+        document.getElementById('btn-home').onclick = () => showScreen('feed-section');
+        document.getElementById('btn-profile').onclick = () => viewProfile(currentUserHandle);
+        document.getElementById('btn-add').onclick = () => document.getElementById('post-modal').classList.add('active');
+        document.getElementById('close-modal').onclick = () => document.getElementById('post-modal').classList.remove('active');
+        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
+        document.getElementById('go-to-signup').onclick = () => showScreen('signup-section');
+        document.getElementById('back-to-login').onclick = () => showScreen('login-section');
+        document.getElementById('close-chat').onclick = () => { document.getElementById('dm-inbox').classList.remove('hidden'); document.getElementById('active-chat').classList.add('hidden'); };
+        
+        document.getElementById('submit-post').onclick = async () => {
+            const text = document.getElementById('post-content').value;
+            if(!text.trim()) return;
+            await addDoc(collection(db, "posts"), { text, author: currentUserHandle, uid: auth.currentUser.uid, createdAt: serverTimestamp(), likes: [], views: 0 });
+            document.getElementById('post-content').value = ""; document.getElementById('post-modal').classList.remove('active');
+        };
+    </script>
+</body>
+</html>
