@@ -210,8 +210,14 @@
         const p = d.data(), pid = d.id, uid = auth.currentUser.uid;
         const postRef = doc(db, "posts", pid);
         
-        // Ab views sirf ek baar badhega jab page load hoga
-        await updateDoc(postRef, { views: increment(1) });
+               // Check if the current user has already viewed this post
+        if (!p.viewers || !p.viewers.includes(uid)) {
+            await updateDoc(postRef, { 
+                views: increment(1),
+                viewers: arrayUnion(uid) 
+            });
+        }
+        
 
         const card = document.createElement('div');
         card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm";
