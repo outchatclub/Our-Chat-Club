@@ -200,28 +200,34 @@
     };
 
     window.viewProfile = async (username) => {
-        const q = query(collection(db, "users"), where("username", "==", username));
-        const snap = await getDocs(q);
-        if (!snap.empty) {
-            const data = snap.docs[0].data(), userId = snap.docs[0].id;
-            showScreen('profile-section');
-            document.getElementById('profile-handle').innerText = `@${data.username}`;
-            document.getElementById('profile-bio').innerText = data.bio || "No bio yet.";
-            document.getElementById('profile-initial').innerText = data.username[0].toUpperCase();
-            const isMe = userId === auth.currentUser.uid;
-            document.getElementById('edit-bio-btn').classList.toggle('hidden', !isMe);
-            document.getElementById('message-user-btn').classList.toggle('hidden', isMe);
-            if(!isMe) document.getElementById('message-user-btn').onclick = () => startChat(userId, data.username);
-            else document.getElementById('edit-bio-btn').onclick = async () => {
-                const b = prompt("Edit Bio:", data.bio);
-                if(b !== null) {
-                    await updateDoc(doc(db, "users", userId), { bio: b });
-                    document.getElementById('profile-bio').innerText = b;
-                }
-            };
-        } else { alert("User not found!"); }
-    };
-
+    const term = username.toLowerCase().trim().replace('@', '');
+    // Ab hum username_low field mein search karenge
+    const q = query(collection(db, "users"), where("username_low", "==", term));
+    const snap = await getDocs(q);
+    
+    if (!snap.empty) {
+        const data = snap.docs[0].data(), userId = snap.docs[0].id;
+        showScreen('profile-section');
+        // Display wahi dikhayenge jo user ne original rakha tha
+        document.getElementById('profile-handle').innerText = `@${data.username}`;
+        document.getElementById('profile-bio').innerText = data.bio || "No bio yet.";
+        document.getElementById('profile-initial').innerText = data.username[0].toUpperCase();
+        
+        const isMe = auth.currentUser && userId === auth.currentUser.uid;
+        document.getElementById('edit-bio-btn').classList.toggle('hidden', !isMe);
+        document.getElementById('message-user-btn').classList.toggle('hidden', isMe);
+        
+        if(!isMe) document.getElementById('message-user-btn').onclick = () => startChat(userId, data.username);
+        else document.getElementById('edit-bio-btn').onclick = async () => {
+            const b = prompt("Edit Bio:", data.bio);
+            if(b !== null) {
+                await updateDoc(doc(db, "users", userId), { bio: b });
+                document.getElementById('profile-bio').innerText = b;
+            }
+        };
+    } else { alert("User nahi mila bhai!"); }
+};
+        
     
 
     document.getElementById('nav-dm').onclick = () => { showScreen('dm-section'); document.getElementById('dm-inbox').classList.remove('hidden'); document.getElementById('active-chat').classList.add('hidden'); loadInbox(); };
