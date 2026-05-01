@@ -187,15 +187,16 @@
 
     // NOTIFICATION BADGE FIXED
     function listenForUnread() {
-        const q = query(collectionGroup(db, "messages"), where("read", "==", false));
-        onSnapshot(q, (snap) => {
-            const hasUnread = snap.docs.some(d => {
-                const m = d.data();
-                return d.ref.parent.parent.id.includes(auth.currentUser.uid) && m.sender !== auth.currentUser.uid;
-            });
-            document.getElementById('dm-notif').style.display = hasUnread ? 'block' : 'none';
-        });
+    const q = query(
+        collectionGroup(db, "messages"), 
+        where("read", "==", false), 
+        where("receiver", "==", auth.currentUser.uid)
+    );
+    onSnapshot(q, (snap) => {
+        document.getElementById('dm-notif').style.display = snap.empty ? 'none' : 'block';
+    });
     }
+        
 
     document.getElementById('nav-dm').onclick = () => { showScreen('dm-section'); document.getElementById('dm-inbox').classList.remove('hidden'); document.getElementById('active-chat').classList.add('hidden'); loadInbox(); };
     async function loadInbox() {
@@ -242,7 +243,14 @@
         const text = document.getElementById('dm-input').value;
         if(!text.trim()) return;
         const chatId = [auth.currentUser.uid, currentChatPartner.uid].sort().join('_');
-        await addDoc(collection(db, `chats/${chatId}/messages`), { text, sender: auth.currentUser.uid, time: serverTimestamp(), read: false });
+        await addDoc(collection(db, `chats/${chatId}/messages`), { 
+    text, 
+    sender: auth.currentUser.uid, 
+    receiver: currentChatPartner.uid, 
+    time: serverTimestamp(), 
+    read: false 
+});
+        
         document.getElementById('dm-input').value = "";
     };
 
