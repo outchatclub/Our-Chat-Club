@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Chat Club | Purely Text</title>
+    <title>Our Chat Club | Text Only</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -12,7 +12,7 @@
         .modal { display: none; }
         .modal.active { display: flex; }
         .header-grid { display: grid; grid-template-columns: 40px 1fr 60px; align-items: center; gap: 8px; }
-        .notif-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid white; display: none; z-index: 60; }
+        .notif-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid white; display: none; z-index: 60; pointer-events: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -23,9 +23,9 @@
                 <div id="dm-notif" class="notif-dot"></div>
             </button>
             <div class="relative">
-                <input type="text" id="search-input" placeholder="Search @username (Enter)..." class="w-full bg-gray-100 border-none rounded-2xl px-4 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+                <input type="text" id="search-input" placeholder="Search @username (Enter)..." class="w-full bg-gray-100 border-none rounded-2xl px-4 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20">
             </div>
-            <button id="logout-btn" class="text-[10px] font-black text-gray-300 hidden uppercase tracking-tighter">Sign Out</button>
+            <button id="logout-btn" class="text-[10px] font-black text-gray-300 hidden uppercase tracking-tighter hover:text-red-500">Sign Out</button>
         </div>
     </header>
 
@@ -36,36 +36,38 @@
                 <p class="text-gray-500 mt-2">Join the new era of social media.</p>
             </div>
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
-                <input type="email" id="login-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
-                <input type="password" id="login-password" placeholder="Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
+                <input type="email" id="login-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20">
+                <input type="password" id="login-password" placeholder="Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20">
                 <button id="do-login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">Login</button>
                 <p class="text-center text-sm text-gray-500">New? <button id="go-to-signup" class="text-indigo-600 font-bold">Create Account</button></p>
             </div>
         </section>
 
         <section id="signup-section" class="hidden mt-10 space-y-6">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-indigo-600">Join the Club</h2>
+                <p class="text-gray-500 mt-2">Join the new era of social media.</p>
+            </div>
             <div class="bg-white p-6 rounded-3xl border border-gray-100 space-y-4 text-center">
-                <input type="email" id="signup-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
-                <input type="password" id="signup-password" placeholder="Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
+                <input type="email" id="signup-email" placeholder="Email Address" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
+                <input type="password" id="signup-password" placeholder="Create Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none">
                 <button id="do-signup-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Register</button>
-                <p class="text-sm mt-4"><button id="back-to-login" class="text-indigo-600 font-bold">Login Instead</button></p>
+                <p class="text-sm mt-4"><button id="back-to-login" class="text-indigo-600 font-bold">Back to Login</button></p>
             </div>
         </section>
 
         <section id="feed-section" class="hidden space-y-4"><div id="posts-container" class="space-y-4"></div></section>
-
         <section id="profile-section" class="hidden mt-4">
             <div class="bg-white p-8 rounded-3xl text-center shadow-sm border border-gray-100">
                 <div class="w-24 h-24 bg-indigo-600 text-white rounded-full flex items-center justify-center text-4xl font-black mx-auto mb-4" id="profile-initial">?</div>
                 <h2 class="text-2xl font-bold" id="profile-handle">@username</h2>
                 <p id="profile-bio" class="text-gray-500 italic text-sm my-4">No bio yet.</p>
                 <div class="flex gap-2 justify-center">
-                    <button id="edit-bio-btn" class="hidden bg-gray-100 text-gray-600 px-6 py-2 rounded-full font-bold text-xs hover:bg-gray-200">Edit Bio</button>
-                    <button id="message-user-btn" class="hidden bg-indigo-600 text-white px-6 py-2 rounded-full font-bold text-xs shadow-md">Message</button>
+                    <button id="edit-bio-btn" class="hidden bg-gray-100 text-gray-600 px-6 py-2 rounded-full font-bold text-xs">Edit Bio</button>
+                    <button id="message-user-btn" class="hidden bg-indigo-600 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">Message</button>
                 </div>
             </div>
         </section>
-
         <section id="dm-section" class="hidden mt-4">
             <div id="dm-inbox" class="space-y-4">
                 <h3 class="font-bold text-gray-400 text-xs uppercase tracking-widest">Inbox</h3>
@@ -78,7 +80,7 @@
                 </div>
                 <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2 pb-4 flex flex-col"></div>
                 <div class="flex gap-2 border-t pt-4">
-                    <input type="text" id="dm-input" placeholder="Aa..." class="flex-1 bg-gray-50 border-none rounded-xl px-4 outline-none text-sm">
+                    <input type="text" id="dm-input" placeholder="Type..." class="flex-1 bg-gray-50 border-none rounded-xl px-4 outline-none text-sm">
                     <button id="send-dm" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-xs">SEND</button>
                 </div>
             </div>
@@ -86,10 +88,10 @@
     </main>
 
     <div id="post-modal" class="modal fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-end sm:items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl">
-            <textarea id="post-content" maxlength="2000" rows="6" class="w-full p-4 bg-gray-50 rounded-2xl outline-none resize-none mb-4" placeholder="Text only..."></textarea>
-            <button id="submit-post" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg">Post to Club</button>
-            <button id="close-modal" class="w-full mt-3 text-gray-400 text-xs font-bold uppercase tracking-widest">Cancel</button>
+        <div class="bg-white w-full max-w-lg rounded-3xl p-6">
+            <textarea id="post-content" maxlength="2000" rows="6" class="w-full p-4 bg-gray-50 rounded-2xl outline-none resize-none mb-4" placeholder="Speak your mind..."></textarea>
+            <button id="submit-post" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Post Now</button>
+            <button id="close-modal" class="w-full mt-3 text-gray-400 text-xs font-bold uppercase">Cancel</button>
         </div>
     </div>
 
@@ -101,10 +103,11 @@
         </div>
     </nav>
 
+
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove, collectionGroup } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
     const firebaseConfig = { 
         apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE",
@@ -142,7 +145,7 @@
                 loadPosts();
                 listenForUnread();
             } else { 
-                const name = prompt("Claim your @username:");
+                const name = prompt("Choose your @username:");
                 if(name) {
                     await setDoc(doc(db, "users", user.uid), { username: name.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''), email: user.email, bio: "" });
                     location.reload();
@@ -151,7 +154,7 @@
         } else { showScreen('login-section'); }
     });
 
-    // SEARCH LOGIC
+    // SEARCH FIXED
     document.getElementById('search-input').onkeydown = async (e) => {
         if(e.key === 'Enter') {
             const term = e.target.value.toLowerCase().trim().replace('@', '');
@@ -173,31 +176,32 @@
             document.getElementById('message-user-btn').classList.toggle('hidden', isMe);
             if(!isMe) document.getElementById('message-user-btn').onclick = () => startChat(userId, data.username);
             else document.getElementById('edit-bio-btn').onclick = async () => {
-                const b = prompt("Update Bio:", data.bio);
-                if(b !== null) await updateDoc(doc(db, "users", userId), { bio: b });
-                document.getElementById('profile-bio').innerText = b;
+                const b = prompt("Edit Bio:", data.bio);
+                if(b !== null) {
+                    await updateDoc(doc(db, "users", userId), { bio: b });
+                    document.getElementById('profile-bio').innerText = b;
+                }
             };
-        } else { alert("Username not found!"); }
+        } else { alert("User not found!"); }
     };
 
-    // UNREAD DM LOGIC
+    // NOTIFICATION BADGE FIXED
     function listenForUnread() {
         const q = query(collectionGroup(db, "messages"), where("read", "==", false));
         onSnapshot(q, (snap) => {
             const hasUnread = snap.docs.some(d => {
-                const msg = d.data();
-                return d.ref.parent.parent.id.includes(auth.currentUser.uid) && msg.sender !== auth.currentUser.uid;
+                const m = d.data();
+                return d.ref.parent.parent.id.includes(auth.currentUser.uid) && m.sender !== auth.currentUser.uid;
             });
             document.getElementById('dm-notif').style.display = hasUnread ? 'block' : 'none';
         });
     }
 
     document.getElementById('nav-dm').onclick = () => { showScreen('dm-section'); document.getElementById('dm-inbox').classList.remove('hidden'); document.getElementById('active-chat').classList.add('hidden'); loadInbox(); };
-    
     async function loadInbox() {
         const list = document.getElementById('chat-list');
-        list.innerHTML = "";
         const snap = await getDocs(query(collection(db, "users"), where("username", "!=", currentUserHandle)));
+        list.innerHTML = "";
         snap.forEach(doc => {
             const u = doc.data();
             const item = document.createElement('div');
@@ -242,40 +246,38 @@
         document.getElementById('dm-input').value = "";
     };
 
-    // UPDATED LOAD POSTS (KILLS DUPLICATE BUG)
+    // DUPLICATE BUG FIXED
     function loadPosts() {
         onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snap) => {
             const container = document.getElementById('posts-container');
             container.innerHTML = ""; 
-            const renderedPostIds = new Set(); // Internal track to prevent same-frame duplicates
-
+            const seen = new Set();
             snap.forEach(async (d) => {
-                const pid = d.id;
-                if(renderedPostIds.has(pid)) return; // Skip if already handled in this loop
-                renderedPostIds.add(pid);
-
-                const p = d.data(), uid = auth.currentUser.uid, isOwner = p.uid === uid;
+                if(seen.has(d.id)) return;
+                seen.add(d.id);
+                const p = d.data(), pid = d.id, uid = auth.currentUser.uid, isOwner = p.uid === uid;
                 if (p.views && !p.views.includes(uid)) await updateDoc(doc(db, "posts", pid), { views: arrayUnion(uid) });
-                
                 const card = document.createElement('div');
                 card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm relative";
-                card.innerHTML = `<button class="user-link text-sm font-bold text-indigo-600 mb-2 hover:underline">@${p.author}</button><p class="text-gray-800 whitespace-pre-wrap">${p.text}</p><div class="flex items-center gap-6 mt-6 pt-4 border-t border-gray-50"><button class="like-btn flex items-center gap-1.5 group"><svg class="w-5 h-5 ${p.likes?.includes(uid) ? 'fill-red-500 stroke-red-500' : 'stroke-gray-400 fill-none'}" viewBox="0 0 24 24"><path stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><span class="text-xs font-bold ${p.likes?.includes(uid) ? 'text-red-500' : 'text-gray-400'}">${p.likes?.length || 0}</span></button><div class="flex items-center gap-1.5 text-gray-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg><span class="text-xs font-bold">${p.views?.length || 0}</span></div>${isOwner ? `<button class="del-btn ml-auto text-red-400 text-[10px] font-black uppercase tracking-widest">Delete</button>` : ''}</div>`;
-                
+                card.innerHTML = `<button class="user-link text-sm font-bold text-indigo-600 mb-2">@${p.author}</button><p class="text-gray-800 whitespace-pre-wrap leading-relaxed">${p.text}</p><div class="flex items-center gap-6 mt-6 pt-4 border-t border-gray-50"><button class="like-btn flex items-center gap-1.5"><svg class="w-5 h-5 ${p.likes?.includes(uid) ? 'fill-red-500 stroke-red-500' : 'stroke-gray-400 fill-none'}" viewBox="0 0 24 24"><path stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><span class="text-xs font-bold ${p.likes?.includes(uid) ? 'text-red-500' : 'text-gray-400'}">${p.likes?.length || 0}</span></button><div class="flex items-center gap-1.5 text-gray-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg><span class="text-xs font-bold">${p.views?.length || 0}</span></div>${isOwner ? `<button class="del-btn ml-auto text-red-400 text-[10px] font-black uppercase">Delete</button>` : ''}</div>`;
                 card.querySelector('.user-link').onclick = () => viewProfile(p.author);
                 card.querySelector('.like-btn').onclick = async () => await updateDoc(doc(db, "posts", pid), { likes: p.likes?.includes(uid) ? arrayRemove(uid) : arrayUnion(uid) });
-                if(isOwner) card.querySelector('.del-btn').onclick = async () => { if(confirm("Delete post?")) await deleteDoc(doc(db, "posts", pid)); };
+                if(isOwner) card.querySelector('.del-btn').onclick = async () => { if(confirm("Delete?")) await deleteDoc(doc(db, "posts", pid)); };
                 container.appendChild(card);
             });
         });
     }
 
+    // SIGN-IN ALERTS FIXED
     document.getElementById('do-login-btn').onclick = () => {
-        const e = document.getElementById('login-email').value, p = document.getElementById('login-password').value;
-        signInWithEmailAndPassword(auth, e, p).catch(err => alert("Error: " + err.message));
+        const email = document.getElementById('login-email').value, pass = document.getElementById('login-password').value;
+        if(!email || !pass) return alert("Fill all fields");
+        signInWithEmailAndPassword(auth, email, pass).catch(e => alert("Error: " + e.message));
     };
     document.getElementById('do-signup-btn').onclick = () => {
-        const e = document.getElementById('signup-email').value, p = document.getElementById('signup-password').value;
-        createUserWithEmailAndPassword(auth, e, p).catch(err => alert("Error: " + err.message));
+        const email = document.getElementById('signup-email').value, pass = document.getElementById('signup-password').value;
+        if(!email || !pass) return alert("Fill all fields");
+        createUserWithEmailAndPassword(auth, email, pass).catch(e => alert("Error: " + e.message));
     };
 
     document.getElementById('btn-home').onclick = () => showScreen('feed-section');
@@ -286,7 +288,6 @@
     document.getElementById('go-to-signup').onclick = () => showScreen('signup-section');
     document.getElementById('back-to-login').onclick = () => showScreen('login-section');
     document.getElementById('close-chat').onclick = () => { document.getElementById('dm-inbox').classList.remove('hidden'); document.getElementById('active-chat').classList.add('hidden'); };
-    
     document.getElementById('submit-post').onclick = async () => {
         const text = document.getElementById('post-content').value;
         if(!text.trim()) return;
