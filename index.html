@@ -173,12 +173,12 @@ document.getElementById("do-login-btn").onclick = () => {
 // FEED
 function loadFeed(){
   onSnapshot(collection(db,"posts"),snap=>{
-    posts-container.innerHTML="";
+    document.getElementById("posts-container").innerHTML = "";
     snap.forEach(d=>{
       const p=d.data();
       const id=d.id;
 
-      posts-container.innerHTML+=`
+      document.getElementById("posts-container").innerHTML += `
       <div class="bg-white p-4 rounded-2xl shadow">
         <b>@${p.author}</b><br>${p.text}
       </div>`;
@@ -191,7 +191,7 @@ document.getElementById("btn-add").onclick = () => {
   document.getElementById("post-modal").classList.add("active");
 };
 document.getElementById("submit-post").onclick = async () => {
-  const text=post-content.value;
+  const text = document.getElementById("post-content").value;
   if(!text) return;
 
   await addDoc(collection(db,"posts"),{
@@ -203,7 +203,7 @@ document.getElementById("submit-post").onclick = async () => {
     viewers:[]
   });
 
-  post-modal.classList.remove("active");
+  document.getElementById("post-modal").classList.remove("active");
 };
 </script>
 
