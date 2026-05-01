@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>OCC News</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-4">
+    <div class="max-w-xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-indigo-700">Latest News</h1>
+            <a href="index.html" class="text-gray-500">Back</a>
+        </div>
+        <div id="news-feed" class="space-y-4"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore();
+        const auth = getAuth();
+
+        onAuthStateChanged(auth, user => {
+            if(!user) window.location.href = "index.html";
+            loadNews(user.uid);
+        });
+
+        function loadNews(uid) {
+            const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+            onSnapshot(q, snap => {
+                const feed = document.getElementById("news-feed");
+                feed.innerHTML = "";
+                snap.forEach(sDoc => {
+                    const data = sDoc.data();
+                    const likes = data.likes || [];
+                    const hasLiked = likes.includes(uid);
+                    
+                    const card = document.createElement("div");
+                    card.className = "bg-white p-6 rounded-3xl shadow-sm";
+                    card.innerHTML = `
+                        <h2 class="font-bold text-xl mb-2">${data.title}</h2>
+                        <p class="text-gray-600 mb-4">${data.content}</p>
+                        <button onclick="toggleLike('${sDoc.id}', ${hasLiked})" class="flex items-center gap-2 ${hasLiked ? 'text-red-500' : 'text-gray-400'}">
+                            <span>${hasLiked ? '❤️' : '🤍'}</span> <b>${likes.length}</b>
+                        </button>
+                    `;
+                    feed.appendChild(card);
+                });
+            });
+        }
+
+        window.toggleLike = async (id, hasLiked) => {
+            const ref = doc(db, "news", id);
+            const uid = auth.currentUser.uid;
+            await updateDoc(ref, {
+                likes: hasLiked ? arrayRemove(uid) : arrayUnion(uid)
+            });
+        };
+    </script>
+</body>
+</html>
+
