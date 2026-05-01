@@ -1,99 +1,125 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel | Our Chat Club</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #000; color: white; font-family: sans-serif; }
-        .admin-card { background: #111; border: 1px solid #333; border-radius: 12px; }
+        body { background-color: #050505; color: white; font-family: 'Inter', sans-serif; }
+        .admin-card { background: #111; border: 1px solid #222; border-radius: 16px; }
         .hidden { display: none; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div id="login-section" class="admin-card p-8 w-full max-w-md shadow-2xl">
-        <h2 class="text-2xl font-bold mb-6 text-center text-blue-500">Admin Login</h2>
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-blue-500">Admin Access</h2>
+            <p class="text-gray-500 text-sm mt-2">Enter credentials to manage OCC</p>
+        </div>
         <div class="space-y-4">
-            <input type="text" id="admin-user" placeholder="Admin Username (@admin)" 
-                class="w-full p-3 bg-black border border-gray-700 rounded focus:border-blue-500 outline-none">
+            <input type="text" id="admin-user" placeholder="Username (@admin)" 
+                class="w-full p-4 bg-black border border-gray-800 rounded-xl focus:border-blue-500 outline-none transition-all">
             <input type="password" id="admin-pass" placeholder="Password (DD/MM/YYYY)" 
-                class="w-full p-3 bg-black border border-gray-700 rounded focus:border-blue-500 outline-none">
+                class="w-full p-4 bg-black border border-gray-800 rounded-xl focus:border-blue-500 outline-none transition-all">
             <button onclick="checkLogin()" 
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition">
-                Access Panel
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">
+                Authorize Session
             </button>
-            <p id="error-msg" class="text-red-500 text-sm text-center hidden">Galat Details! Dubara koshish karein.</p>
+            <p id="error-msg" class="text-red-500 text-sm text-center hidden font-medium">Authentication Failed!</p>
         </div>
     </div>
 
-    <div id="admin-panel" class="w-full max-w-4xl hidden">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">OCC <span class="text-blue-500">Dashboard</span></h1>
-            <button onclick="location.reload()" class="bg-red-600 px-4 py-2 rounded text-sm">Logout</button>
+    <div id="admin-panel" class="w-full max-w-5xl hidden animate-in fade-in duration-500">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-black tracking-tighter">OCC <span class="text-blue-500">ADMIN</span></h1>
+                <p id="sync-status" class="text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">● Live Sync Active</p>
+            </div>
+            <button onclick="location.reload()" class="bg-gray-800 hover:bg-red-600 px-6 py-2 rounded-full text-xs font-bold transition-colors">Terminate Session</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="admin-card p-6 text-center">
-                <p class="text-gray-400">Total Users</p>
-                <h3 id="user-count" class="text-4xl font-bold">--</h3>
-            </div>
-            <div class="admin-card p-6 text-center">
-                <p class="text-gray-400">Total Posts</p>
-                <h3 id="post-count" class="text-4xl font-bold">--</h3>
-            </div>
-            <div class="admin-card p-6 text-center border-blue-900">
-                <p class="text-blue-400">Status</p>
-                <h3 class="text-2xl font-bold text-green-500">System Live</h3>
-            </div>
-        </div>
-
-        <div class="admin-card p-6">
-            <h2 class="text-xl font-bold mb-4 border-b border-gray-800 pb-2">Management Console</h2>
-            <div class="space-y-4">
-                <div class="flex items-center justify-between p-4 bg-black rounded border border-gray-800">
-                    <div>
-                        <p class="font-bold">Global Post Cleanup</p>
-                        <p class="text-xs text-gray-500">Delete all messages from database</p>
-                    </div>
-                    <button class="bg-red-900/50 hover:bg-red-600 text-red-200 px-4 py-2 rounded transition text-sm">Clear All</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <div class="admin-card p-8 relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-1">Registered Members</p>
+                    <h3 id="user-count" class="text-6xl font-black text-white">...</h3>
                 </div>
-                
-                <div class="flex items-center justify-between p-4 bg-black rounded border border-gray-800">
-                    <div>
-                        <p class="font-bold">User Ban System</p>
-                        <p class="text-xs text-gray-500">Restrict access to specific IDs</p>
-                    </div>
-                    <button class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded text-sm">Manage</button>
+                <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black">USERS</div>
+            </div>
+            <div class="admin-card p-8 relative overflow-hidden">
+                <div class="relative z-10">
+                    <p class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-1">Total Broadcasts</p>
+                    <h3 id="post-count" class="text-6xl font-black text-blue-500">...</h3>
+                </div>
+                <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black">POSTS</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+            <div class="admin-card p-6">
+                <h2 class="text-xl font-bold mb-6 border-b border-white/10 pb-4">System Controls</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onclick="alert('Feature coming soon!')" class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-2xl text-left hover:bg-blue-900/40 transition">
+                        <p class="font-bold text-blue-400">Export User Data</p>
+                        <p class="text-[10px] text-gray-500">Download CSV of all members</p>
+                    </button>
+                    <button onclick="alert('Contact developer for mass deletion.')" class="p-4 bg-red-900/20 border border-red-500/30 rounded-2xl text-left hover:bg-red-900/40 transition">
+                        <p class="font-bold text-red-400">Emergency Wipe</p>
+                        <p class="text-[10px] text-gray-500">Delete all posts instantly</p>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        function checkLogin() {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+        // Tumhare index.html se liya gaya config
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE",
+            authDomain: "our-chat-club.firebaseapp.com",
+            projectId: "our-chat-club",
+            storageBucket: "our-chat-club.firebasestorage.app",
+            messagingSenderId: "533265719248",
+            appId: "1:533265719248:web:e4f61e9267c64b0b3663d5",
+            measurementId: "G-1RZKH72PH2"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Global function for login check
+        window.checkLogin = function() {
             const user = document.getElementById('admin-user').value;
             const pass = document.getElementById('admin-pass').value;
             const error = document.getElementById('error-msg');
 
-            // Tumhari conditions: @admin aur birthday password
             if (user === "@admin" && (pass === "29/10/2007" || pass === "29102007")) {
                 document.getElementById('login-section').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
-                loadStats();
+                startLiveUpdates();
             } else {
                 error.classList.remove('hidden');
                 setTimeout(() => error.classList.add('hidden'), 3000);
             }
-        }
+        };
 
-        // Dummy stats for now, later connect with your Firebase
-        function loadStats() {
-            document.getElementById('user-count').innerText = "124";
-            document.getElementById('post-count').innerText = "1,850";
+        function startLiveUpdates() {
+            // Live Users Count
+            onSnapshot(collection(db, "users"), (snap) => {
+                document.getElementById('user-count').innerText = snap.size;
+            });
+
+            // Live Posts Count
+            onSnapshot(collection(db, "posts"), (snap) => {
+                document.getElementById('post-count').innerText = snap.size;
+            });
         }
     </script>
 </body>
 </html>
-
