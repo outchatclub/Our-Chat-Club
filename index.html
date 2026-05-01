@@ -1,110 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Our Chat Club | Text Only</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-body { font-family: 'Inter', sans-serif; padding-bottom: 100px; }
-.nav-blur { backdrop-filter: blur(12px); background: rgba(255,255,255,0.8); }
-.modal { display:none; }
-.modal.active { display:flex; }
-.header-grid { display:grid; grid-template-columns:40px 1fr 60px; gap:8px; align-items:center; }
-.notif-dot { position:absolute; top:6px; right:6px; width:10px; height:10px; background:red; border-radius:50%; display:none; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Chat Club | Text Only</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; padding-bottom: 100px; }
+        .nav-blur { backdrop-filter: blur(12px); background: rgba(255, 255, 255, 0.8); }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+        .header-grid { display: grid; grid-template-columns: 40px 1fr 60px; align-items: center; gap: 8px; }
+        .notif-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; background: #ef4444; border-radius: 50%; border: 2px solid white; display: none; z-index: 60; pointer-events: none; }
+    </style>
 </head>
-
 <body class="bg-gray-50 text-gray-900">
-
-<header class="bg-white border-b sticky top-0 h-16 flex items-center">
-<div class="max-w-2xl mx-auto w-full px-4 header-grid">
-
-<button id="nav-dm" class="relative p-2 text-indigo-600">
-💬
-<div id="dm-notif" class="notif-dot"></div>
-</button>
-
-<input id="search-input" placeholder="Search @username..." class="bg-gray-100 rounded-xl px-4 py-2 text-xs">
-
-<button id="logout-btn" class="hidden text-xs">Logout</button>
-
-</div>
+  <header class="bg-white border-b border-gray-100 sticky top-0 z-50 h-16 flex items-center">
+    <div class="max-w-2xl mx-auto w-full px-4 header-grid">
+        <button id="nav-dm" class="relative p-2 text-indigo-600 active:scale-90 transition-transform">
+            💬
+            <div id="dm-notif" class="notif-dot"></div>
+        </button>
+        <div class="relative">
+            <input type="text" id="search-input" placeholder="Search @username (Enter)..." class="w-full bg-gray-100 border-none rounded-2xl px-4 py-2 text-xs font-semibold outline-none">
+        </div>
+        <button id="logout-btn" class="text-[10px] font-black text-gray-300 hidden uppercase tracking-tighter">Sign Out</button>
+    </div>
 </header>
 
 <main class="max-w-2xl mx-auto p-4">
+    <section id="login-section" class="mt-10 space-y-6">
+        <input id="login-email" placeholder="Email">
+        <input id="login-password" placeholder="Password">
+        <button id="do-login-btn">Login</button>
+        <button id="go-to-signup">Signup</button>
+    </section>
 
-<section id="login-section">
-<input id="login-email" placeholder="Email">
-<input id="login-password" placeholder="Password">
-<button id="do-login-btn">Login</button>
-<button id="go-to-signup">Signup</button>
-</section>
+    <section id="signup-section" class="hidden mt-10 space-y-6">
+        <input id="signup-email" placeholder="Email">
+        <input id="signup-password" placeholder="Password">
+        <button id="do-signup-btn">Register</button>
+        <button id="back-to-login">Back</button>
+    </section>
 
-<section id="signup-section" class="hidden">
-<input id="signup-email" placeholder="Email">
-<input id="signup-password" placeholder="Password">
-<button id="do-signup-btn">Register</button>
-<button id="back-to-login">Back</button>
-</section>
+    <section id="feed-section" class="hidden">
+        <div id="posts-container"></div>
+    </section>
 
-<section id="feed-section" class="hidden">
-<div id="posts-container"></div>
-</section>
+    <section id="profile-section" class="hidden">
+        <h2 id="profile-handle"></h2>
+        <p id="profile-bio"></p>
+        <button id="edit-bio-btn" class="hidden">Edit</button>
+        <button id="message-user-btn" class="hidden">Message</button>
+    </section>
 
-<section id="profile-section" class="hidden">
-<h2 id="profile-handle"></h2>
-<p id="profile-bio"></p>
-<button id="edit-bio-btn" class="hidden">Edit</button>
-<button id="message-user-btn" class="hidden">Message</button>
-</section>
+    <section id="dm-section" class="hidden">
+        <div id="chat-list"></div>
 
-<section id="dm-section" class="hidden">
-<div id="chat-list"></div>
-
-<div id="active-chat" class="hidden">
-<div id="chat-messages"></div>
-<input id="dm-input">
-<button id="send-dm">Send</button>
-</div>
-</section>
-
+        <div id="active-chat" class="hidden">
+            <div id="chat-messages"></div>
+            <input id="dm-input">
+            <button id="send-dm">SEND</button>
+        </div>
+    </section>
 </main>
 
-<div id="post-modal" class="modal fixed inset-0 bg-black/50">
-<textarea id="post-content"></textarea>
-<button id="submit-post">Post</button>
-<button id="close-modal">Cancel</button>
+<div id="post-modal" class="modal fixed inset-0 z-50 bg-black/60">
+    <textarea id="post-content"></textarea>
+    <button id="submit-post">Post</button>
+    <button id="close-modal">Cancel</button>
 </div>
 
-<nav id="bottom-nav" class="hidden fixed bottom-0 w-full bg-white">
-<button id="btn-home">Home</button>
-<button id="btn-add">+</button>
-<button id="btn-profile">Profile</button>
+<nav id="bottom-nav" class="hidden fixed bottom-0 left-0 right-0 nav-blur">
+    <button id="btn-home">Home</button>
+    <button id="btn-add">+</button>
+    <button id="btn-profile">Profile</button>
 </nav>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
 import {
-getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
 onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
 import {
 getFirestore, doc, setDoc, getDoc, collection, addDoc,
 query, orderBy, onSnapshot, serverTimestamp, where,
-getDocs, updateDoc, deleteDoc, arrayUnion, arrayRemove, collectionGroup
+getDocs, deleteDoc, updateDoc, arrayUnion, arrayRemove, collectionGroup
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-const firebaseConfig = {
+const app = initializeApp({
 apiKey: "YOUR_KEY",
 authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT",
-};
+projectId: "YOUR_PROJECT"
+});
 
-const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -115,224 +106,108 @@ let unsubscribePosts = null;
 
 /* ✅ SAFE CHAT ID */
 function getChatId(a,b){
-return [a,b].sort().join('_');
+    return [a,b].sort().join('_');
 }
 
-/* SCREEN SWITCH */
-function showScreen(id){
-["login-section","signup-section","feed-section","profile-section","dm-section"]
-.forEach(s=>document.getElementById(s).classList.add('hidden'));
-
-document.getElementById(id).classList.remove('hidden');
-
-const isAuth = id==="login-section"||id==="signup-section";
-document.getElementById('bottom-nav').classList.toggle('hidden', isAuth);
-document.getElementById('logout-btn').classList.toggle('hidden', isAuth);
-}
-
-/* AUTH STATE */
+/* AUTH */
 onAuthStateChanged(auth, async (user)=>{
-if(user){
-const snap = await getDoc(doc(db,"users",user.uid));
+    if(user){
+        const snap = await getDoc(doc(db,"users",user.uid));
 
-if(snap.exists()){
-currentUserHandle = snap.data().username;
-showScreen("feed-section");
-loadPosts();
-listenForUnread();
-}else{
-const name = prompt("Choose username:");
-if(name){
-const clean = name.toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);
-
-await setDoc(doc(db,"users",user.uid),{
-username: clean,
-email: user.email,
-bio:""
+        if(snap.exists()){
+            currentUserHandle = snap.data().username;
+            loadPosts();
+            listenForUnread();
+        }else{
+            const name = prompt("Choose username:");
+            if(name){
+                const clean = name.toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,20);
+                await setDoc(doc(db,"users",user.uid),{username:clean,email:user.email});
+                location.reload();
+            }
+        }
+    }
 });
 
-location.reload();
+/* POSTS FIX */
+function loadPosts(){
+    if(unsubscribePosts) unsubscribePosts();
+
+    unsubscribePosts = onSnapshot(
+        query(collection(db,"posts"),orderBy("createdAt","desc")),
+        snap=>{
+            posts-container.innerHTML="";
+            snap.forEach(d=>{
+                const p=d.data();
+                const el=document.createElement("div");
+                el.innerHTML=`<b>@${p.author}</b><p>${p.text}</p>`;
+                posts-container.appendChild(el);
+            });
+        }
+    );
 }
+
+/* CHAT FIX */
+function loadMessages(){
+    if(unsubscribeMessages) unsubscribeMessages();
+
+    const chatId = getChatId(auth.currentUser.uid,currentChatPartner.uid);
+
+    unsubscribeMessages = onSnapshot(
+        query(collection(db,`chats/${chatId}/messages`),orderBy("time")),
+        snap=>{
+            chat-messages.innerHTML="";
+            snap.forEach(m=>{
+                const msg=m.data();
+                const div=document.createElement("div");
+                div.innerText=msg.text;
+                chat-messages.appendChild(div);
+
+                if(msg.sender!==auth.currentUser.uid && !msg.read){
+                    updateDoc(m.ref,{read:true});
+                }
+            });
+        }
+    );
 }
-}else{
-showScreen("login-section");
-}
-});
 
-<script type="module">
+/* SEND MESSAGE FIX */
+send-dm.onclick = async ()=>{
+    const text = dm-input.value.trim();
+    if(!text || text.length>1000) return;
 
-/* SEARCH */
-document.getElementById('search-input').onkeydown = (e)=>{
-if(e.key==="Enter"){
-const term = e.target.value.toLowerCase().replace('@','');
-if(term.length<3) return alert("Min 3 chars");
-viewProfile(term);
-}
-};
+    const chatId = getChatId(auth.currentUser.uid,currentChatPartner.uid);
 
-/* PROFILE */
-window.viewProfile = async(username)=>{
-const q = query(collection(db,"users"), where("username","==",username));
-const snap = await getDocs(q);
+    await addDoc(collection(db,`chats/${chatId}/messages`),{
+        text,
+        sender:auth.currentUser.uid,
+        time:serverTimestamp(),
+        read:false
+    });
 
-if(!snap.empty){
-const data = snap.docs[0].data();
-const id = snap.docs[0].id;
-
-showScreen("profile-section");
-
-profile-handle.innerText="@"+data.username;
-profile-bio.innerText=data.bio||"No bio";
-
-const isMe = id===auth.currentUser.uid;
-
-edit-bio-btn.classList.toggle('hidden',!isMe);
-message-user-btn.classList.toggle('hidden',isMe);
-
-if(!isMe){
-message-user-btn.onclick=()=>startChat(id,data.username);
-}else{
-edit-bio-btn.onclick=async()=>{
-const b=prompt("Bio:",data.bio);
-if(b!==null){
-await updateDoc(doc(db,"users",id),{bio:b});
-profile-bio.innerText=b;
-}
-};
-}
-}
+    dm-input.value="";
 };
 
 /* UNREAD FIX */
 function listenForUnread(){
-const q = query(collectionGroup(db,"messages"));
+    const q = query(collectionGroup(db,"messages"));
 
-onSnapshot(q,(snap)=>{
-let hasUnread=false;
+    onSnapshot(q,snap=>{
+        let hasUnread=false;
 
-snap.forEach(d=>{
-const m=d.data();
-const chatId=d.ref.parent.parent.id;
+        snap.forEach(d=>{
+            const m=d.data();
+            const chatId=d.ref.parent.parent.id;
 
-if(chatId.includes(auth.currentUser.uid)
-&& m.sender!==auth.currentUser.uid
-&& !m.read){
-hasUnread=true;
+            if(chatId.includes(auth.currentUser.uid) && m.sender!==auth.currentUser.uid && !m.read){
+                hasUnread=true;
+            }
+        });
+
+        document.getElementById('dm-notif').style.display = hasUnread ? 'block':'none';
+    });
 }
-});
-
-dm-notif.style.display = hasUnread ? "block":"none";
-});
-}
-
-/* CHAT */
-async function startChat(uid,username){
-currentChatPartner={uid,username};
-showScreen("dm-section");
-active-chat.classList.remove("hidden");
-
-loadMessages();
-}
-
-function loadMessages(){
-if(unsubscribeMessages) unsubscribeMessages();
-
-const chatId=getChatId(auth.currentUser.uid,currentChatPartner.uid);
-
-unsubscribeMessages=onSnapshot(
-query(collection(db,`chats/${chatId}/messages`),orderBy("time")),
-(snap)=>{
-chat-messages.innerHTML="";
-
-snap.forEach(m=>{
-const msg=m.data();
-const div=document.createElement("div");
-
-div.innerText=msg.text;
-chat-messages.appendChild(div);
-
-if(msg.sender!==auth.currentUser.uid && !msg.read){
-updateDoc(m.ref,{read:true});
-}
-});
-});
-}
-
-/* SEND MESSAGE */
-send-dm.onclick=async()=>{
-const text=dm-input.value.trim();
-if(!text||text.length>1000) return;
-
-const chatId=getChatId(auth.currentUser.uid,currentChatPartner.uid);
-
-await addDoc(collection(db,`chats/${chatId}/messages`),{
-text,
-sender:auth.currentUser.uid,
-time:serverTimestamp(),
-read:false
-});
-
-dm-input.value="";
-};
-
-/* POSTS */
-function loadPosts(){
-if(unsubscribePosts) unsubscribePosts();
-
-unsubscribePosts=onSnapshot(
-query(collection(db,"posts"),orderBy("createdAt","desc")),
-(snap)=>{
-posts-container.innerHTML="";
-
-snap.forEach(d=>{
-const p=d.data();
-const el=document.createElement("div");
-
-el.innerHTML=`
-<b>@${p.author}</b>
-<p>${p.text}</p>
-`;
-
-posts-container.appendChild(el);
-});
-});
-}
-
-/* CREATE POST */
-submit-post.onclick=async()=>{
-const text=post-content.value.trim();
-if(!text||text.length>2000) return;
-
-await addDoc(collection(db,"posts"),{
-text,
-author:currentUserHandle,
-uid:auth.currentUser.uid,
-createdAt:serverTimestamp(),
-likes:[],
-views:[]
-});
-
-post-content.value="";
-post-modal.classList.remove("active");
-};
-
-/* AUTH */
-do-login-btn.onclick=()=>{
-signInWithEmailAndPassword(auth,
-login-email.value,
-login-password.value
-).catch(e=>alert(e.message));
-};
-
-do-signup-btn.onclick=()=>{
-createUserWithEmailAndPassword(auth,
-signup-email.value,
-signup-password.value
-).catch(e=>alert(e.message));
-};
-
-logout-btn.onclick=()=>signOut(auth);
-
 </script>
+
 </body>
 </html>
