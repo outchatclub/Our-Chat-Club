@@ -137,14 +137,16 @@ onAuthStateChanged(auth,user=>{
 });
 
 // NAV
-go-to-signup.onclick=()=>show("signup-section");
-back-to-login.onclick=()=>show("login-section");
-
+document.getElementById("go-to-signup").onclick = () => show("signup-section");
+document.getElementById("back-to-login").onclick = () => show("login-section");
 // SIGNUP
-do-signup-btn.onclick=async()=>{
-  const user=signup-username.value.toLowerCase().replace(/[^a-z0-9_]/g,'');
-  const email=signup-email.value;
-  const pass=signup-password.value;
+document.getElementById("do-signup-btn").onclick = async () => {
+  const user = document.getElementById("signup-username").value
+  .toLowerCase()
+  .replace(/[^a-z0-9_]/g,'');
+
+const email = document.getElementById("signup-email").value;
+const pass = document.getElementById("signup-password").value;
 
   const q=query(collection(db,"users"),where("username","==",user));
   const snap=await getDocs(q);
@@ -160,8 +162,12 @@ do-signup-btn.onclick=async()=>{
 };
 
 // LOGIN
-do-login-btn.onclick=()=>{
-  signInWithEmailAndPassword(auth,login-email.value,login-password.value);
+document.getElementById("do-login-btn").onclick = () => {
+  signInWithEmailAndPassword(
+    auth,
+    document.getElementById("login-email").value,
+    document.getElementById("login-password").value
+  );
 };
 
 // FEED
@@ -181,9 +187,10 @@ function loadFeed(){
 }
 
 // POST
-btn-add.onclick=()=>post-modal.classList.add("active");
-
-submit-post.onclick=async()=>{
+document.getElementById("btn-add").onclick = () => {
+  document.getElementById("post-modal").classList.add("active");
+};
+document.getElementById("submit-post").onclick = async () => {
   const text=post-content.value;
   if(!text) return;
 
