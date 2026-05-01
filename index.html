@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Our Chat Club | Text Only</title>
-    <link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
-    <link rel="shortcut icon" href="favicon.ico" />
-    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <title>Our Chat Club | Real-Time</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -15,6 +12,8 @@
         .modal { display: none; }
         .modal.active { display: flex; }
         .header-grid { display: grid; grid-template-columns: 40px 1fr 60px; align-items: center; gap: 8px; }
+        /* Smooth scrolling for chat */
+        #chat-messages { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -26,15 +25,13 @@
             <div class="relative">
                 <input type="text" id="search-input" placeholder="Search @username..." class="w-full bg-gray-100 border-none rounded-2xl px-4 py-2 text-xs font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20">
             </div>
-            <button id="logout-btn" class="text-[10px] font-black text-gray-300 hidden uppercase tracking-tighter hover:text-red-500">Sign Out</button>
+            <button id="logout-btn" class="text-[10px] font-black text-gray-400 hidden uppercase tracking-tighter hover:text-red-500">Sign Out</button>
         </div>
     </header>
-
-    <main class="max-w-2xl mx-auto p-4">
+      <main class="max-w-2xl mx-auto p-4">
         <section id="login-section" class="mt-10 space-y-6">
             <div class="text-center">
                 <div class="flex items-center justify-center gap-3">
-                    <img src="logo.png" alt="Logo" class="w-10 h-10 object-contain">
                     <h2 class="text-3xl font-extrabold text-indigo-600">Our Chat Club</h2>
                 </div>
                 <p class="text-gray-500 mt-2">Join the new era of social media.</p>
@@ -42,7 +39,7 @@
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-4">
                 <input type="email" id="login-email" placeholder="Email" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20">
                 <input type="password" id="login-password" placeholder="Password" class="w-full p-4 bg-gray-50 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500/20">
-                <button id="do-login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">Login</button>
+                <button id="do-login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">Login</button>
                 <p class="text-center text-sm text-gray-500">New? <button id="go-to-signup" class="text-indigo-600 font-bold">Create Account</button></p>
             </div>
         </section>
@@ -60,8 +57,7 @@
                 <p class="text-sm text-center"><button id="back-to-login" class="text-indigo-600 font-bold">Back to Login</button></p>
             </div>
         </section>
-
-        <section id="feed-section" class="hidden space-y-4"><div id="posts-container" class="space-y-4"></div></section>
+            <section id="feed-section" class="hidden space-y-4"><div id="posts-container" class="space-y-4"></div></section>
         
         <section id="profile-section" class="hidden mt-4">
             <div class="bg-white p-8 rounded-3xl text-center shadow-sm border border-gray-100">
@@ -81,20 +77,19 @@
                 <div id="chat-list" class="space-y-2"></div>
             </div>
             <div id="active-chat" class="hidden flex flex-col h-[75vh] bg-white rounded-3xl p-4 shadow-sm border">
-                <div class="flex items-center justify-between border-b pb-4 mb-4 flex-shrink-0">
+                <div class="flex items-center justify-between border-b pb-4 mb-4">
                     <h4 id="chat-with-name" class="font-bold text-indigo-600 text-sm">Chat</h4>
                     <button id="close-chat" class="text-gray-400 text-xs font-bold">CLOSE</button>
                 </div>
-                <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2 pb-4 flex flex-col min-h-0"></div>
-                <div class="flex gap-2 border-t pt-4 flex-shrink-0">
-                    <input type="text" id="dm-input" placeholder="Type..." class="flex-1 bg-gray-50 border-none rounded-xl px-4 outline-none text-sm h-12">
-                    <button id="send-dm" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-xs h-12">SEND</button>
+                <div id="chat-messages" class="flex-1 overflow-y-auto space-y-2 pb-4 flex flex-col"></div>
+                <div class="flex gap-2 border-t pt-4">
+                    <input type="text" id="dm-input" placeholder="Type..." class="flex-1 bg-gray-50 border-none rounded-xl px-4 h-12 outline-none text-sm">
+                    <button id="send-dm" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-xs">SEND</button>
                 </div>
             </div>
         </section>
-    </main>
-
-    <div id="post-modal" class="modal fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-end sm:items-center justify-center p-4">
+      </main>
+          <div id="post-modal" class="modal fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-end sm:items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl p-6">
             <textarea id="post-content" maxlength="2000" rows="6" class="w-full p-4 bg-gray-50 rounded-2xl outline-none resize-none mb-4" placeholder="Speak your mind..."></textarea>
             <button id="submit-post" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Post Now</button>
@@ -110,10 +105,10 @@
         </div>
     </nav>
 
-        <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, getDocs, collection, addDoc, updateDoc, increment, query, orderBy, onSnapshot, serverTimestamp, where, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, getDocs, collection, addDoc, updateDoc, increment, query, orderBy, onSnapshot, serverTimestamp, where, setDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
                 
         const firebaseConfig = { 
             apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE",
@@ -129,11 +124,11 @@
 
         let currentUserHandle = "";
         let currentChatPartner = null;
+        let feedUnsubscribe = null;
 
         function showScreen(id) {
             ['login-section', 'signup-section', 'feed-section', 'profile-section', 'dm-section'].forEach(s => {
-                const el = document.getElementById(s);
-                if(el) el.classList.add('hidden');
+                document.getElementById(s)?.classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
             const isAuth = id === 'login-section' || id === 'signup-section';
@@ -147,11 +142,65 @@
                 if (snap.exists()) {
                     currentUserHandle = snap.data().username;
                     showScreen('feed-section');
-                    loadPosts();
+                    initFeedListener();
                 } else { showScreen('login-section'); }
-            } else { showScreen('login-section'); }
+            } else { 
+                if (feedUnsubscribe) feedUnsubscribe();
+                showScreen('login-section'); 
+            }
         });
 
+        // --- Feed Logic ---
+        function initFeedListener() {
+            const qPosts = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+            feedUnsubscribe = onSnapshot(qPosts, (snap) => {
+                const container = document.getElementById('posts-container');
+                container.innerHTML = "";
+                snap.forEach(d => renderPost(d));
+            });
+        }
+
+        async function renderPost(d) {
+            const p = d.data(), pid = d.id, uid = auth.currentUser.uid;
+            const container = document.getElementById('posts-container');
+            
+            // Logic for Unique Views
+            if (!p.viewers?.includes(uid)) {
+                await updateDoc(doc(db, "posts", pid), { 
+                    views: increment(1),
+                    viewers: arrayUnion(uid) 
+                });
+                                                                   }
+            const card = document.createElement('div');
+            card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm";
+            const isLiked = p.likes?.includes(uid);
+
+            card.innerHTML = `
+                <button class="user-link text-sm font-bold text-indigo-600 mb-2">@${p.author}</button>
+                <p class="text-gray-800 whitespace-pre-wrap leading-relaxed">${p.text}</p>
+                <div class="flex items-center gap-6 mt-4 border-t border-gray-50 pt-4">
+                    <button class="like-btn flex items-center gap-1.5 group">
+                        <svg class="w-5 h-5 transition-colors ${isLiked ? 'fill-red-500 stroke-red-500' : 'stroke-gray-400 group-hover:stroke-red-400'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <span class="text-xs font-bold ${isLiked ? 'text-red-500' : 'text-gray-400'}">${p.likes?.length || 0}</span>
+                    </button>
+                    <span class="text-gray-400 text-xs font-medium">👁️ ${p.views || 0}</span>
+                    ${p.uid === uid ? '<button class="del-btn ml-auto text-red-400 text-[10px] font-black uppercase tracking-tighter hover:text-red-600">Delete</button>' : ''}
+                </div>`;
+
+            card.querySelector('.user-link').onclick = () => viewProfile(p.author);
+            card.querySelector('.like-btn').onclick = () => {
+                updateDoc(doc(db, "posts", pid), { 
+                    likes: isLiked ? arrayRemove(uid) : arrayUnion(uid) 
+                });
+            };
+            
+            if(p.uid === uid) card.querySelector('.del-btn').onclick = async () => {
+                if(confirm("Delete this post?")) await deleteDoc(doc(db, "posts", pid));
+            };
+            container.appendChild(card);
+        }
+
+        // --- Profile & Search ---
         window.viewProfile = async (username) => {
             const cleanName = username.toLowerCase().trim().replace('@', '');
             const q = query(collection(db, "users"), where("username", "==", cleanName));
@@ -162,9 +211,11 @@
                 document.getElementById('profile-handle').innerText = `@${data.username}`;
                 document.getElementById('profile-bio').innerText = data.bio || "No bio yet.";
                 document.getElementById('profile-initial').innerText = data.username[0].toUpperCase();
+                
                 const isMe = userId === auth.currentUser?.uid;
                 document.getElementById('edit-bio-btn').classList.toggle('hidden', !isMe);
                 document.getElementById('message-user-btn').classList.toggle('hidden', isMe);
+                
                 if(!isMe) document.getElementById('message-user-btn').onclick = () => startChat(userId, data.username);
                 else document.getElementById('edit-bio-btn').onclick = async () => {
                     const b = prompt("Edit Bio:", data.bio);
@@ -179,18 +230,24 @@
         document.getElementById('search-input').onkeydown = (e) => {
             if(e.key === 'Enter') viewProfile(e.target.value);
         };
-
+         // --- Auth Operations ---
         document.getElementById('do-signup-btn').onclick = async () => {
             const userField = document.getElementById('signup-username').value.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
             const email = document.getElementById('signup-email').value, pass = document.getElementById('signup-password').value;
             if(!userField || !email || !pass) return alert("Fill all fields");
+            
             try {
                 const q = query(collection(db, "users"), where("username", "==", userField));
                 const snap = await getDocs(q);
                 if(!snap.empty) return alert("Username already taken!");
+                
                 const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                await setDoc(doc(db, "users", cred.user.uid), { username: userField, email, bio: "", createdAt: serverTimestamp() });
-                location.reload();
+                await setDoc(doc(db, "users", cred.user.uid), { 
+                    username: userField, 
+                    email, 
+                    bio: "", 
+                    createdAt: serverTimestamp() 
+                });
             } catch(e) { alert(e.message); }
         };
 
@@ -199,83 +256,39 @@
             signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
         };
 
-        async function loadPosts() {
-    const qPosts = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-    const snap = await getDocs(qPosts);
-    
-    const container = document.getElementById('posts-container');
-    container.innerHTML = "";
-
-    snap.forEach(async (d) => {
-        const p = d.data(), pid = d.id, uid = auth.currentUser.uid;
-        const postRef = doc(db, "posts", pid);
-        
-               // Check if the current user has already viewed this post
-        if (!p.viewers || !p.viewers.includes(uid)) {
-            await updateDoc(postRef, { 
-                views: increment(1),
-                viewers: arrayUnion(uid) 
-            });
-        }
-        
-
-        const card = document.createElement('div');
-        card.className = "bg-white p-6 rounded-3xl border border-gray-100 shadow-sm";
-        card.innerHTML = `
-            <button class="user-link text-sm font-bold text-indigo-600 mb-2">@${p.author}</button>
-            <p class="text-gray-800 whitespace-pre-wrap leading-relaxed">${p.text}</p>
-            <div class="flex items-center gap-6 mt-4 border-t border-gray-50 pt-4">
-                <button class="like-btn flex items-center gap-1.5">
-                    <svg class="w-5 h-5 ${p.likes?.includes(uid) ? 'fill-red-500 stroke-red-500' : 'stroke-gray-400'}" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    <span class="text-xs font-bold">${p.likes?.length || 0}</span>
-                    <span class="views-count" style="margin-left: 8px;">👁️ ${p.views || 0} Views</span>
-                </button>
-                ${p.uid === uid ? '<button class="del-btn ml-auto text-red-400 text-[10px] font-black uppercase tracking-tighter">Delete</button>' : ''}
-            </div>`;
-
-        card.querySelector('.user-link').onclick = () => viewProfile(p.author);
-        card.querySelector('.like-btn').onclick = async () => {
-            await updateDoc(doc(db, "posts", pid), { 
-                likes: p.likes?.includes(uid) ? p.likes.filter(id => id !== uid) : [...(p.likes || []), uid] 
-            });
-            loadPosts(); // Like ke baad data refresh karne ke liye
-        };
-        
-        if(p.uid === uid) card.querySelector('.del-btn').onclick = async () => {
-            if(confirm("Delete?")) {
-                await deleteDoc(doc(db, "posts", pid));
-                loadPosts();
-            }
-        };
-        container.appendChild(card);
-    });
-        }
-            
+        // --- DM / Messaging ---
         document.getElementById('nav-dm').onclick = async () => { 
             showScreen('dm-section'); 
             const list = document.getElementById('chat-list');
-            list.innerHTML = "Loading...";
+            list.innerHTML = "<p class='text-center text-gray-400 py-4'>Loading users...</p>";
             const snap = await getDocs(collection(db, "users"));
             list.innerHTML = "";
             snap.forEach(doc => {
                 if(doc.id !== auth.currentUser.uid) {
                     const u = doc.data();
                     const item = document.createElement('div');
-                    item.className = "bg-white p-4 rounded-2xl flex items-center gap-3 border border-gray-100 cursor-pointer";
-                    item.innerHTML = `<div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600">${u.username[0].toUpperCase()}</div><p class="font-bold text-sm">@${u.username}</p>`;
+                    item.className = "bg-white p-4 rounded-2xl flex items-center gap-3 border border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors";
+                    item.innerHTML = `
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600">
+                            ${u.username[0].toUpperCase()}
+                        </div>
+                        <p class="font-bold text-sm">@${u.username}</p>`;
                     item.onclick = () => startChat(doc.id, u.username);
                     list.appendChild(item);
                 }
             });
         };
 
+        let chatUnsubscribe = null;
         async function startChat(uid, username) {
+            if (chatUnsubscribe) chatUnsubscribe();
             currentChatPartner = { uid, username };
             document.getElementById('dm-inbox').classList.add('hidden');
             document.getElementById('active-chat').classList.remove('hidden');
             document.getElementById('chat-with-name').innerText = `@${username}`;
+            
             const chatId = [auth.currentUser.uid, uid].sort().join('_');
-            onSnapshot(query(collection(db, `chats/${chatId}/messages`), orderBy("time", "asc")), (snap) => {
+            chatUnsubscribe = onSnapshot(query(collection(db, `chats/${chatId}/messages`), orderBy("time", "asc")), (snap) => {
                 const box = document.getElementById('chat-messages');
                 box.innerHTML = "";
                 snap.forEach(m => {
@@ -287,16 +300,22 @@
                 });
                 box.scrollTop = box.scrollHeight;
             });
-        }
+                        }
 
         document.getElementById('send-dm').onclick = async () => {
-            const text = document.getElementById('dm-input').value;
+            const input = document.getElementById('dm-input');
+            const text = input.value;
             if(!text.trim() || !currentChatPartner) return;
             const chatId = [auth.currentUser.uid, currentChatPartner.uid].sort().join('_');
-            await addDoc(collection(db, `chats/${chatId}/messages`), { text, sender: auth.currentUser.uid, time: serverTimestamp() });
-            document.getElementById('dm-input').value = "";
+            await addDoc(collection(db, `chats/${chatId}/messages`), { 
+                text, 
+                sender: auth.currentUser.uid, 
+                time: serverTimestamp() 
+            });
+            input.value = "";
         };
 
+        // --- Nav & UI Helpers ---
         document.getElementById('btn-home').onclick = () => showScreen('feed-section');
         document.getElementById('btn-profile').onclick = () => viewProfile(currentUserHandle);
         document.getElementById('btn-add').onclick = () => document.getElementById('post-modal').classList.add('active');
@@ -304,13 +323,27 @@
         document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
         document.getElementById('go-to-signup').onclick = () => showScreen('signup-section');
         document.getElementById('back-to-login').onclick = () => showScreen('login-section');
-        document.getElementById('close-chat').onclick = () => { document.getElementById('dm-inbox').classList.remove('hidden'); document.getElementById('active-chat').classList.add('hidden'); };
+        document.getElementById('close-chat').onclick = () => { 
+            if (chatUnsubscribe) chatUnsubscribe();
+            document.getElementById('dm-inbox').classList.remove('hidden'); 
+            document.getElementById('active-chat').classList.add('hidden'); 
+        };
         
         document.getElementById('submit-post').onclick = async () => {
-            const text = document.getElementById('post-content').value;
+            const area = document.getElementById('post-content');
+            const text = area.value;
             if(!text.trim()) return;
-            await addDoc(collection(db, "posts"), { text, author: currentUserHandle, uid: auth.currentUser.uid, createdAt: serverTimestamp(), likes: [], views: 0 });
-            document.getElementById('post-content').value = ""; document.getElementById('post-modal').classList.remove('active');
+            await addDoc(collection(db, "posts"), { 
+                text, 
+                author: currentUserHandle, 
+                uid: auth.currentUser.uid, 
+                createdAt: serverTimestamp(), 
+                likes: [], 
+                views: 0,
+                viewers: [auth.currentUser.uid]
+            });
+            area.value = ""; 
+            document.getElementById('post-modal').classList.remove('active');
         };
     </script>
 </body>
