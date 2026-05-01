@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>OCC Bounce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        canvas { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .brand-gradient { background: linear-gradient(135deg,#7c3aed,#2563eb); }
+    </style>
+</head>
+<body class="brand-gradient flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden">
+    <div class="text-white text-center mb-4">
+        <h1 class="text-3xl font-black">OCC BOUNCE</h1>
+        <p>Tap to jump!</p>
+        <div class="text-4xl font-bold mt-2" id="score">0</div>
+    </div>
+    
+    <canvas id="gameCanvas" width="350" height="500"></canvas>
+    
+    <a href="index.html" class="mt-8 text-white/70 font-bold uppercase tracking-widest text-sm">Exit Game</a>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        let gameActive = true;
+
+        const ball = { x: 175, y: 250, radius: 15, velocity: 0, gravity: 0.4, jump: -7 };
+        const obstacles = [];
+
+        function createObstacle() {
+            const gap = 150;
+            const pos = Math.random() * (canvas.height - gap - 100) + 50;
+            obstacles.push({ x: canvas.width, y: pos, gap: gap, width: 50 });
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            ball.velocity += ball.gravity;
+            ball.y += ball.velocity;
+
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) gameOver();
+
+            if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < canvas.width - 200) createObstacle();
+
+            obstacles.forEach((obs, i) => {
+                obs.x -= 3;
+                if (obs.x + obs.width < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
+
+                // Collision
+                if (ball.x + ball.radius > obs.x && ball.x - ball.radius < obs.x + obs.width) {
+                    if (ball.y - ball.radius < obs.y || ball.y + ball.radius > obs.y + obs.gap) gameOver();
+                }
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Ball
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#4f46e5";
+            ctx.fill();
+            ctx.closePath();
+
+            // Draw Obstacles
+            ctx.fillStyle = "#e2e8f0";
+            obstacles.forEach(obs => {
+                ctx.fillRect(obs.x, 0, obs.width, obs.y);
+                ctx.fillRect(obs.x, obs.y + obs.gap, obs.width, canvas.height);
+            });
+
+            if (gameActive) requestAnimationFrame(() => { update(); draw(); });
+        }
+
+        function gameOver() {
+            gameActive = false;
+            alert("Game Over! Score: " + score);
+            location.reload();
+        }
+
+        window.onmousedown = () => { ball.velocity = ball.jump; };
+        window.ontouchstart = (e) => { e.preventDefault(); ball.velocity = ball.jump; };
+
+        draw();
+    </script>
+</body>
+</html>
+
