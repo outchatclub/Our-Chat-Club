@@ -146,21 +146,49 @@
     }
 
     onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const snap = await getDoc(doc(db, "users", user.uid));
-            if (snap.exists()) {
-                currentUserHandle = snap.data().username;
-                showScreen('feed-section');
-                loadPosts();
+    if (user) {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) {
+            currentUserHandle = snap.data().username;
+            showScreen('feed-section');
+            loadPosts();
+        } else { 
+            // Username selection logic with uniqueness check
+            let name = "";
+            let isUnique = false;
+
+            while (!isUnique) {
+                name = prompt("Choose your @username (Unique & Case-Insensitive):");
+                if (!name) {
+                    // Agar user cancel kare toh logout kar do ya handle karo
+                    await signOut(auth);
+                    return;
+                }
+
+                const processedName = name.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
                 
-            } else { 
-                const name = prompt("Choose your @username:");
-                if(name) {
-                    await setDoc(doc(db, "users", user.uid), { username: name.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''), email: user.email, bio: "" });
+                // Firestore mein check karna ki ye lowercase name pehle se hai kya?
+                const q = query(collection(db, "users"), where("username_low", "==", processedName));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    isUnique = true;
+                    // Username unique hai, ab save karo
+                    await setDoc(doc(db, "users", user.uid), { 
+                        username: name.trim(), // Original case display ke liye
+                        username_low: processedName, // Search/Validation ke liye
+                        email: user.email, 
+                        bio: "" 
+                    });
                     location.reload();
+                } else {
+                    alert("Arey bhai! Yeh username (@" + processedName + ") pehle se koi le chuka hai. Kuch aur try karo.");
                 }
             }
-        } else { showScreen('login-section'); }
+        }
+    } else { showScreen('login-section'); }
+});
+        
     });
 
     // SEARCH FIXED
