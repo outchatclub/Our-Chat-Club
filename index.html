@@ -42,11 +42,6 @@
                 <span class="ml-4 font-extrabold text-xl text-gray-800">Mini Game</span>
             </a>
 
-            <a id="admin-link" href="admin.html" class="hidden flex items-center p-6 bg-indigo-50 border-2 border-indigo-100 rounded-[2rem] active:bg-indigo-100">
-                <div class="p-3 bg-indigo-500 rounded-2xl text-2xl text-white">🔑</div>
-                <span class="ml-4 font-extrabold text-xl text-indigo-700">Admin Panel</span>
-            </a>
-
             <button id="logout-btn" class="w-full p-6 text-red-500 font-black uppercase tracking-widest text-sm mt-4">Logout</button>
         </div>
     </main>
@@ -75,27 +70,26 @@
             const input = document.getElementById("email").value;
             const pass = document.getElementById("password").value;
 
+            // Admin login still works but only redirects to the hidden dashboard
             if(input === ADMIN_USER && pass === ADMIN_PASS) {
                 localStorage.setItem("occ_admin_access", "true");
-                showMenu(true);
+                showMenu();
                 return;
             }
 
             try {
                 if(isLogin) await signInWithEmailAndPassword(auth, input, pass);
                 else await createUserWithEmailAndPassword(auth, input, pass);
-            } catch(e) { alert("Access Denied: Check credentials."); }
+            } catch(e) { alert("Access Denied."); }
         };
 
-        function showMenu(isAdmin) {
+        function showMenu() {
             document.getElementById("auth-container").classList.add("hidden");
             document.getElementById("menu-container").classList.remove("hidden");
-            if(isAdmin) document.getElementById("admin-link").classList.remove("hidden");
         }
 
         onAuthStateChanged(auth, user => {
-            const isAdmin = localStorage.getItem("occ_admin_access") === "true";
-            if(user || isAdmin) showMenu(isAdmin || user?.email === "admin@gmail.com");
+            if(user || localStorage.getItem("occ_admin_access") === "true") showMenu();
         });
 
         document.getElementById("logout-btn").onclick = () => {
