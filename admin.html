@@ -1,125 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel | Our Chat Club</title>
+    <meta charset="UTF-8"><title>OCC Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #050505; color: white; font-family: 'Inter', sans-serif; }
-        .admin-card { background: #111; border: 1px solid #222; border-radius: 16px; }
-        .hidden { display: none; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); }
-    </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-
-    <div id="login-section" class="admin-card p-8 w-full max-w-md shadow-2xl">
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-extrabold text-blue-500">Admin Access</h2>
-            <p class="text-gray-500 text-sm mt-2">Enter credentials to manage OCC</p>
-        </div>
-        <div class="space-y-4">
-            <input type="text" id="admin-user" placeholder="Username (@admin)" 
-                class="w-full p-4 bg-black border border-gray-800 rounded-xl focus:border-blue-500 outline-none transition-all">
-            <input type="password" id="admin-pass" placeholder="Password (DD/MM/YYYY)" 
-                class="w-full p-4 bg-black border border-gray-800 rounded-xl focus:border-blue-500 outline-none transition-all">
-            <button onclick="checkLogin()" 
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95">
-                Authorize Session
-            </button>
-            <p id="error-msg" class="text-red-500 text-sm text-center hidden font-medium">Authentication Failed!</p>
-        </div>
-    </div>
-
-    <div id="admin-panel" class="w-full max-w-5xl hidden animate-in fade-in duration-500">
-        <div class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-3xl font-black tracking-tighter">OCC <span class="text-blue-500">ADMIN</span></h1>
-                <p id="sync-status" class="text-[10px] text-green-500 font-bold uppercase tracking-widest mt-1">● Live Sync Active</p>
-            </div>
-            <button onclick="location.reload()" class="bg-gray-800 hover:bg-red-600 px-6 py-2 rounded-full text-xs font-bold transition-colors">Terminate Session</button>
+<body class="bg-slate-900 text-white p-4">
+    <div class="max-w-xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Admin Panel</h1>
+        
+        <div class="bg-white text-gray-900 p-6 rounded-3xl mb-8 space-y-3">
+            <input id="title" placeholder="News Title" class="w-full p-3 bg-gray-100 rounded-xl">
+            <textarea id="content" placeholder="Content..." class="w-full p-3 bg-gray-100 rounded-xl h-32"></textarea>
+            <button id="post-btn" class="w-full p-3 bg-indigo-600 text-white font-bold rounded-xl">Post News</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <div class="admin-card p-8 relative overflow-hidden">
-                <div class="relative z-10">
-                    <p class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-1">Registered Members</p>
-                    <h3 id="user-count" class="text-6xl font-black text-white">...</h3>
-                </div>
-                <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black">USERS</div>
-            </div>
-            <div class="admin-card p-8 relative overflow-hidden">
-                <div class="relative z-10">
-                    <p class="text-gray-400 font-bold text-xs uppercase tracking-widest mb-1">Total Broadcasts</p>
-                    <h3 id="post-count" class="text-6xl font-black text-blue-500">...</h3>
-                </div>
-                <div class="absolute -right-4 -bottom-4 text-white/5 text-8xl font-black">POSTS</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 gap-6">
-            <div class="admin-card p-6">
-                <h2 class="text-xl font-bold mb-6 border-b border-white/10 pb-4">System Controls</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button onclick="alert('Feature coming soon!')" class="p-4 bg-blue-900/20 border border-blue-500/30 rounded-2xl text-left hover:bg-blue-900/40 transition">
-                        <p class="font-bold text-blue-400">Export User Data</p>
-                        <p class="text-[10px] text-gray-500">Download CSV of all members</p>
-                    </button>
-                    <button onclick="alert('Contact developer for mass deletion.')" class="p-4 bg-red-900/20 border border-red-500/30 rounded-2xl text-left hover:bg-red-900/40 transition">
-                        <p class="font-bold text-red-400">Emergency Wipe</p>
-                        <p class="text-[10px] text-gray-500">Delete all posts instantly</p>
-                    </button>
-                </div>
-            </div>
-        </div>
+        <div id="admin-list" class="space-y-2"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const db = getFirestore(initializeApp(firebaseConfig));
 
-        // Tumhare index.html se liya gaya config
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE",
-            authDomain: "our-chat-club.firebaseapp.com",
-            projectId: "our-chat-club",
-            storageBucket: "our-chat-club.firebasestorage.app",
-            messagingSenderId: "533265719248",
-            appId: "1:533265719248:web:e4f61e9267c64b0b3663d5",
-            measurementId: "G-1RZKH72PH2"
+        document.getElementById("post-btn").onclick = async () => {
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            if(!title || !content) return;
+
+            await addDoc(collection(db, "news"), {
+                title, content, likes: [], createdAt: serverTimestamp()
+            });
+            document.getElementById("title").value = "";
+            document.getElementById("content").value = "";
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        // Global function for login check
-        window.checkLogin = function() {
-            const user = document.getElementById('admin-user').value;
-            const pass = document.getElementById('admin-pass').value;
-            const error = document.getElementById('error-msg');
-
-            if (user === "@admin" && (pass === "29/10/2007" || pass === "29102007")) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                startLiveUpdates();
-            } else {
-                error.classList.remove('hidden');
-                setTimeout(() => error.classList.add('hidden'), 3000);
-            }
-        };
-
-        function startLiveUpdates() {
-            // Live Users Count
-            onSnapshot(collection(db, "users"), (snap) => {
-                document.getElementById('user-count').innerText = snap.size;
+        onSnapshot(collection(db, "news"), snap => {
+            const list = document.getElementById("admin-list");
+            list.innerHTML = "";
+            snap.forEach(sDoc => {
+                list.innerHTML += `
+                    <div class="flex justify-between bg-slate-800 p-4 rounded-xl items-center">
+                        <span>${sDoc.data().title}</span>
+                        <button onclick="delNews('${sDoc.id}')" class="text-red-400">Delete</button>
+                    </div>
+                `;
             });
+        });
 
-            // Live Posts Count
-            onSnapshot(collection(db, "posts"), (snap) => {
-                document.getElementById('post-count').innerText = snap.size;
-            });
-        }
+        window.delNews = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "news", id)); };
     </script>
 </body>
 </html>
