@@ -125,9 +125,11 @@ const auth = getAuth();
 const db = getFirestore();
 
 function show(id){
-  ["login-section","signup-section","feed-section"].forEach(x=>{
-    document.getElementById(x).classList.add("hidden");
-  });
+  ["login-section","signup-section","feed-section","profile-section","dm-section"]
+    .forEach(x=>{
+      document.getElementById(x).classList.add("hidden");
+    });
+
   document.getElementById(id).classList.remove("hidden");
 }
 
