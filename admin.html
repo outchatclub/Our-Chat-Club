@@ -37,6 +37,12 @@
             <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
         </div>
 
+        <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700 shadow-xl">
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">⚖️ Legal & Policies</h2>
+            <textarea id="terms-input" placeholder="Enter Terms and Conditions text..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-32 mb-4 outline-none border border-slate-700 text-sm"></textarea>
+            <button id="update-terms" class="w-full p-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg uppercase tracking-wide">Update Terms</button>
+        </div>
+
         <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl">
             <h2 class="text-xs font-black uppercase mb-4 text-indigo-200 tracking-widest">📢 Global Announcement</h2>
             <input id="ann-text" placeholder="Broadcast Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white placeholder-indigo-300">
@@ -77,7 +83,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -104,7 +110,11 @@
         window.logoutAdmin = () => { sessionStorage.removeItem("admin_verified"); location.reload(); };
         onAuthStateChanged(auth, user => { if(sessionStorage.getItem("admin_verified") === "true") unlockPanel(); });
 
-        function loadData() {
+        async function loadData() {
+            // Load existing terms into textarea
+            const termsSnap = await getDoc(doc(db, "settings", "terms"));
+            if(termsSnap.exists()) document.getElementById("terms-input").value = termsSnap.data().text;
+
             onSnapshot(collection(db, "news"), snap => {
                 const list = document.getElementById("news-list");
                 list.innerHTML = "";
@@ -172,16 +182,20 @@
             if(reply) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: reply });
         };
 
-        // --- ANNOUNCEMENT HANDLER ---
+        // NEW: TERMS HANDLER
+        document.getElementById("update-terms").onclick = async () => {
+            const text = document.getElementById("terms-input").value;
+            await setDoc(doc(db, "settings", "terms"), { text, lastUpdated: serverTimestamp() });
+            alert("Terms & Conditions Updated!");
+        };
+
         document.getElementById("pub-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
             const hrs = parseInt(document.getElementById("ann-hours").value) || 0;
             const mins = parseInt(document.getElementById("ann-mins").value) || 0;
             if(!text) return alert("Enter a message");
-            
             const expiry = Date.now() + (hrs * 60 + mins) * 60000;
             await setDoc(doc(db, "settings", "announcement"), { text, expiry });
-            
             document.getElementById("ann-text").value = "";
             document.getElementById("ann-hours").value = "";
             document.getElementById("ann-mins").value = "";
@@ -193,13 +207,7 @@
             const content = document.getElementById("news-content").value;
             const imageUrl = document.getElementById("news-image").value;
             if(title && content) {
-                await addDoc(collection(db, "news"), { 
-                    title, 
-                    content, 
-                    imageUrl: imageUrl || "", 
-                    likes: [], 
-                    createdAt: serverTimestamp() 
-                });
+                await addDoc(collection(db, "news"), { title, content, imageUrl: imageUrl || "", likes: [], createdAt: serverTimestamp() });
                 document.getElementById("news-title").value = "";
                 document.getElementById("news-content").value = "";
                 document.getElementById("news-image").value = "";
