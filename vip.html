@@ -1,1 +1,125 @@
-Hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCC - VIP Lounge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        .vip-gold { color: #f59e0b; }
+        .vip-bg-gold { background-color: #f59e0b; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .hidden { display: none !important; }
+        .id-card { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 2px solid #f59e0b; position: relative; }
+        .id-card::after { content: 'VIP'; position: absolute; top: -10px; right: 20px; font-size: 4rem; opacity: 0.05; font-weight: 900; }
+    </style>
+</head>
+<body class="p-6 pb-24">
+
+    <div id="gate-section" class="max-w-md mx-auto pt-20 text-center">
+        <h1 class="text-4xl font-black vip-gold mb-2">VIP GATE</h1>
+        <p class="text-slate-400 text-xs uppercase tracking-widest mb-10">Secret Access Required</p>
+        <div class="glass p-8 rounded-[2.5rem]">
+            <input type="text" id="vip-code-input" placeholder="Enter VIP Code" class="w-full bg-slate-800 border-none rounded-2xl p-4 text-center text-white mb-6 outline-none ring-2 ring-transparent focus:ring-amber-500">
+            <button id="submit-code" class="w-full vip-bg-gold text-white py-4 rounded-2xl font-black mb-4">UNLOCK ACCESS</button>
+            <button onclick="location.href='index.html'" class="text-slate-500 text-xs font-bold uppercase tracking-widest">I don't have a code</button>
+        </div>
+    </div>
+
+    <div id="vip-content" class="hidden max-w-md mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-black vip-gold">VIP LOUNGE</h1>
+            <button onclick="location.href='index.html'" class="text-[10px] font-bold bg-slate-800 px-4 py-2 rounded-xl">EXIT</button>
+        </div>
+
+        <div class="id-card p-6 rounded-3xl mb-8 shadow-2xl">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-[8px] font-bold text-amber-500 uppercase tracking-widest">Official VIP ID</p>
+                    <h2 id="id-name" class="text-xl font-black mt-1 uppercase">---</h2>
+                </div>
+                <div class="text-2xl">👑</div>
+            </div>
+            <div class="mt-10 flex justify-between items-end">
+                <p id="id-number" class="text-[10px] font-mono text-slate-400">ID: LOADING...</p>
+                <div class="bg-amber-500 text-[8px] font-black text-white px-3 py-1 rounded-full uppercase">Verified</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <button onclick="openChat()" class="glass p-6 rounded-3xl text-center">
+                <div class="text-2xl mb-2">💬</div>
+                <span class="text-xs font-black uppercase">Chat Admin</span>
+            </button>
+            <button onclick="openRequest()" class="glass p-6 rounded-3xl text-center">
+                <div class="text-2xl mb-2">💡</div>
+                <span class="text-xs font-black uppercase">Request</span>
+            </button>
+        </div>
+
+        <div class="glass p-8 rounded-[2.5rem] text-center border-amber-500/30 border-2">
+            <h3 class="font-black mb-2">VIP SPECIAL GAME</h3>
+            <p class="text-slate-400 text-[10px] mb-6 tracking-widest uppercase">Pro Edition • Mobile Optimized</p>
+            <button id="start-game-btn" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase">Play VIP Edition</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, user => {
+            if (!user) location.href = 'index.html';
+            document.getElementById("id-name").innerText = user.displayName;
+            document.getElementById("id-number").innerText = `UID: ${user.uid.substring(0,8).toUpperCase()}`;
+            
+            // Listen for Admin replies
+            onSnapshot(doc(db, "vip_chats", user.uid), (s) => {
+                const data = s.data();
+                if(data && data.status === "closed" && data.adminReply) {
+                    alert(`Admin Message: ${data.adminReply}`);
+                    updateDoc(doc(db, "vip_chats", user.uid), { adminReply: null });
+                }
+            });
+        });
+
+        document.getElementById("submit-code").onclick = async () => {
+            const code = document.getElementById("vip-code-input").value;
+            const snap = await getDoc(doc(db, "vip_codes", code));
+            if(snap.exists() && (!snap.data().usedBy || snap.data().usedBy === auth.currentUser.uid)) {
+                await updateDoc(doc(db, "vip_codes", code), { usedBy: auth.currentUser.uid });
+                document.getElementById("gate-section").classList.add("hidden");
+                document.getElementById("vip-content").classList.remove("hidden");
+            } else { alert("Unauthorized code."); }
+        };
+
+        window.openRequest = () => {
+            const req = prompt("Feature Request:");
+            if(req) addDoc(collection(db, "requests"), { name: auth.currentUser.displayName, request: req, date: new Date().toLocaleString() });
+        };
+
+        window.openChat = () => {
+            const msg = prompt("Message Admin:");
+            if(msg) {
+                setDoc(doc(db, "vip_chats", auth.currentUser.uid), {
+                    userName: auth.currentUser.displayName,
+                    lastMessage: msg,
+                    status: "open",
+                    timestamp: Date.now()
+                });
+                alert("Request Sent!");
+            }
+        };
+
+        document.getElementById("start-game-btn").onclick = () => alert("Game Loading...");
+    </script>
+</body>
+</html>
