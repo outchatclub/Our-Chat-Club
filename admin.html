@@ -2,64 +2,132 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OCC - Admin Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCC - Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .brand-indigo { color: #4338ca; }
+        .brand-bg-indigo { background-color: #4338ca; }
+        .btn-press:active { transform: scale(0.95); }
+        .section-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; height: 400px; overflow-y: auto; }
+        
+        /* Custom Scrollbar */
+        .section-card::-webkit-scrollbar { width: 4px; }
+        .section-card::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate-100 p-8">
-    <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-black mb-8">Admin Dashboard</h1>
+<body class="text-slate-900 pb-10">
 
-        <div class="grid grid-cols-2 gap-8">
-            <div class="bg-white p-6 rounded-3xl shadow">
-                <h2 class="font-black text-lg mb-4">Feature Requests</h2>
-                <div id="request-list" class="space-y-3"></div>
-            </div>
-
-            <div class="bg-white p-6 rounded-3xl shadow">
-                <h2 class="font-black text-lg mb-4">VIP Chats</h2>
-                <div id="chat-list" class="space-y-4"></div>
-            </div>
+    <div class="max-w-4xl mx-auto p-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-black brand-indigo tracking-tighter">OCC ADMIN</h1>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Management Console</p>
         </div>
+        <button onclick="location.href='index.html'" class="btn-press bg-white border border-slate-200 px-4 py-2 rounded-xl text-xs font-black text-slate-600 shadow-sm">EXIT</button>
+    </div>
+
+    <div class="max-w-4xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <section>
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">VIP Feature Requests</h3>
+            <div id="request-list" class="section-card p-6 space-y-4 shadow-sm">
+                <p class="text-center text-slate-400 text-xs mt-10">Loading requests...</p>
+            </div>
+        </section>
+
+        <section>
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Active VIP Chats</h3>
+            <div id="chat-list" class="section-card p-6 space-y-4 shadow-sm">
+                <p class="text-center text-slate-400 text-xs mt-10">No active chat requests.</p>
+            </div>
+        </section>
+
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, collection, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, collection, onSnapshot, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
+            authDomain: "our-chat-club.firebaseapp.com", 
+            projectId: "our-chat-club" 
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        onSnapshot(collection(db, "requests"), snap => {
+        // --- FETCH FEATURE REQUESTS ---
+        onSnapshot(query(collection(db, "requests"), orderBy("date", "desc")), (snap) => {
             const list = document.getElementById("request-list");
             list.innerHTML = "";
+            if (snap.empty) list.innerHTML = `<p class="text-center text-slate-400 text-xs mt-10">No requests yet.</p>`;
+            
             snap.forEach(d => {
                 const data = d.data();
-                list.innerHTML += `<div class="p-3 bg-slate-50 rounded-xl text-xs"><b>${data.name}:</b> ${data.request}</div>`;
+                const card = document.createElement("div");
+                card.className = "p-4 bg-slate-50 rounded-2xl border border-slate-100 relative";
+                card.innerHTML = `
+                    <p class="text-[10px] font-black brand-indigo uppercase mb-1">${data.name}</p>
+                    <p class="text-sm font-medium text-slate-700 mb-3">${data.request}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[9px] text-slate-400 font-bold">${data.date}</span>
+                        <button onclick="window.deleteRequest('${d.id}')" class="text-red-400 font-black text-[10px] uppercase">Dismiss</button>
+                    </div>
+                `;
+                list.appendChild(card);
             });
         });
 
-        onSnapshot(collection(db, "vip_chats"), snap => {
+        // --- FETCH VIP CHATS ---
+        onSnapshot(collection(db, "vip_chats"), (snap) => {
             const list = document.getElementById("chat-list");
             list.innerHTML = "";
+            let hasOpen = false;
+
             snap.forEach(d => {
                 const data = d.data();
-                if(data.status === "open") {
-                    const div = document.createElement("div");
-                    div.className = "p-4 border rounded-2xl bg-indigo-50";
-                    div.innerHTML = `<p class="font-bold text-sm">${data.userName}</p><p class="text-sm italic my-2">"${data.lastMessage}"</p>`;
-                    const btn = document.createElement("button");
-                    btn.className = "bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold";
-                    btn.innerText = "REPLY";
-                    btn.onclick = async () => {
-                        const reply = prompt("Your Reply:");
-                        if(reply) await updateDoc(doc(db, "vip_chats", d.id), { status: "closed", adminReply: reply });
-                    };
-                    div.appendChild(btn);
-                    list.appendChild(div);
+                if (data.status === "open") {
+                    hasOpen = true;
+                    const card = document.createElement("div");
+                    card.className = "p-5 bg-indigo-50 rounded-2xl border border-indigo-100 shadow-sm";
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-8 h-8 brand-bg-indigo rounded-full flex items-center justify-center text-white text-[10px] font-black">VIP</div>
+                            <div>
+                                <p class="text-xs font-black text-slate-800">${data.userName}</p>
+                                <p class="text-[9px] text-indigo-400 font-bold uppercase tracking-widest">Waiting for reply</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-indigo-100 mb-4 italic text-sm text-slate-600">
+                            "${data.lastMessage}"
+                        </div>
+                        <button onclick="window.replyChat('${d.id}')" class="btn-press w-full brand-bg-indigo text-white py-2 rounded-xl text-xs font-black uppercase tracking-wider shadow-md">Reply & Close</button>
+                    `;
+                    list.appendChild(card);
                 }
             });
+            if (!hasOpen) list.innerHTML = `<p class="text-center text-slate-400 text-xs mt-10">No active chat requests.</p>`;
         });
+
+        // --- ADMIN ACTIONS ---
+        window.deleteRequest = async (id) => {
+            if(confirm("Dismiss this request?")) await deleteDoc(doc(db, "requests", id));
+        };
+
+        window.replyChat = async (id) => {
+            const reply = prompt("Enter your reply to the VIP:");
+            if (reply) {
+                await updateDoc(doc(db, "vip_chats", id), {
+                    status: "closed",
+                    adminReply: reply,
+                    timestamp: Date.now()
+                });
+                alert("Reply sent and chat closed.");
+            }
+        };
     </script>
 </body>
 </html>
