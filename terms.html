@@ -11,48 +11,37 @@
 <body class="bg-gray-50 text-slate-800 p-6">
     <div class="max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mt-10">
         <h1 class="text-3xl font-black text-indigo-700 mb-2 uppercase tracking-tighter">Terms & Conditions</h1>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Governed by the laws of India</p>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">User Agreement & Guidelines</p>
         
-        <div id="terms-content" class="text-sm leading-relaxed text-slate-600 space-y-4 whitespace-pre-wrap min-h-[200px]">
-            <div class="animate-pulse flex space-y-4 flex-col italic">Syncing with ourchatclub.in...</div>
+        <div class="text-sm leading-relaxed text-slate-600 space-y-6">
+            <section>
+                <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">1. Use of the Website</h3>
+                [span_0](start_span)<p>By accessing ourchatclub.in, you agree to use the website only for lawful purposes[span_0](end_span). [span_1](start_span)You must not violate any laws, post harmful content, or attempt unauthorized access to our systems[span_1](end_span).</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">2. User Accounts & Content</h3>
+                [span_2](start_span)<p>You are responsible for maintaining the confidentiality of your account[span_2](end_span). [span_3](start_span)While you retain ownership of your content, you grant us a license to display and distribute it on the platform[span_3](end_span). [span_4](start_span)We reserve the right to remove content that violates these terms[span_4](end_span).</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">3. Prohibited Activities</h3>
+                [span_5](start_span)<p>Users agree not to harass others, spread scams, or upload malicious code[span_5](end_span). [span_6](start_span)Impersonation of any person or entity is strictly prohibited[span_6](end_span).</p>
+            </section>
+
+            <section>
+                <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">4. Legal Information</h3>
+                [span_7](start_span)<p>These terms are governed by the laws of India[span_7](end_span). [span_8](start_span)The website is provided on an "as is" basis, and we are not liable for incidental or consequential damages[span_8](end_span).</p>
+            </section>
         </div>
 
         <div class="mt-12 pt-8 border-t border-slate-50 flex flex-col gap-4">
             <button onclick="history.back()" class="w-full p-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-wide shadow-lg shadow-indigo-100">Accept & Go Back</button>
             <div class="flex justify-between items-center px-2">
-                <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Last Updated: <span id="update-date">02/05/2026</span></p>
+                [span_9](start_span)<p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Effective Date: 02/05/2026[span_9](end_span)</p>
                 <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">v1.0</p>
             </div>
         </div>
     </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
-            authDomain: "our-chat-club.firebaseapp.com", 
-            projectId: "our-chat-club" 
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        onSnapshot(doc(db, "settings", "terms"), s => {
-            const content = document.getElementById("terms-content");
-            const dateEl = document.getElementById("update-date");
-            if(s.exists()) {
-                // This removes any accidental [span] tags if they exist in your database string
-                const cleanText = s.data().text.replace(/\[span_\d+\]|\(start_span\)|\(end_span\)/g, '');
-                content.innerText = cleanText;
-                
-                if(s.data().lastUpdated) {
-                    dateEl.innerText = s.data().lastUpdated.toDate().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                }
-            } else { 
-                [span_8](start_span)content.innerText = "By accessing ourchatclub.in, you agree to follow our guidelines on lawful use and community standards[span_8](end_span)."; 
-            }
-        });
-    </script>
 </body>
 </html>
