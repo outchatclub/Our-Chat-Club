@@ -15,19 +15,8 @@
         .vip-gradient { background: linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%); }
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.96); }
-        
-        /* Optimized UI Spacing */
-        input { 
-            border: 1px solid #e2e8f0; 
-            border-radius: 1.25rem; 
-            padding: 16px; 
-            width: 100%; 
-            margin-bottom: 24px; /* Enhanced gap for ultra-clean UI */
-            outline: none; 
-            transition: 0.2s;
-            font-size: 0.9rem;
-        }
-        input:last-of-type { margin-bottom: 32px; } /* More space before the primary button */
+        input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 24px; outline: none; transition: 0.2s; font-size: 0.9rem; }
+        input:last-of-type { margin-bottom: 32px; }
         input:focus { border-color: #4338ca; box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.05); }
     </style>
 </head>
@@ -42,22 +31,20 @@
             <h1 class="text-5xl font-black brand-indigo tracking-tighter mb-2">OCC</h1>
             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Join the Club</p>
         </div>
-
         <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50">
             <div id="login-form">
                 <h2 class="text-2xl font-black mb-8">Login</h2>
                 <input type="email" id="login-email" placeholder="Email Address">
                 <input type="password" id="login-pass" placeholder="Password">
-                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Login</button>
+                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Login</button>
                 <p class="text-center text-xs mt-10 text-slate-500 font-medium">New here? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Create Account</button></p>
             </div>
-
             <div id="signup-form" class="hidden">
                 <h2 class="text-2xl font-black mb-8">Create Account</h2>
                 <input type="text" id="reg-name" placeholder="Full Name">
                 <input type="email" id="reg-email" placeholder="Email Address">
                 <input type="password" id="reg-pass" placeholder="Create Password">
-                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Sign Up</button>
+                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Sign Up</button>
                 <p class="text-center text-xs mt-10 text-slate-500 font-medium">Have an account? <button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
             </div>
         </div>
@@ -75,26 +62,23 @@
         <section class="mb-10">
             <div class="vip-gradient p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-indigo-950">
                 <h2 class="text-white font-black text-2xl mb-1 tracking-tight">👑 VIP PANEL</h2>
-                <p id="user-display" class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-6">Member</p>
-                <button id="vip-btn" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black text-sm uppercase tracking-wide shadow-lg shadow-sky-900/20">Enter Premium Zone</button>
+                <p id="user-display" class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-6">Member Access</p>
+                <button onclick="location.href='vip.html'" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black text-sm uppercase shadow-lg shadow-sky-900/20">Enter Premium Zone</button>
             </div>
         </section>
 
         <section class="mb-10">
-            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2 text-center">Latest News</h3>
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Latest News</h3>
             <div id="news-feed" class="space-y-4"></div>
             <button onclick="location.href='news.html'" class="btn-press w-full mt-6 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 uppercase tracking-widest">More News</button>
         </section>
 
         <section>
-            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2 text-center">Entertainment</h3>
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Entertainment</h3>
             <button onclick="location.href='minigame.html'" class="btn-press w-full bg-white border border-slate-200 p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-5">
                     <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl">🎮</div>
-                    <div class="text-left">
-                        <span class="block font-black text-slate-800 text-lg">MINI GAMES</span>
-                        <span class="text-[10px] text-slate-400 font-bold uppercase">Enjoy & Relax</span>
-                    </div>
+                    <div class="text-left"><span class="block font-black text-slate-800 text-lg">MINI GAMES</span><span class="text-[10px] text-slate-400 font-bold uppercase">Enjoy & Relax</span></div>
                 </div>
                 <span class="brand-sky text-xl">➜</span>
             </button>
@@ -103,15 +87,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, query, orderBy, limit, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, query, collection, orderBy, limit, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
-            authDomain: "our-chat-club.firebaseapp.com", 
-            projectId: "our-chat-club" 
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -122,46 +101,30 @@
         };
 
         onAuthStateChanged(auth, (user) => {
-            const authSec = document.getElementById("auth-section");
-            const dashSec = document.getElementById("main-dashboard");
+            document.getElementById("auth-section").classList.toggle("hidden", !!user);
+            document.getElementById("main-dashboard").classList.toggle("hidden", !user);
             if (user) {
-                authSec.classList.add("hidden");
-                dashSec.classList.remove("hidden");
                 document.getElementById("user-display").innerText = `Logged in as: ${user.displayName || 'Member'}`;
-                loadDashboardData();
-            } else {
-                authSec.classList.remove("hidden");
-                dashSec.classList.add("hidden");
-                document.getElementById("ann-bar").classList.add("hidden");
+                loadData();
             }
         });
 
-        document.getElementById("do-login").onclick = () => {
-            const email = document.getElementById("login-email").value;
-            const pass = document.getElementById("login-pass").value;
-            signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
-        };
-
+        document.getElementById("do-login").onclick = () => signInWithEmailAndPassword(auth, document.getElementById("login-email").value, document.getElementById("login-pass").value).catch(e => alert(e.message));
         document.getElementById("do-signup").onclick = async () => {
             const name = document.getElementById("reg-name").value;
-            const email = document.getElementById("reg-email").value;
-            const pass = document.getElementById("reg-pass").value;
             try {
-                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                const res = await createUserWithEmailAndPassword(auth, document.getElementById("reg-email").value, document.getElementById("reg-pass").value);
                 await updateProfile(res.user, { displayName: name });
             } catch (e) { alert(e.message); }
         };
-
         document.getElementById("logout-btn").onclick = () => signOut(auth);
 
-        function loadDashboardData() {
+        function loadData() {
             onSnapshot(doc(db, "settings", "announcement"), (s) => {
-                const data = s.data();
+                const d = s.data();
                 const bar = document.getElementById("ann-bar");
-                if (data && data.expiry > Date.now()) {
-                    document.getElementById("ann-text-display").innerText = data.text;
-                    bar.classList.remove("hidden");
-                } else { bar.classList.add("hidden"); }
+                if (d && d.expiry > Date.now()) { document.getElementById("ann-text-display").innerText = d.text; bar.classList.remove("hidden"); }
+                else { bar.classList.add("hidden"); }
             });
 
             const newsQ = query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3));
@@ -169,43 +132,21 @@
                 const feed = document.getElementById("news-feed");
                 feed.innerHTML = "";
                 snap.forEach(sDoc => {
-                    const data = sDoc.data();
-                    const isLiked = data.likes?.includes(auth.currentUser?.uid);
-                    const content = (data.content || "").substring(0, 100) + (data.content?.length > 100 ? "..." : "");
-                    const card = document.createElement("div");
-                    card.className = "bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm";
-                    card.innerHTML = `
-                        <h4 class="font-black text-slate-800 text-lg mb-1">${data.title}</h4>
-                        <p class="text-slate-500 text-sm leading-relaxed mb-4">${content}</p>
-                        <div class="flex justify-between items-center">
-                            <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">
-                                ${isLiked ? '❤️' : '🤍'} ${data.likes?.length || 0}
-                            </button>
-                            <a href="news.html?id=${sDoc.id}" class="brand-sky font-black text-[11px] uppercase tracking-tighter">Read More ➜</a>
-                        </div>
-                    `;
-                    feed.appendChild(card);
+                    const d = sDoc.data();
+                    const isLiked = d.likes?.includes(auth.currentUser?.uid);
+                    feed.innerHTML += `
+                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                            <h4 class="font-black text-slate-800 text-lg mb-1">${d.title}</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed mb-4">${(d.content || "").substring(0, 100)}...</p>
+                            <div class="flex justify-between items-center">
+                                <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">${isLiked ? '❤️' : '🤍'} ${d.likes?.length || 0}</button>
+                                <a href="news.html?id=${sDoc.id}" class="brand-sky font-black text-[11px] uppercase">Read More ➜</a>
+                            </div>
+                        </div>`;
                 });
             });
         }
-
-        window.toggleLike = async (id, currentlyLiked) => {
-            const ref = doc(db, "news", id);
-            await updateDoc(ref, { likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
-        };
-
-        document.getElementById("vip-btn").onclick = async () => {
-            const code = prompt("Enter VIP Code:");
-            if (!code) return;
-            const snap = await getDoc(doc(db, "vip_codes", code));
-            if (snap.exists()) {
-                const d = snap.data();
-                if (!d.usedBy || d.usedBy === auth.currentUser.uid) {
-                    if (!d.usedBy) await updateDoc(doc(db, "vip_codes", code), { usedBy: auth.currentUser.uid });
-                    window.location.href = "vip.html";
-                } else alert("Access Denied.");
-            } else alert("Invalid Code.");
-        };
+        window.toggleLike = async (id, currentlyLiked) => updateDoc(doc(db, "news", id), { likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
     </script>
 </body>
 </html>
