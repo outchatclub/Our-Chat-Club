@@ -16,17 +16,19 @@
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.96); }
         
-        /* Adjusted Spacing for Inputs */
+        /* Optimized UI Spacing */
         input { 
             border: 1px solid #e2e8f0; 
-            border-radius: 1rem; 
-            padding: 14px; 
+            border-radius: 1.25rem; 
+            padding: 16px; 
             width: 100%; 
-            margin-bottom: 18px; /* Increased gap between fields */
+            margin-bottom: 24px; /* Enhanced gap for ultra-clean UI */
             outline: none; 
-            transition: 0.2s; 
+            transition: 0.2s;
+            font-size: 0.9rem;
         }
-        input:focus { border-color: #4338ca; box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.1); }
+        input:last-of-type { margin-bottom: 32px; } /* More space before the primary button */
+        input:focus { border-color: #4338ca; box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.05); }
     </style>
 </head>
 <body class="text-slate-900">
@@ -41,22 +43,22 @@
             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Join the Club</p>
         </div>
 
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50">
             <div id="login-form">
-                <h2 class="text-xl font-black mb-6">Login</h2>
+                <h2 class="text-2xl font-black mb-8">Login</h2>
                 <input type="email" id="login-email" placeholder="Email Address">
                 <input type="password" id="login-pass" placeholder="Password">
-                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black mt-2 shadow-lg shadow-indigo-200">Login</button>
-                <p class="text-center text-xs mt-8 text-slate-500 font-medium">New here? <button onclick="toggleAuth(false)" class="brand-sky font-black">Create Account</button></p>
+                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Login</button>
+                <p class="text-center text-xs mt-10 text-slate-500 font-medium">New here? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Create Account</button></p>
             </div>
 
             <div id="signup-form" class="hidden">
-                <h2 class="text-xl font-black mb-6">Create Account</h2>
+                <h2 class="text-2xl font-black mb-8">Create Account</h2>
                 <input type="text" id="reg-name" placeholder="Full Name">
                 <input type="email" id="reg-email" placeholder="Email Address">
                 <input type="password" id="reg-pass" placeholder="Create Password">
-                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black mt-2 shadow-lg shadow-indigo-200">Sign Up</button>
-                <p class="text-center text-xs mt-8 text-slate-500 font-medium">Have an account? <button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
+                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Sign Up</button>
+                <p class="text-center text-xs mt-10 text-slate-500 font-medium">Have an account? <button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
             </div>
         </div>
     </div>
@@ -74,7 +76,7 @@
             <div class="vip-gradient p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-indigo-950">
                 <h2 class="text-white font-black text-2xl mb-1 tracking-tight">👑 VIP PANEL</h2>
                 <p id="user-display" class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-6">Member</p>
-                <button id="vip-btn" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black text-sm uppercase">Enter Premium Zone</button>
+                <button id="vip-btn" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black text-sm uppercase tracking-wide shadow-lg shadow-sky-900/20">Enter Premium Zone</button>
             </div>
         </section>
 
