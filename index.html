@@ -6,65 +6,59 @@
     <title>OCC Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .brand-gradient { background: linear-gradient(135deg, #6366f1, #a855f7); }
-        .vip-gold-card { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .brand-blue { color: #2563eb; }
+        .brand-bg-blue { background-color: #2563eb; }
+        .vip-gold { background: linear-gradient(135deg, #f59e0b, #b45309); }
         .hidden { display: none !important; }
-        ::-webkit-scrollbar { display: none; }
+        body { background-color: #f8fafc; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans pb-10">
+<body class="text-slate-900 font-sans">
 
-    <div id="ann-bar" class="hidden brand-gradient p-3 text-center text-white text-xs font-bold sticky top-0 z-50 shadow-lg">
+    <div id="ann-bar" class="hidden brand-bg-blue p-3 text-center text-white text-xs font-bold sticky top-0 z-50">
         <span id="ann-text-display"></span>
     </div>
 
-    <div class="max-w-md mx-auto p-5">
+    <div class="max-w-md mx-auto p-5 pb-24">
         
         <div class="flex justify-between items-center mb-8 mt-4">
             <div>
-                <h1 class="text-2xl font-black tracking-tight">OCC DASHBOARD</h1>
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Connect • Play • Earn</p>
+                <h1 class="text-2xl font-black brand-blue">OCC DASHBOARD</h1>
+                <p id="user-display-name" class="text-slate-400 text-xs font-bold uppercase tracking-widest">Welcome Back</p>
             </div>
-            <div id="user-avatar" class="w-12 h-12 rounded-2xl bg-slate-200 border-2 border-white shadow-sm overflow-hidden">
-                <img id="profile-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Lucky" alt="avatar">
-            </div>
+            <button id="logout-btn" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-black active:scale-95 transition-all">
+                LOGOUT
+            </button>
         </div>
 
         <div class="mb-8">
-            <div class="vip-gold-card p-6 rounded-[2.5rem] shadow-xl shadow-amber-200 relative overflow-hidden">
-                <div class="relative z-10">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="text-white text-lg">👑</span>
-                        <h2 class="text-white font-black text-lg">VIP PANEL</h2>
-                    </div>
-                    <p class="text-amber-100 text-[10px] font-bold uppercase tracking-wider mb-4 opacity-80">Premium Access Required</p>
-                    <button id="vip-btn" class="w-full bg-white text-amber-600 py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all">
-                        ACCESS PANEL
+            <div class="vip-gold p-6 rounded-[2rem] shadow-lg relative overflow-hidden">
+                <div class="relative z-10 text-center">
+                    <h2 class="text-white font-black text-xl mb-1">👑 VIP PANEL</h2>
+                    <p class="text-amber-100 text-[10px] font-bold uppercase tracking-widest mb-4">Premium Dashboard Access</p>
+                    <button id="vip-btn" class="w-full bg-white text-amber-700 py-4 rounded-2xl font-black shadow-md active:scale-95 transition-all">
+                        ENTER VIP PANEL
                     </button>
                 </div>
-                <div class="absolute -bottom-5 -right-5 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
             </div>
         </div>
 
         <div class="mb-8">
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Mini Games</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 text-center">
-                    <span class="text-2xl block mb-2">🎲</span>
-                    <span class="text-xs font-bold">Ludo Mini</span>
-                </div>
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 text-center">
-                    <span class="text-2xl block mb-2">⚔️</span>
-                    <span class="text-xs font-bold">Battle Run</span>
-                </div>
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">Latest News</h3>
+            <div id="news-feed" class="space-y-4">
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 animate-pulse h-24"></div>
             </div>
         </div>
 
-        <div>
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Latest News</h3>
-            <div id="news-feed" class="space-y-4">
-                <div class="animate-pulse bg-slate-200 h-32 rounded-[2rem]"></div>
-            </div>
+        <div class="mb-8">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2">Mini Games</h3>
+            <button id="mini-game-btn" class="w-full bg-white border-2 border-slate-100 p-6 rounded-[2rem] flex items-center justify-between active:scale-95 transition-all">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">🎮</span>
+                    <span class="font-black brand-blue">PLAY MINI GAMES</span>
+                </div>
+                <span class="text-slate-300">➜</span>
+            </button>
         </div>
 
     </div>
@@ -72,7 +66,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getFirestore, doc, getDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
@@ -84,7 +78,15 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- 📢 ANNOUNCEMENT LOGIC ---
+        // --- AUTH & LOGOUT ---
+        document.getElementById("logout-btn").onclick = () => signOut(auth).then(() => window.location.href = "login.html");
+
+        onAuthStateChanged(auth, user => {
+            if (!user) window.location.href = "login.html";
+            else document.getElementById("user-display-name").innerText = user.displayName || "User";
+        });
+
+        // --- ANNOUNCEMENTS ---
         onSnapshot(doc(db, "settings", "announcement"), (s) => {
             const data = s.data();
             const bar = document.getElementById("ann-bar");
@@ -96,7 +98,7 @@
             }
         });
 
-        // --- 📰 NEWS FEED LOGIC ---
+        // --- NEWS FEED ---
         const newsQuery = query(collection(db, "news"), orderBy("createdAt", "desc"));
         onSnapshot(newsQuery, (snap) => {
             const feed = document.getElementById("news-feed");
@@ -104,70 +106,52 @@
             snap.forEach(sDoc => {
                 const data = sDoc.data();
                 const isLiked = data.likes?.includes(auth.currentUser?.uid);
-                
                 const card = document.createElement("div");
-                card.className = "bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100";
+                card.className = "bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm";
                 card.innerHTML = `
-                    <h4 class="font-black text-lg mb-2">${data.title}</h4>
-                    <p class="text-slate-500 text-sm leading-relaxed mb-4">${data.content}</p>
-                    <div class="flex items-center gap-4">
-                        <button onclick="toggleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 text-xs font-bold ${isLiked ? 'text-red-500' : 'text-slate-400'}">
-                            <span>${isLiked ? '❤️' : '🤍'}</span> ${data.likes?.length || 0}
-                        </button>
-                    </div>
+                    <h4 class="font-black text-slate-800 text-lg mb-1">${data.title}</h4>
+                    <p class="text-slate-500 text-sm mb-4">${data.content}</p>
+                    <button onclick="toggleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 text-xs font-bold ${isLiked ? 'text-red-500' : 'text-slate-400'}">
+                        <span>${isLiked ? '❤️' : '🤍'}</span> ${data.likes?.length || 0}
+                    </button>
                 `;
                 feed.appendChild(card);
             });
         });
 
         window.toggleLike = async (id, currentlyLiked) => {
-            if (!auth.currentUser) return alert("Login to like!");
             const ref = doc(db, "news", id);
             await updateDoc(ref, {
                 likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid)
             });
         };
 
-        // --- 👑 VIP ACCESS LOGIC ---
+        // --- VIP LOGIC ---
         document.getElementById("vip-btn").onclick = async () => {
             const user = auth.currentUser;
-            if (!user) return alert("Please log in first!");
-
-            // Check if user already owns a code
-            // For security, we verify against the vip_codes collection
-            const codeInput = prompt("Enter VIP One-Time Access Code:");
+            const codeInput = prompt("Enter VIP Code:");
             if (!codeInput) return;
 
-            try {
-                const codeRef = doc(db, "vip_codes", codeInput);
-                const codeSnap = await getDoc(codeRef);
+            const codeRef = doc(db, "vip_codes", codeInput);
+            const codeSnap = await getDoc(codeRef);
 
-                if (codeSnap.exists()) {
-                    const data = codeSnap.data();
-                    
-                    // If code is fresh OR belongs to this user
-                    if (!data.usedBy || data.usedBy === user.uid) {
-                        if (!data.usedBy) {
-                            await updateDoc(codeRef, { usedBy: user.uid });
-                        }
-                        // Success: Redirect to VIP page
-                        window.location.href = "vip.html";
-                    } else {
-                        alert("This code has already been used by someone else.");
-                    }
+            if (codeSnap.exists()) {
+                const data = codeSnap.data();
+                if (!data.usedBy || data.usedBy === user.uid) {
+                    if (!data.usedBy) await updateDoc(codeRef, { usedBy: user.uid });
+                    window.location.href = "vip.html";
                 } else {
-                    alert("Invalid or Expired Code.");
+                    alert("This code is linked to another account.");
                 }
-            } catch (e) {
-                alert("Error verifying code. Check console.");
-                console.error(e);
+            } else {
+                alert("Invalid Code.");
             }
         };
 
-        // UI Updates on Auth
-        onAuthStateChanged(auth, user => {
-            if(user && user.photoURL) document.getElementById("profile-img").src = user.photoURL;
-        });
+        // --- MINI GAME ACTION ---
+        document.getElementById("mini-game-btn").onclick = () => {
+            window.location.href = "games.html"; 
+        };
     </script>
 </body>
 </html>
