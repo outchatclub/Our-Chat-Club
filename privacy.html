@@ -5,18 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - OCC</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
 </head>
 <body class="bg-gray-50 text-slate-800 p-6">
-    <div class="max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
-        <h1 class="text-3xl font-black text-indigo-700 mb-6 uppercase tracking-tighter">Privacy Policy</h1>
-        <div class="text-sm leading-relaxed space-y-4">
-            <p><strong>1. Data Collection:</strong> We collect minimal data required for your account, including your Name and Email provided via Firebase Auth.</p>
-            <p><strong>2. Media Usage:</strong> Any images or news posted by users/admins are stored on external platforms and linked within our database.</p>
-            <p><strong>3. Security:</strong> Your data is secured using Firebase Security Rules and official authentication protocols.</p>
-            <p><strong>4. Deletion:</strong> You can request account deletion at any time through our support or VIP chat.</p>
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mt-10">
+        <h1 class="text-3xl font-black text-indigo-700 mb-2 uppercase tracking-tighter">Privacy Policy</h1>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">How we handle your data</p>
+        
+        <div class="text-sm leading-relaxed text-slate-600 space-y-6">
+            <section>
+                <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">1. Data Storage</h3>
+                <p>OCC uses Google Firebase to securely store your profile information (Name, Email). We do not share this data with any third-party marketing services.</p>
+            </section>
+            <section>
+                <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">2. Usage Tracking</h3>
+                <p>We do not use tracking cookies. Your session is managed entirely through secure Firebase authentication tokens.</p>
+            </section>
+            <section>
+                <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">3. User Content</h3>
+                <p>Media shared on OCC remains the responsibility of the poster. We reserves the right to delete content that violates community standards.</p>
+            </section>
         </div>
-        <hr class="my-8 border-gray-100">
-        <button onclick="history.back()" class="w-full p-4 bg-gray-100 rounded-2xl font-bold text-gray-500 uppercase">Back</button>
+
+        <div class="mt-12 pt-8 border-t border-slate-50">
+            <button onclick="history.back()" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-wide shadow-lg">Go Back</button>
+        </div>
     </div>
 </body>
 </html>
