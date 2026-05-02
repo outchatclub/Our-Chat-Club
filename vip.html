@@ -13,8 +13,15 @@
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
         .hidden { display: none !important; }
         .id-card { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 2px solid #f59e0b; position: relative; }
-        .id-card::after { content: 'VIP'; position: absolute; top: -10px; right: 20px; font-size: 4rem; opacity: 0.05; font-weight: 900; }
         .btn-press:active { transform: scale(0.95); }
+        
+        /* Chat Box Styles */
+        .chat-container { height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; }
+        .chat-container::-webkit-scrollbar { width: 3px; }
+        .chat-container::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.3); border-radius: 10px; }
+        .msg { padding: 12px 16px; border-radius: 1.25rem; font-size: 13px; max-width: 85%; line-height: 1.4; }
+        .msg-user { align-self: flex-end; background: #4338ca; color: white; border-bottom-right-radius: 4px; }
+        .msg-admin { align-self: flex-start; background: rgba(255,255,255,0.1); color: #f59e0b; border-bottom-left-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2); }
     </style>
 </head>
 <body class="p-6 pb-24">
@@ -25,13 +32,13 @@
         <div class="glass p-8 rounded-[2.5rem]">
             <input type="text" id="vip-code-input" placeholder="Enter VIP Code" class="w-full bg-slate-800 border-none rounded-2xl p-4 text-center text-white mb-6 outline-none ring-2 ring-transparent focus:ring-amber-500">
             <button id="submit-code" class="btn-press w-full vip-bg-gold text-white py-4 rounded-2xl font-black mb-4">UNLOCK ACCESS</button>
-            <button onclick="location.href='index.html'" class="text-slate-500 text-xs font-bold uppercase tracking-widest">I don't have a code</button>
+            <button onclick="location.href='index.html'" class="text-slate-500 text-xs font-bold uppercase tracking-widest">Exit</button>
         </div>
     </div>
 
     <div id="vip-content" class="hidden max-w-md mx-auto">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-black vip-gold">VIP LOUNGE</h1>
+            <h1 class="text-2xl font-black vip-gold uppercase">VIP Lounge</h1>
             <button onclick="location.href='index.html'" class="text-[10px] font-bold bg-slate-800 px-4 py-2 rounded-xl">EXIT</button>
         </div>
 
@@ -44,36 +51,41 @@
                 <div class="text-2xl">👑</div>
             </div>
             <div class="mt-10 flex justify-between items-end">
-                <p id="id-number" class="text-[10px] font-mono text-slate-400">ID: LOADING...</p>
+                <p id="id-number" class="text-[10px] font-mono text-slate-400">UID: LOADING...</p>
                 <div class="bg-amber-500 text-[8px] font-black text-white px-3 py-1 rounded-full uppercase">Verified</div>
             </div>
         </div>
 
-        <div id="chat-status" class="hidden text-center mb-6 p-3 rounded-2xl bg-indigo-500/20 border border-indigo-500/30">
-            <p class="text-[10px] font-black uppercase tracking-widest text-indigo-300 animate-pulse">Admin is reviewing your message...</p>
+        <div class="glass p-6 rounded-[2.5rem] mb-6 border border-indigo-500/20">
+            <h3 class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-4 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Admin Chat
+            </h3>
+            
+            <div id="chat-display" class="chat-container mb-4">
+                <p class="text-[10px] text-slate-500 text-center mt-10 uppercase tracking-widest">Start a conversation...</p>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" placeholder="Type a message..." class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-xs outline-none focus:border-indigo-500">
+                <button id="send-chat" class="btn-press bg-indigo-600 px-4 rounded-xl text-lg">➜</button>
+            </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <button onclick="openChat()" class="btn-press glass p-6 rounded-3xl text-center">
-                <div class="text-2xl mb-2">💬</div>
-                <span class="text-xs font-black uppercase">Chat Admin</span>
-            </button>
             <button onclick="openRequest()" class="btn-press glass p-6 rounded-3xl text-center">
                 <div class="text-2xl mb-2">💡</div>
-                <span class="text-xs font-black uppercase">Request</span>
+                <span class="text-xs font-black uppercase">Request Feature</span>
             </button>
-        </div>
-
-        <div class="glass p-8 rounded-[2.5rem] text-center border-amber-500/30 border-2">
-            <h3 class="font-black mb-2">VIP SPECIAL GAME</h3>
-            <p class="text-slate-400 text-[10px] mb-6 tracking-widest uppercase">Pro Edition • Mobile Optimized</p>
-            <button id="start-game-btn" class="btn-press w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase">Play VIP Edition</button>
+            <button id="start-game-btn" class="btn-press glass p-6 rounded-3xl text-center border-amber-500/20 border">
+                <div class="text-2xl mb-2">🎮</div>
+                <span class="text-xs font-black uppercase">VIP Game</span>
+            </button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -86,32 +98,47 @@
             document.getElementById("id-name").innerText = user.displayName;
             document.getElementById("id-number").innerText = `UID: ${user.uid.substring(0,8).toUpperCase()}`;
             
-            // --- UPDATED LIVE CHAT LISTENER ---
+            // --- REAL-TIME CHAT SYNC ---
             onSnapshot(doc(db, "vip_chats", user.uid), (s) => {
                 const data = s.data();
-                const statusEl = document.getElementById("chat-status");
-
+                const display = document.getElementById("chat-display");
                 if (data) {
-                    // Show status if message is open
-                    if (data.status === "open") {
-                        statusEl.classList.remove("hidden");
-                    } else if (data.status === "closed") {
-                        statusEl.classList.add("hidden");
-                        
-                        // If there is a reply, alert and then wipe the reply field
-                        if (data.adminReply) {
-                            alert(`Admin Message: ${data.adminReply}`);
-                            // We use deleteField to properly clean up the document
-                            updateDoc(doc(db, "vip_chats", user.uid), { 
-                                adminReply: deleteField(),
-                                status: "seen" // Change status so alert doesn't repeat
-                            });
-                        }
+                    display.innerHTML = ""; // Clear loader
+                    
+                    // User Message
+                    if (data.lastMessage) {
+                        display.innerHTML += `<div class="msg msg-user">${data.lastMessage}</div>`;
                     }
+                    
+                    // Admin Reply
+                    if (data.adminReply) {
+                        display.innerHTML += `<div class="msg msg-admin"><b>Admin:</b> ${data.adminReply}</div>`;
+                    }
+                    
+                    // Auto-scroll to bottom
+                    display.scrollTop = display.scrollHeight;
                 }
             });
         });
 
+        // SEND CHAT LOGIC
+        document.getElementById("send-chat").onclick = async () => {
+            const input = document.getElementById("chat-input");
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            await setDoc(doc(db, "vip_chats", auth.currentUser.uid), {
+                userName: auth.currentUser.displayName,
+                lastMessage: msg,
+                status: "open",
+                timestamp: Date.now()
+                // We keep adminReply if it exists, or it stays empty
+            }, { merge: true });
+
+            input.value = "";
+        };
+
+        // ACCESS GATE
         document.getElementById("submit-code").onclick = async () => {
             const code = document.getElementById("vip-code-input").value;
             const snap = await getDoc(doc(db, "vip_codes", code));
@@ -127,21 +154,7 @@
             if(req) addDoc(collection(db, "requests"), { name: auth.currentUser.displayName, request: req, date: new Date().toLocaleString() });
         };
 
-        window.openChat = () => {
-            const msg = prompt("Message Admin:");
-            if(msg) {
-                setDoc(doc(db, "vip_chats", auth.currentUser.uid), {
-                    userName: auth.currentUser.displayName,
-                    lastMessage: msg,
-                    status: "open",
-                    timestamp: Date.now()
-                });
-                alert("Message Sent! Wait for Admin to reply.");
-            }
-        };
-
         document.getElementById("start-game-btn").onclick = () => alert("Game Loading...");
     </script>
 </body>
 </html>
-
