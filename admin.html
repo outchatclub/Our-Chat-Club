@@ -49,7 +49,7 @@
             <h2 class="text-xs font-black uppercase mb-4 text-amber-100">👑 Generate VIP Code</h2>
             <input id="vip-code-input" placeholder="Enter Code (e.g. VIP2026)" class="w-full p-4 bg-amber-700/30 rounded-2xl mb-3 outline-none placeholder-amber-200">
             <button id="gen-vip" class="w-full p-4 bg-white text-amber-700 rounded-2xl font-black">CREATE CODE</button>
-            <div id="vip-list" class="mt-4 space-y-2"></div>
+            <div id="vip-list" class="mt-4 space-y-2 scroll-area"></div>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-indigo-500/30">
@@ -107,6 +107,25 @@
                 });
             });
 
+            // --- UPDATED VIP CODE LISTENER ---
+            onSnapshot(collection(db, "vip_codes"), snap => {
+                const list = document.getElementById("vip-list");
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    const statusText = data.usedBy ? "✅ Claimed" : "⏳ Pending";
+                    const el = document.createElement("div");
+                    el.className = "flex justify-between items-center bg-amber-900/30 p-3 rounded-xl border border-amber-500/20";
+                    el.innerHTML = `
+                        <div class="flex flex-col">
+                            <span class="text-xs font-black text-amber-200 uppercase">${d.id}</span>
+                            <span class="text-[9px] font-bold text-amber-500/80 uppercase tracking-tighter">${statusText}</span>
+                        </div>
+                        <button onclick="delVip('${d.id}')" class="text-white opacity-40 hover:opacity-100 text-[10px] font-black uppercase">Delete</button>`;
+                    list.appendChild(el);
+                });
+            });
+
             onSnapshot(collection(db, "requests"), snap => {
                 const list = document.getElementById("request-list");
                 list.innerHTML = "";
@@ -137,6 +156,7 @@
         }
 
         window.delNews = id => deleteDoc(doc(db, "news", id));
+        window.delVip = id => deleteDoc(doc(db, "vip_codes", id));
         window.delReq = id => deleteDoc(doc(db, "requests", id));
         window.replyVip = async id => {
             const reply = prompt("Enter reply for VIP:");
