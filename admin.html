@@ -16,8 +16,8 @@
 </head>
 <body class="bg-slate-900 text-white min-h-screen font-sans">
 
-    <div id="admin-auth-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-6">
-        <div class="w-full max-sm bg-white p-8 rounded-[2.5rem] shadow-2xl text-slate-900">
+    <div id="admin-auth-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-6 text-slate-900">
+        <div class="w-full max-sm bg-white p-8 rounded-[2.5rem] shadow-2xl">
             <h1 class="text-2xl font-black mb-2 text-indigo-600 text-center uppercase tracking-tighter">Admin Panel</h1>
             <div class="space-y-4">
                 <input id="admin-email-input" type="email" placeholder="Admin Email" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-indigo-500">
@@ -31,7 +31,7 @@
     <div id="admin-panel-content" class="hidden max-w-md mx-auto p-5 pb-24">
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-2xl font-black text-indigo-400">CONTROL</h1>
+                <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">Control</h1>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Master Dashboard</p>
             </div>
             <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
@@ -111,9 +111,9 @@
         onAuthStateChanged(auth, user => { if(sessionStorage.getItem("admin_verified") === "true") unlockPanel(); });
 
         async function loadData() {
-            // Load existing terms into textarea
-            const termsSnap = await getDoc(doc(db, "settings", "terms"));
-            if(termsSnap.exists()) document.getElementById("terms-input").value = termsSnap.data().text;
+            // Load existing Terms
+            const tSnap = await getDoc(doc(db, "settings", "terms"));
+            if(tSnap.exists()) document.getElementById("terms-input").value = tSnap.data().text;
 
             onSnapshot(collection(db, "news"), snap => {
                 const list = document.getElementById("news-list");
@@ -122,7 +122,7 @@
                     const el = document.createElement("div");
                     el.className = "flex justify-between items-center bg-slate-800 p-4 rounded-2xl";
                     el.innerHTML = `<span class="text-sm font-bold truncate mr-4">${d.data().title}</span>
-                                   <button onclick="delNews('${d.id}')" class="text-red-400 text-xs font-black uppercase">Del</button>`;
+                                   <button onclick="delNews('${d.id}')" class="text-red-400 text-xs font-black uppercase tracking-tighter">Del</button>`;
                     list.appendChild(el);
                 });
             });
@@ -137,10 +137,10 @@
                     el.className = "flex justify-between items-center bg-amber-900/30 p-3 rounded-xl border border-amber-500/20";
                     el.innerHTML = `
                         <div class="flex flex-col">
-                            <span class="text-xs font-black text-amber-200 uppercase">${d.id}</span>
-                            <span class="text-[9px] font-bold text-amber-500/80 uppercase tracking-tighter">${statusText}</span>
+                            <span class="text-xs font-black text-amber-200 uppercase tracking-tight">${d.id}</span>
+                            <span class="text-[9px] font-bold text-amber-500/80 uppercase">${statusText}</span>
                         </div>
-                        <button onclick="delVip('${d.id}')" class="text-white opacity-40 hover:opacity-100 text-[10px] font-black uppercase">Delete</button>`;
+                        <button onclick="delVip('${d.id}')" class="text-white opacity-40 text-[10px] font-black uppercase">Delete</button>`;
                     list.appendChild(el);
                 });
             });
@@ -165,9 +165,9 @@
                     const data = d.data();
                     if(data.status === "open") {
                         list.innerHTML += `<div class="bg-indigo-900/20 p-4 rounded-2xl border border-indigo-500/20">
-                            <p class="text-[10px] font-black text-white mb-1 uppercase">${data.userName}</p>
+                            <p class="text-[10px] font-black text-white mb-1 uppercase tracking-wider">${data.userName}</p>
                             <p class="text-xs italic text-slate-300 mb-4">"${data.lastMessage}"</p>
-                            <button onclick="replyVip('${d.id}')" class="w-full py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase">Reply</button>
+                            <button onclick="replyVip('${d.id}')" class="w-full py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest">Reply</button>
                         </div>`;
                     }
                 });
@@ -182,11 +182,11 @@
             if(reply) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: reply });
         };
 
-        // NEW: TERMS HANDLER
+        // NEW: UPDATE TERMS ACTION
         document.getElementById("update-terms").onclick = async () => {
             const text = document.getElementById("terms-input").value;
             await setDoc(doc(db, "settings", "terms"), { text, lastUpdated: serverTimestamp() });
-            alert("Terms & Conditions Updated!");
+            alert("Terms Updated Successfully!");
         };
 
         document.getElementById("pub-ann").onclick = async () => {
