@@ -16,7 +16,6 @@
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.96); }
         input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 24px; outline: none; transition: 0.2s; font-size: 0.9rem; }
-        input:last-of-type { margin-bottom: 32px; }
         input:focus { border-color: #4338ca; box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.05); }
     </style>
 </head>
@@ -36,7 +35,7 @@
                 <h2 class="text-2xl font-black mb-8">Login</h2>
                 <input type="email" id="login-email" placeholder="Email Address">
                 <input type="password" id="login-pass" placeholder="Password">
-                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Login</button>
+                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Login</button>
                 <p class="text-center text-xs mt-10 text-slate-500 font-medium">New here? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Create Account</button></p>
             </div>
             <div id="signup-form" class="hidden">
@@ -44,7 +43,7 @@
                 <input type="text" id="reg-name" placeholder="Full Name">
                 <input type="email" id="reg-email" placeholder="Email Address">
                 <input type="password" id="reg-pass" placeholder="Create Password">
-                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Sign Up</button>
+                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Sign Up</button>
                 <p class="text-center text-xs mt-10 text-slate-500 font-medium">Have an account? <button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
             </div>
         </div>
@@ -63,7 +62,7 @@
             <div class="vip-gradient p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-indigo-950">
                 <h2 class="text-white font-black text-2xl mb-1 tracking-tight">👑 VIP PANEL</h2>
                 <p id="user-display" class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-6">Member Access</p>
-                <button onclick="location.href='vip.html'" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black text-sm uppercase shadow-lg shadow-sky-900/20">Enter Premium Zone</button>
+                <button onclick="location.href='vip.html'" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black text-sm uppercase tracking-wide">Enter Premium Zone</button>
             </div>
         </section>
 
@@ -78,7 +77,10 @@
             <button onclick="location.href='minigame.html'" class="btn-press w-full bg-white border border-slate-200 p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-5">
                     <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl">🎮</div>
-                    <div class="text-left"><span class="block font-black text-slate-800 text-lg">MINI GAMES</span><span class="text-[10px] text-slate-400 font-bold uppercase">Enjoy & Relax</span></div>
+                    <div class="text-left">
+                        <span class="block font-black text-slate-800 text-lg">MINI GAMES</span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase">Enjoy & Relax</span>
+                    </div>
                 </div>
                 <span class="brand-sky text-xl">➜</span>
             </button>
@@ -100,47 +102,60 @@
             document.getElementById("signup-form").classList.toggle("hidden", isLogin);
         };
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, user => {
             document.getElementById("auth-section").classList.toggle("hidden", !!user);
             document.getElementById("main-dashboard").classList.toggle("hidden", !user);
-            if (user) {
+            if(user) {
                 document.getElementById("user-display").innerText = `Logged in as: ${user.displayName || 'Member'}`;
                 loadData();
             }
         });
 
         document.getElementById("do-login").onclick = () => signInWithEmailAndPassword(auth, document.getElementById("login-email").value, document.getElementById("login-pass").value).catch(e => alert(e.message));
+        
         document.getElementById("do-signup").onclick = async () => {
             const name = document.getElementById("reg-name").value;
             try {
                 const res = await createUserWithEmailAndPassword(auth, document.getElementById("reg-email").value, document.getElementById("reg-pass").value);
                 await updateProfile(res.user, { displayName: name });
-            } catch (e) { alert(e.message); }
+            } catch(e) { alert(e.message); }
         };
+
         document.getElementById("logout-btn").onclick = () => signOut(auth);
 
         function loadData() {
-            onSnapshot(doc(db, "settings", "announcement"), (s) => {
+            onSnapshot(doc(db, "settings", "announcement"), s => {
                 const d = s.data();
                 const bar = document.getElementById("ann-bar");
-                if (d && d.expiry > Date.now()) { document.getElementById("ann-text-display").innerText = d.text; bar.classList.remove("hidden"); }
-                else { bar.classList.add("hidden"); }
+                if(d && d.expiry > Date.now()) {
+                    document.getElementById("ann-text-display").innerText = d.text;
+                    bar.classList.remove("hidden");
+                } else bar.classList.add("hidden");
             });
 
             const newsQ = query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3));
-            onSnapshot(newsQ, (snap) => {
+            onSnapshot(newsQ, snap => {
                 const feed = document.getElementById("news-feed");
                 feed.innerHTML = "";
                 snap.forEach(sDoc => {
                     const d = sDoc.data();
                     const isLiked = d.likes?.includes(auth.currentUser?.uid);
+                    const imgHtml = d.imageUrl ? `<img src="${d.imageUrl}" class="w-16 h-16 rounded-2xl object-cover ml-4 shadow-sm">` : '';
+                    
                     feed.innerHTML += `
-                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-                            <h4 class="font-black text-slate-800 text-lg mb-1">${d.title}</h4>
-                            <p class="text-slate-500 text-sm leading-relaxed mb-4">${(d.content || "").substring(0, 100)}...</p>
+                        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex-1">
+                                    <h4 class="font-black text-slate-800 text-lg leading-tight mb-1">${d.title}</h4>
+                                    <p class="text-slate-500 text-[11px] leading-relaxed">${(d.content || "").substring(0, 70)}...</p>
+                                </div>
+                                ${imgHtml}
+                            </div>
                             <div class="flex justify-between items-center">
-                                <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">${isLiked ? '❤️' : '🤍'} ${d.likes?.length || 0}</button>
-                                <a href="news.html?id=${sDoc.id}" class="brand-sky font-black text-[11px] uppercase">Read More ➜</a>
+                                <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">
+                                    ${isLiked ? '❤️' : '🤍'} ${d.likes?.length || 0}
+                                </button>
+                                <a href="news.html?id=${sDoc.id}" class="brand-sky font-black text-[11px] uppercase tracking-tighter">Read More ➜</a>
                             </div>
                         </div>`;
                 });
