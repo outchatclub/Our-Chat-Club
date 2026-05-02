@@ -2,79 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OCC News</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCC News - Full Article</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    </style>
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
-
-    <div id="ann-bar" class="hidden bg-indigo-600 text-white p-4 text-center font-extrabold text-sm shadow-xl sticky top-0 z-50">
-        <span id="ann-msg"></span>
+<body class="p-6 pb-20">
+    <div class="max-w-md mx-auto">
+        <button onclick="location.href='index.html'" class="mb-8 text-indigo-600 font-black text-xs uppercase">➜ Back to Dashboard</button>
+        
+        <div id="news-full-display">
+            <p class="text-center text-slate-400 mt-20">Loading article...</p>
+        </div>
     </div>
-
-    <header class="p-6 flex justify-between items-center bg-white border-b">
-        <h1 class="text-2xl font-black text-indigo-700">OCC FEED</h1>
-        <a href="index.html" class="p-2 px-4 bg-gray-100 rounded-xl font-bold text-gray-500">BACK</a>
-    </header>
-
-    <main class="flex-grow p-5 space-y-4" id="feed"></main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore();
-        const auth = getAuth();
+        const db = getFirestore(app);
 
-        // 1. Handle Announcement Visibility
-        onSnapshot(doc(db, "settings", "announcement"), sDoc => {
-            if(sDoc.exists()){
-                const data = sDoc.data();
-                if(Date.now() < data.expiry) {
-                    document.getElementById("ann-bar").classList.remove("hidden");
-                    document.getElementById("ann-msg").innerText = "🚨 " + data.text;
-                } else {
-                    document.getElementById("ann-bar").classList.add("hidden");
+        const newsId = new URLSearchParams(window.location.search).get('id');
+        if(newsId) {
+            onSnapshot(doc(db, "news", newsId), (s) => {
+                const d = s.data();
+                const container = document.getElementById("news-full-display");
+                if(d) {
+                    container.innerHTML = `
+                        <h1 class="text-3xl font-black text-slate-900 leading-tight mb-6">${d.title}</h1>
+                        ${d.imageUrl ? `<img src="${d.imageUrl}" class="w-full h-56 object-cover rounded-[2.5rem] mb-8 shadow-xl">` : ''}
+                        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                            <p class="text-slate-600 leading-relaxed whitespace-pre-wrap">${d.content}</p>
+                        </div>
+                    `;
                 }
-            }
-        });
-
-        // 2. Load Feed
-        onAuthStateChanged(auth, user => {
-            if(!user && localStorage.getItem("occ_admin_access") !== "true") window.location.href = "index.html";
-            const uid = user?.uid || "admin";
-            const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
-            
-            onSnapshot(q, snap => {
-                const feed = document.getElementById("feed");
-                feed.innerHTML = "";
-                snap.forEach(sDoc => {
-                    const data = sDoc.data();
-                    const likes = data.likes || [];
-                    const isLiked = likes.includes(uid);
-                    
-                    const card = document.createElement("div");
-                    card.className = "bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100";
-                    card.innerHTML = `
-                        <h2 class="text-xl font-black text-slate-800 mb-2">${data.title}</h2>
-                        <p class="text-slate-500 mb-4 leading-relaxed">${data.content}</p>
-                        <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 p-3 px-5 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} transition-all">
-                            <span class="text-xl">${isLiked ? '❤️' : '🤍'}</span> <b>${likes.length}</b>
-                        </button>`;
-                    feed.appendChild(card);
-                });
             });
-        });
-
-        window.handleLike = async (id, isLiked) => {
-            const uid = auth.currentUser?.uid || "admin";
-            const ref = doc(db, "news", id);
-            await updateDoc(ref, { likes: isLiked ? arrayRemove(uid) : arrayUnion(uid) });
-        };
+        }
     </script>
 </body>
 </html>
-
