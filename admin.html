@@ -34,17 +34,6 @@
             <button id="logout-admin-btn" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
         </div>
 
-        <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">⚖️ Terms & Privacy Control</h2>
-            <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Terms & Conditions</label>
-            <textarea id="terms-input" placeholder="Terms text..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-3 outline-none border border-slate-700 text-sm mt-1"></textarea>
-            <button id="update-terms" class="w-full p-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase mb-6">Update Terms</button>
-
-            <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Privacy Policy</label>
-            <textarea id="privacy-input" placeholder="Privacy text..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-3 outline-none border border-slate-700 text-sm mt-1"></textarea>
-            <button id="update-privacy" class="w-full p-3 bg-slate-700 text-white rounded-xl font-black text-xs uppercase">Update Privacy</button>
-        </div>
-
         <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl">
             <h2 class="text-xs font-black uppercase mb-4 text-indigo-200 tracking-widest">📢 Global Announcement</h2>
             <input id="ann-text" placeholder="Broadcast Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white placeholder-indigo-300">
@@ -138,12 +127,6 @@
         });
 
         async function loadData() {
-            // Settings Initial Load
-            const tSnap = await getDoc(doc(db, "settings", "terms"));
-            if(tSnap.exists()) document.getElementById("terms-input").value = tSnap.data().text;
-            const pSnap = await getDoc(doc(db, "settings", "privacy"));
-            if(pSnap.exists()) document.getElementById("privacy-input").value = pSnap.data().text;
-
             // Listeners
             onSnapshot(collection(db, "news"), snap => {
                 const list = document.getElementById("news-list");
@@ -197,16 +180,6 @@
         }
 
         // Action Handlers
-        document.getElementById("update-terms").onclick = async () => {
-            await setDoc(doc(db, "settings", "terms"), { text: document.getElementById("terms-input").value, lastUpdated: serverTimestamp() });
-            alert("Terms Updated!");
-        };
-
-        document.getElementById("update-privacy").onclick = async () => {
-            await setDoc(doc(db, "settings", "privacy"), { text: document.getElementById("privacy-input").value, lastUpdated: serverTimestamp() });
-            alert("Privacy Updated!");
-        };
-
         document.getElementById("pub-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
             const expiry = Date.now() + (parseInt(document.getElementById("ann-hours").value || 0) * 3600000) + (parseInt(document.getElementById("ann-mins").value || 0) * 60000);
