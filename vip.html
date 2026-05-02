@@ -14,6 +14,7 @@
         .hidden { display: none !important; }
         .id-card { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 2px solid #f59e0b; position: relative; }
         .id-card::after { content: 'VIP'; position: absolute; top: -10px; right: 20px; font-size: 4rem; opacity: 0.05; font-weight: 900; }
+        .btn-press:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="p-6 pb-24">
@@ -23,7 +24,7 @@
         <p class="text-slate-400 text-xs uppercase tracking-widest mb-10">Secret Access Required</p>
         <div class="glass p-8 rounded-[2.5rem]">
             <input type="text" id="vip-code-input" placeholder="Enter VIP Code" class="w-full bg-slate-800 border-none rounded-2xl p-4 text-center text-white mb-6 outline-none ring-2 ring-transparent focus:ring-amber-500">
-            <button id="submit-code" class="w-full vip-bg-gold text-white py-4 rounded-2xl font-black mb-4">UNLOCK ACCESS</button>
+            <button id="submit-code" class="btn-press w-full vip-bg-gold text-white py-4 rounded-2xl font-black mb-4">UNLOCK ACCESS</button>
             <button onclick="location.href='index.html'" class="text-slate-500 text-xs font-bold uppercase tracking-widest">I don't have a code</button>
         </div>
     </div>
@@ -48,12 +49,16 @@
             </div>
         </div>
 
+        <div id="chat-status" class="hidden text-center mb-6 p-3 rounded-2xl bg-indigo-500/20 border border-indigo-500/30">
+            <p class="text-[10px] font-black uppercase tracking-widest text-indigo-300 animate-pulse">Admin is reviewing your message...</p>
+        </div>
+
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <button onclick="openChat()" class="glass p-6 rounded-3xl text-center">
+            <button onclick="openChat()" class="btn-press glass p-6 rounded-3xl text-center">
                 <div class="text-2xl mb-2">💬</div>
                 <span class="text-xs font-black uppercase">Chat Admin</span>
             </button>
-            <button onclick="openRequest()" class="glass p-6 rounded-3xl text-center">
+            <button onclick="openRequest()" class="btn-press glass p-6 rounded-3xl text-center">
                 <div class="text-2xl mb-2">💡</div>
                 <span class="text-xs font-black uppercase">Request</span>
             </button>
@@ -62,13 +67,13 @@
         <div class="glass p-8 rounded-[2.5rem] text-center border-amber-500/30 border-2">
             <h3 class="font-black mb-2">VIP SPECIAL GAME</h3>
             <p class="text-slate-400 text-[10px] mb-6 tracking-widest uppercase">Pro Edition • Mobile Optimized</p>
-            <button id="start-game-btn" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase">Play VIP Edition</button>
+            <button id="start-game-btn" class="btn-press w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase">Play VIP Edition</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, onSnapshot, deleteField } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -81,12 +86,28 @@
             document.getElementById("id-name").innerText = user.displayName;
             document.getElementById("id-number").innerText = `UID: ${user.uid.substring(0,8).toUpperCase()}`;
             
-            // Listen for Admin replies
+            // --- UPDATED LIVE CHAT LISTENER ---
             onSnapshot(doc(db, "vip_chats", user.uid), (s) => {
                 const data = s.data();
-                if(data && data.status === "closed" && data.adminReply) {
-                    alert(`Admin Message: ${data.adminReply}`);
-                    updateDoc(doc(db, "vip_chats", user.uid), { adminReply: null });
+                const statusEl = document.getElementById("chat-status");
+
+                if (data) {
+                    // Show status if message is open
+                    if (data.status === "open") {
+                        statusEl.classList.remove("hidden");
+                    } else if (data.status === "closed") {
+                        statusEl.classList.add("hidden");
+                        
+                        // If there is a reply, alert and then wipe the reply field
+                        if (data.adminReply) {
+                            alert(`Admin Message: ${data.adminReply}`);
+                            // We use deleteField to properly clean up the document
+                            updateDoc(doc(db, "vip_chats", user.uid), { 
+                                adminReply: deleteField(),
+                                status: "seen" // Change status so alert doesn't repeat
+                            });
+                        }
+                    }
                 }
             });
         });
@@ -115,7 +136,7 @@
                     status: "open",
                     timestamp: Date.now()
                 });
-                alert("Request Sent!");
+                alert("Message Sent! Wait for Admin to reply.");
             }
         };
 
@@ -123,3 +144,4 @@
     </script>
 </body>
 </html>
+
