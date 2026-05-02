@@ -8,34 +8,31 @@
 </head>
 <body class="bg-slate-900 text-white p-5 pb-24 font-sans">
     <div class="max-w-md mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-black text-indigo-400">ADMIN CONTROL</h1>
-            <a href="index.html" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Exit</a>
-        </div>
+        <h1 class="text-2xl font-black text-indigo-400 mb-8">WORKING ADMIN PANEL</h1>
         
         <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl shadow-indigo-500/20">
-            <h2 class="text-xs font-black uppercase tracking-widest text-indigo-200 mb-4">📢 Top Announcement</h2>
-            <input id="ann-text" placeholder="Important notice..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 border-none text-white placeholder-indigo-300 outline-none">
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-200">Broadcast Message</h2>
+            <input id="ann-text" placeholder="Announcement text..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 border-none text-white outline-none">
             <div class="flex gap-2 mb-4">
-                <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none" min="0" max="240">
-                <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none" min="1" max="59">
+                <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none" min="0">
+                <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none" min="0">
             </div>
-            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black shadow-lg active:scale-95 transition-all">PUBLISH LIVE</button>
+            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black shadow-lg">PUBLISH</button>
         </div>
 
         <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">📰 Create Post</h2>
-            <input id="news-title" placeholder="News Headline" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
-            <textarea id="news-content" placeholder="Full story..." class="w-full p-4 bg-slate-100 rounded-2xl h-32 mb-4 outline-none"></textarea>
-            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black active:scale-95 transition-all">UPLOAD NEWS</button>
+            <h2 class="text-xs font-black uppercase mb-4 text-slate-400">Add News</h2>
+            <input id="news-title" placeholder="Headline" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-32 mb-4 outline-none"></textarea>
+            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black">UPLOAD</button>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-8">
-            <h2 class="text-xs font-black uppercase tracking-widest text-slate-500 mb-4">🚫 User Moderation</h2>
-            <input id="ban-email" placeholder="user@email.com" class="w-full p-4 bg-slate-700 rounded-2xl mb-4 outline-none text-white">
+            <h2 class="text-xs font-black uppercase mb-4 text-slate-500">Ban Management</h2>
+            <input id="ban-email" placeholder="user@gmail.com" class="w-full p-4 bg-slate-700 rounded-2xl mb-4 outline-none text-white">
             <div class="flex gap-3">
-                <button onclick="handleBan(true)" class="w-1/2 p-4 bg-red-500/20 text-red-500 rounded-2xl font-bold border border-red-500/30">BAN</button>
-                <button onclick="handleBan(false)" class="w-1/2 p-4 bg-emerald-500/20 text-emerald-500 rounded-2xl font-bold border border-emerald-500/30">UNBAN</button>
+                <button onclick="handleBan(true)" class="w-1/2 p-4 bg-red-600 text-white rounded-2xl font-bold">BAN</button>
+                <button onclick="handleBan(false)" class="w-1/2 p-4 bg-emerald-600 text-white rounded-2xl font-bold">UNBAN</button>
             </div>
         </div>
 
@@ -46,64 +43,63 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-        // SECURITY CHECK: Redirect if not logged in via @Admin bypass
-        if(localStorage.getItem("occ_admin_access") !== "true") {
-            window.location.href = "index.html";
-        }
+        if(localStorage.getItem("occ_admin_access") !== "true") window.location.href = "index.html";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
-        const db = getFirestore(initializeApp(firebaseConfig));
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // Post News
+        // Functional News Upload
         document.getElementById("post-news").onclick = async () => {
             const title = document.getElementById("news-title").value;
             const content = document.getElementById("news-content").value;
             if(!title || !content) return;
-            await addDoc(collection(db, "news"), { title, content, likes: [], createdAt: serverTimestamp() });
-            alert("News Uploaded!");
-            document.getElementById("news-title").value = ""; 
-            document.getElementById("news-content").value = "";
+            try {
+                await addDoc(collection(db, "news"), { 
+                    title, content, likes: [], createdAt: serverTimestamp() 
+                });
+                alert("Success!");
+                document.getElementById("news-title").value = ""; 
+                document.getElementById("news-content").value = "";
+            } catch(e) { alert("Error: " + e.message); }
         };
 
-        // Timed Announcements (1 min to 240 hours)
+        // Functional Announcement
         document.getElementById("pub-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
             const hrs = parseInt(document.getElementById("ann-hours").value) || 0;
             const mins = parseInt(document.getElementById("ann-mins").value) || 0;
-            const totalMins = (hrs * 60) + mins;
-
-            if(totalMins < 1 || totalMins > 14400) {
-                alert("Duration must be between 1 minute and 240 hours.");
-                return;
-            }
-
-            const expiry = Date.now() + (totalMins * 60000);
-            await setDoc(doc(db, "settings", "announcement"), { text, expiry });
-            alert("Announcement Live!");
+            const expiry = Date.now() + ((hrs * 60) + mins) * 60000;
+            try {
+                await setDoc(doc(db, "settings", "announcement"), { text, expiry });
+                alert("Announcement Published!");
+            } catch(e) { alert("Error: " + e.message); }
         };
 
-        // User Banning logic
+        // Ban Logic
         window.handleBan = async (status) => {
             const email = document.getElementById("ban-email").value.toLowerCase();
             if(!email) return;
-            await setDoc(doc(db, "bannedUsers", email), { banned: status });
-            alert(`User ${status ? 'BANNED' : 'UNBANNED'}`);
+            try {
+                await setDoc(doc(db, "bannedUsers", email.replace('.', '_')), { banned: status });
+                alert(`User ${status ? 'Banned' : 'Unbanned'}`);
+            } catch(e) { alert("Error: " + e.message); }
         };
 
-        // Live list for deleting news
+        // List & Delete
         onSnapshot(collection(db, "news"), snap => {
             const list = document.getElementById("news-list");
             list.innerHTML = "";
             snap.forEach(sDoc => {
                 const div = document.createElement("div");
                 div.className = "flex justify-between items-center bg-slate-800 p-4 rounded-2xl";
-                div.innerHTML = `<span class="font-bold truncate max-w-[150px]">${sDoc.data().title}</span>
-                                <button onclick="delNews('${sDoc.id}')" class="text-red-400 font-bold">DELETE</button>`;
+                div.innerHTML = `<span class="truncate max-w-[150px] font-bold">${sDoc.data().title}</span>
+                                <button onclick="delNews('${sDoc.id}')" class="text-red-400 font-bold">DEL</button>`;
                 list.appendChild(div);
             });
         });
 
-        window.delNews = async (id) => { if(confirm("Confirm Delete?")) await deleteDoc(doc(db, "news", id)); };
+        window.delNews = async (id) => { if(confirm("Delete?")) await deleteDoc(doc(db, "news", id)); };
     </script>
 </body>
 </html>
