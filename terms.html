@@ -1,1 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions - OCC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-slate-800 p-6">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100">
+        <h1 class="text-3xl font-black text-indigo-700 mb-6 uppercase tracking-tighter">Terms & Conditions</h1>
+        <div id="terms-content" class="text-sm leading-relaxed space-y-4 whitespace-pre-wrap">
+            Loading...
+        </div>
+        <hr class="my-8 border-gray-100">
+        <button onclick="history.back()" class="w-full p-4 bg-gray-100 rounded-2xl font-bold text-gray-500 uppercase">Back</button>
+    </div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        onSnapshot(doc(db, "settings", "terms"), s => {
+            if(s.exists()) document.getElementById("terms-content").innerText = s.data().text;
+            else document.getElementById("terms-content").innerText = "No terms defined yet.";
+        });
+    </script>
+</body>
+</html>
