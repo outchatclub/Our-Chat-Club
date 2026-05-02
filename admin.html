@@ -17,7 +17,7 @@
 <body class="bg-slate-900 text-white min-h-screen font-sans">
 
     <div id="admin-auth-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-6 text-slate-900">
-        <div class="w-full max-sm bg-white p-8 rounded-[2.5rem] shadow-2xl">
+        <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] shadow-2xl">
             <h1 class="text-2xl font-black mb-2 text-indigo-600 text-center uppercase tracking-tighter">Admin Panel</h1>
             <div class="space-y-4">
                 <input id="admin-email-input" type="email" placeholder="Admin Email" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-indigo-500">
@@ -31,12 +31,11 @@
     <div id="admin-panel-content" class="hidden max-w-md mx-auto p-5 pb-24">
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">Control</h1>
-            <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
+            <button id="logout-admin-btn" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700 shadow-xl">
             <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">⚖️ Terms & Privacy Control</h2>
-            
             <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Terms & Conditions</label>
             <textarea id="terms-input" placeholder="Terms text..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-3 outline-none border border-slate-700 text-sm mt-1"></textarea>
             <button id="update-terms" class="w-full p-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase mb-6">Update Terms</button>
@@ -62,15 +61,14 @@
             <input id="news-image" placeholder="Image URL" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
             <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
             <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg">POST NEWS</button>
+            <div id="news-list" class="space-y-2 mt-4"></div>
         </div>
 
         <div class="vip-gold p-6 rounded-[2.5rem] mb-6 shadow-xl">
             <h2 class="text-xs font-black uppercase mb-4 text-amber-100 tracking-widest">👑 VIP Code Management</h2>
             <input id="vip-code-input" placeholder="Code (e.g. VIP2026)" class="w-full p-4 bg-amber-700/30 rounded-2xl mb-3 outline-none placeholder-amber-200">
             <button id="gen-vip" class="w-full p-4 bg-white text-amber-700 rounded-2xl font-black uppercase mb-4">Create Code</button>
-            
-            <div id="vip-list" class="space-y-2 scroll-area border-t border-amber-500/20 pt-4">
-            </div>
+            <div id="vip-list" class="space-y-2 scroll-area border-t border-amber-500/20 pt-4"></div>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-indigo-500/30">
@@ -82,14 +80,12 @@
             <h2 class="text-xs font-black uppercase mb-4 text-slate-400 tracking-widest">💡 Feature Requests</h2>
             <div id="request-list" class="scroll-area space-y-3"></div>
         </div>
-        
-        <div id="news-list" class="space-y-3 mt-6"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
@@ -97,104 +93,110 @@
         const auth = getAuth(app);
 
         const MASTER_EMAIL = "admin@gmail.com";
-        const MASTER_PASS = "29102007";
 
-        document.getElementById("admin-login-btn").onclick = () => {
-            if(document.getElementById("admin-email-input").value === MASTER_EMAIL && document.getElementById("admin-pass-input").value === MASTER_PASS) {
-                sessionStorage.setItem("admin_verified", "true");
-                unlockPanel();
-            } else { alert("Wrong credentials."); }
+        // Global function assignments for innerHTML buttons
+        window.delNews = (id) => deleteDoc(doc(db, "news", id));
+        window.delVip = (id) => deleteDoc(doc(db, "vip_codes", id));
+        window.delReq = (id) => deleteDoc(doc(db, "requests", id));
+        window.replyVip = async (id) => {
+            const reply = prompt("Enter reply for VIP:");
+            if(reply) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: reply });
         };
 
+        // UI Controls
         function unlockPanel() {
             document.getElementById("admin-auth-overlay").classList.add("hidden");
             document.getElementById("admin-panel-content").classList.remove("hidden");
             loadData();
         }
 
-        window.logoutAdmin = () => { sessionStorage.removeItem("admin_verified"); location.reload(); };
-        onAuthStateChanged(auth, user => { if(sessionStorage.getItem("admin_verified") === "true") unlockPanel(); });
+        document.getElementById("admin-login-btn").onclick = async () => {
+            const email = document.getElementById("admin-email-input").value;
+            const pass = document.getElementById("admin-pass-input").value;
+            try {
+                const userCred = await signInWithEmailAndPassword(auth, email, pass);
+                if (userCred.user.email === MASTER_EMAIL) {
+                    sessionStorage.setItem("admin_verified", "true");
+                    unlockPanel();
+                } else {
+                    alert("Unauthorized access.");
+                    await signOut(auth);
+                }
+            } catch (e) { alert("Auth Error: " + e.message); }
+        };
+
+        document.getElementById("logout-admin-btn").onclick = async () => {
+            await signOut(auth);
+            sessionStorage.removeItem("admin_verified");
+            location.reload();
+        };
+
+        onAuthStateChanged(auth, user => {
+            if (user && user.email === MASTER_EMAIL && sessionStorage.getItem("admin_verified") === "true") {
+                unlockPanel();
+            }
+        });
 
         async function loadData() {
-            // Load Terms & Privacy initial values
+            // Settings Initial Load
             const tSnap = await getDoc(doc(db, "settings", "terms"));
             if(tSnap.exists()) document.getElementById("terms-input").value = tSnap.data().text;
-            
             const pSnap = await getDoc(doc(db, "settings", "privacy"));
             if(pSnap.exists()) document.getElementById("privacy-input").value = pSnap.data().text;
 
-            // Load News List
+            // Listeners
             onSnapshot(collection(db, "news"), snap => {
                 const list = document.getElementById("news-list");
                 list.innerHTML = "";
                 snap.forEach(d => {
-                    const el = document.createElement("div");
-                    el.className = "flex justify-between items-center bg-slate-800 p-4 rounded-2xl mb-2";
-                    el.innerHTML = `<span class="text-sm font-bold truncate mr-4">${d.data().title}</span>
-                                   <button onclick="window.delNews('${d.id}')" class="text-red-400 text-xs font-black uppercase">Del</button>`;
-                    list.appendChild(el);
-                });
-            });
-
-            // VIP Code Listener with Status
-            onSnapshot(collection(db, "vip_codes"), snap => {
-                const list = document.getElementById("vip-list");
-                list.innerHTML = "";
-                if(snap.empty) list.innerHTML = "<p class='text-[10px] text-center opacity-50'>No codes created.</p>";
-                snap.forEach(d => {
-                    const data = d.data();
-                    const status = data.usedBy ? "✅ Claimed" : "⏳ Pending";
-                    list.innerHTML += `
-                        <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5 mb-2">
-                            <div class="flex flex-col">
-                                <span class="text-[11px] font-black uppercase text-amber-100 tracking-tight">${d.id}</span>
-                                <span class="text-[8px] font-bold uppercase ${data.usedBy ? 'text-green-400' : 'text-amber-500'}">${status}</span>
-                            </div>
-                            <button onclick="window.delVip('${d.id}')" class="text-red-400 text-[10px] font-black bg-red-950/30 px-3 py-1 rounded-lg uppercase">Delete</button>
-                        </div>`;
-                });
-            });
-
-            // Feature Requests
-            onSnapshot(collection(db, "requests"), snap => {
-                const list = document.getElementById("request-list");
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    list.innerHTML += `<div class="bg-slate-700/50 p-4 rounded-2xl text-xs mb-2">
-                        <p class="font-black text-indigo-400 uppercase mb-1">${d.data().name}</p>
-                        <p class="mb-3">"${d.data().request}"</p>
-                        <button onclick="window.delReq('${d.id}')" class="text-slate-500 font-bold uppercase">Dismiss</button>
+                    list.innerHTML += `<div class="flex justify-between items-center bg-slate-100 p-3 rounded-xl mb-2">
+                        <span class="text-xs font-bold truncate">${d.data().title}</span>
+                        <button onclick="delNews('${d.id}')" class="text-red-500 font-black text-[10px]">DEL</button>
                     </div>`;
                 });
             });
 
-            // VIP Chats
+            onSnapshot(collection(db, "vip_codes"), snap => {
+                const list = document.getElementById("vip-list");
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const status = d.data().usedBy ? "✅" : "⏳";
+                    list.innerHTML += `<div class="flex justify-between items-center bg-black/20 p-3 rounded-xl mb-2">
+                        <span class="text-xs font-black">${d.id} ${status}</span>
+                        <button onclick="delVip('${d.id}')" class="text-red-400 text-[10px] font-black uppercase">Del</button>
+                    </div>`;
+                });
+            });
+
+            onSnapshot(collection(db, "requests"), snap => {
+                const list = document.getElementById("request-list");
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    list.innerHTML += `<div class="bg-slate-700/50 p-4 rounded-2xl text-xs">
+                        <p class="font-black text-indigo-400">${d.data().name}</p>
+                        <p>"${d.data().request}"</p>
+                        <button onclick="delReq('${d.id}')" class="mt-2 text-slate-500 font-bold uppercase">Dismiss</button>
+                    </div>`;
+                });
+            });
+
             onSnapshot(collection(db, "vip_chats"), snap => {
                 const list = document.getElementById("chat-list");
                 list.innerHTML = "";
                 snap.forEach(d => {
                     const data = d.data();
                     if(data.status === "open") {
-                        list.innerHTML += `<div class="bg-indigo-900/20 p-4 rounded-2xl border border-indigo-500/20 mb-2">
-                            <p class="text-[10px] font-black text-white mb-1 uppercase tracking-wider">${data.userName}</p>
-                            <p class="text-xs italic text-slate-300 mb-4">"${data.lastMessage}"</p>
-                            <button onclick="window.replyVip('${d.id}')" class="w-full py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest">Reply</button>
+                        list.innerHTML += `<div class="bg-indigo-900/20 p-4 rounded-2xl border border-indigo-500/20">
+                            <p class="text-[10px] font-black">${data.userName}</p>
+                            <p class="text-xs italic mb-2">"${data.lastMessage}"</p>
+                            <button onclick="replyVip('${d.id}')" class="w-full py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase">Reply</button>
                         </div>`;
                     }
                 });
             });
         }
 
-        // Global functions added to window scope
-        window.delNews = id => deleteDoc(doc(db, "news", id));
-        window.delVip = id => deleteDoc(doc(db, "vip_codes", id));
-        window.delReq = id => deleteDoc(doc(db, "requests", id));
-        window.replyVip = async id => {
-            const reply = prompt("Enter reply for VIP:");
-            if(reply) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: reply });
-        };
-
-        // Handlers
+        // Action Handlers
         document.getElementById("update-terms").onclick = async () => {
             await setDoc(doc(db, "settings", "terms"), { text: document.getElementById("terms-input").value, lastUpdated: serverTimestamp() });
             alert("Terms Updated!");
@@ -207,10 +209,7 @@
 
         document.getElementById("pub-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
-            const hrs = parseInt(document.getElementById("ann-hours").value) || 0;
-            const mins = parseInt(document.getElementById("ann-mins").value) || 0;
-            if(!text) return alert("Enter a message");
-            const expiry = Date.now() + (hrs * 60 + mins) * 60000;
+            const expiry = Date.now() + (parseInt(document.getElementById("ann-hours").value || 0) * 3600000) + (parseInt(document.getElementById("ann-mins").value || 0) * 60000);
             await setDoc(doc(db, "settings", "announcement"), { text, expiry });
             alert("Announcement Published!");
         };
@@ -221,9 +220,6 @@
             const imageUrl = document.getElementById("news-image").value;
             if(title && content) {
                 await addDoc(collection(db, "news"), { title, content, imageUrl: imageUrl || "", likes: [], createdAt: serverTimestamp() });
-                document.getElementById("news-title").value = "";
-                document.getElementById("news-content").value = "";
-                document.getElementById("news-image").value = "";
                 alert("News Posted!");
             }
         };
