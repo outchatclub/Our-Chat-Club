@@ -5,29 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OCC Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Your Brand Palette */
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .brand-indigo { color: #4338ca; }
         .brand-bg-indigo { background-color: #4338ca; }
         .brand-sky { color: #0ea5e9; }
         .brand-bg-sky { background-color: #0ea5e9; }
-        
-        .vip-card { background: linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%); }
+        .vip-gradient { background: linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%); }
         .hidden { display: none !important; }
-        body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; }
         
-        .news-card {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            position: relative;
-            border: 1px solid #e2e8f0;
-        }
+        /* Smooth transitions for buttons */
+        .btn-press:active { transform: scale(0.95); }
     </style>
 </head>
 <body class="text-slate-900">
 
-    <div id="ann-bar" class="hidden brand-bg-indigo p-2 text-center text-white text-[10px] font-bold uppercase tracking-widest sticky top-0 z-50">
+    <div id="ann-bar" class="hidden brand-bg-indigo p-3 text-center text-white text-[11px] font-bold uppercase tracking-widest sticky top-0 z-50 shadow-md">
         <span id="ann-text-display"></span>
     </div>
 
@@ -35,45 +29,49 @@
         
         <div class="flex justify-between items-center mb-8 mt-2">
             <div>
-                <h1 class="text-2xl font-black brand-indigo leading-none">OCC</h1>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Dashboard</p>
+                <h1 class="text-3xl font-black brand-indigo tracking-tighter">OCC</h1>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Official Dashboard</p>
             </div>
-            <button id="logout-btn" class="bg-white text-red-500 border border-red-100 px-4 py-2 rounded-xl text-xs font-black shadow-sm active:scale-95 transition-all">
+            <button id="auth-action-btn" class="btn-press bg-white border border-slate-200 px-5 py-2 rounded-2xl text-xs font-black shadow-sm text-slate-600">
                 LOGOUT
             </button>
         </div>
 
-        <section class="mb-8">
-            <div class="vip-card p-6 rounded-[2rem] shadow-xl text-center border-b-4 border-indigo-900">
-                <h2 class="text-white font-black text-xl mb-1 tracking-tight">👑 VIP PANEL</h2>
-                <p id="user-display-name" class="text-indigo-200 text-[10px] font-bold uppercase tracking-widest mb-4">Authenticating...</p>
-                <button id="vip-btn" class="w-full brand-bg-sky text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase text-sm">
-                    Access VIP Dashboard
-                </button>
+        <section class="mb-10">
+            <div class="vip-gradient p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden border-b-8 border-indigo-950">
+                <div class="relative z-10 text-center">
+                    <h2 class="text-white font-black text-2xl mb-1 tracking-tight">👑 VIP PANEL</h2>
+                    <p id="user-display-name" class="text-indigo-300 text-[10px] font-bold uppercase tracking-[0.2em] mb-6">Checking Credentials...</p>
+                    <button id="vip-btn" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black shadow-lg text-sm uppercase tracking-wider">
+                        Enter Premium Zone
+                    </button>
+                </div>
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full"></div>
             </div>
         </section>
 
-        <section class="mb-8">
-            <div class="flex justify-between items-center mb-4 px-2">
-                <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Latest News</h3>
+        <section class="mb-10">
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Latest Updates</h3>
+            <div id="news-feed" class="space-y-4">
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 animate-pulse h-24"></div>
             </div>
             
-            <div id="news-feed" class="space-y-4">
-                <div class="news-card animate-pulse h-32"></div>
-            </div>
+            <button id="go-to-news" class="btn-press w-full mt-6 py-3 border-2 border-dashed border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-50">
+                View More News
+            </button>
         </section>
 
         <section>
-            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Entertainment</h3>
-            <button id="mini-game-btn" class="w-full bg-white border border-slate-200 p-5 rounded-[2rem] flex items-center justify-between shadow-sm active:scale-95 transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="brand-bg-indigo w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner">🎮</div>
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-2">Entertainment</h3>
+            <button id="mini-game-btn" class="btn-press w-full bg-white border border-slate-200 p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-5">
+                    <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl shadow-inner">🎮</div>
                     <div class="text-left">
-                        <span class="block font-black text-slate-800">MINI GAMES</span>
-                        <span class="text-[10px] text-slate-400 font-bold uppercase">Play & Earn</span>
+                        <span class="block font-black text-slate-800 text-lg">MINI GAMES</span>
+                        <span class="text-[10px] text-slate-400 font-bold uppercase">Enjoy & Relax</span>
                     </div>
                 </div>
-                <span class="brand-sky text-lg">➜</span>
+                <span class="brand-sky text-xl font-bold">➜</span>
             </button>
         </section>
 
@@ -81,7 +79,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, query, orderBy, limit, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { 
@@ -94,21 +92,35 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // LOGOUT LOGIC
-        document.getElementById("logout-btn").onclick = () => {
-            signOut(auth).then(() => window.location.href = "login.html");
-        };
-
-        onAuthStateChanged(auth, user => {
-            if (!user) {
-                window.location.href = "login.html";
+        // --- AUTH LOGIC (No forced redirect on logout) ---
+        const authBtn = document.getElementById("auth-action-btn");
+        
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("user-display-name").innerText = `Welcome, ${user.displayName || 'Member'}`;
+                authBtn.innerText = "LOGOUT";
+                authBtn.onclick = () => signOut(auth);
             } else {
-                document.getElementById("user-display-name").innerText = `Logged in as: ${user.displayName || 'User'}`;
+                document.getElementById("user-display-name").innerText = "Guest Mode";
+                authBtn.innerText = "LOGIN / JOIN";
+                authBtn.onclick = () => window.location.href = "login.html";
             }
         });
 
-        // NEWS FEED WITH 100 CHAR LIMIT & READ MORE
-        const newsQuery = query(collection(db, "news"), orderBy("createdAt", "desc"));
+        // --- ANNOUNCEMENT BAR SYNC ---
+        onSnapshot(doc(db, "settings", "announcement"), (s) => {
+            const data = s.data();
+            const bar = document.getElementById("ann-bar");
+            if (data && data.expiry > Date.now()) {
+                document.getElementById("ann-text-display").innerText = data.text;
+                bar.classList.remove("hidden");
+            } else {
+                bar.classList.add("hidden");
+            }
+        });
+
+        // --- NEWS FEED (TOP 3 ONLY) ---
+        const newsQuery = query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3));
         onSnapshot(newsQuery, (snap) => {
             const feed = document.getElementById("news-feed");
             feed.innerHTML = "";
@@ -116,24 +128,21 @@
             snap.forEach(sDoc => {
                 const data = sDoc.data();
                 const isLiked = data.likes?.includes(auth.currentUser?.uid);
-                
-                // Content Truncation Logic
-                const fullText = data.content || "";
-                const shortText = fullText.length > 100 ? fullText.substring(0, 100) + "..." : fullText;
-                
+                const content = data.content || "";
+                const truncated = content.length > 100 ? content.substring(0, 100) + "..." : content;
+
                 const card = document.createElement("div");
-                card.className = "news-card shadow-sm";
+                card.className = "bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm relative";
                 card.innerHTML = `
-                    <h4 class="font-black text-slate-800 text-lg mb-2">${data.title}</h4>
-                    <p class="text-slate-500 text-sm leading-relaxed mb-6">${shortText}</p>
+                    <h4 class="font-black text-slate-800 text-lg mb-1">${data.title}</h4>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6">${truncated}</p>
                     
-                    <div class="flex justify-between items-center mt-4">
-                        <button onclick="toggleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 text-xs font-bold ${isLiked ? 'text-red-500' : 'text-slate-400'}">
-                            <span class="text-lg">${isLiked ? '❤️' : '🤍'}</span> 
-                            <span>${data.likes?.length || 0}</span>
+                    <div class="flex justify-between items-center">
+                        <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">
+                            <span>${isLiked ? '❤️' : '🤍'}</span> ${data.likes?.length || 0}
                         </button>
                         
-                        <a href="news.html?id=${sDoc.id}" class="brand-sky font-black text-xs uppercase tracking-tighter hover:underline">
+                        <a href="news.html?id=${sDoc.id}" class="brand-sky font-black text-[11px] uppercase tracking-tighter hover:underline">
                             Read More ➜
                         </a>
                     </div>
@@ -143,34 +152,34 @@
         });
 
         window.toggleLike = async (id, currentlyLiked) => {
+            if(!auth.currentUser) return alert("Please login to like posts!");
             const ref = doc(db, "news", id);
             await updateDoc(ref, {
                 likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid)
             });
         };
 
-        // VIP ACCESS LOGIC
+        // --- BUTTON NAVIGATION ---
+        document.getElementById("go-to-news").onclick = () => window.location.href = "news.html";
+        document.getElementById("mini-game-btn").onclick = () => window.location.href = "games.html";
+
+        // --- VIP CODE LOGIC ---
         document.getElementById("vip-btn").onclick = async () => {
-            const code = prompt("Enter your secret VIP Code:");
+            if(!auth.currentUser) return alert("Login required for VIP access.");
+            const code = prompt("Enter VIP Code:");
             if (!code) return;
 
             const codeRef = doc(db, "vip_codes", code);
             const snap = await getDoc(codeRef);
 
             if (snap.exists()) {
-                const data = snap.data();
-                if (!data.usedBy || data.usedBy === auth.currentUser.uid) {
-                    if (!data.usedBy) await updateDoc(codeRef, { usedBy: auth.currentUser.uid });
+                const d = snap.data();
+                if (!d.usedBy || d.usedBy === auth.currentUser.uid) {
+                    if (!d.usedBy) await updateDoc(codeRef, { usedBy: auth.currentUser.uid });
                     window.location.href = "vip.html";
-                } else {
-                    alert("Unauthorized: This code belongs to another user.");
-                }
-            } else {
-                alert("Invalid VIP code.");
-            }
+                } else { alert("Code already in use."); }
+            } else { alert("Invalid Code."); }
         };
-
-        document.getElementById("mini-game-btn").onclick = () => window.location.href = "games.html";
     </script>
 </body>
 </html>
