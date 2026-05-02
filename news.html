@@ -3,21 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OCC News</title>
+    <title>OCC Feed</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
-    <div id="ann-bar" class="hidden bg-indigo-600 text-white p-4 text-center font-extrabold text-sm shadow-xl sticky top-0 z-50">
+    <div id="ann-bar" class="hidden bg-indigo-600 text-white p-4 text-center font-extrabold text-[11px] shadow-xl sticky top-0 z-50 uppercase tracking-widest">
         <span id="ann-msg"></span>
     </div>
 
-    <header class="p-6 flex justify-between items-center bg-white border-b">
-        <h1 class="text-2xl font-black text-indigo-700">OCC FEED</h1>
-        <a href="index.html" class="p-2 px-4 bg-gray-100 rounded-xl font-bold text-gray-500">BACK</a>
+    <header class="p-6 flex justify-between items-center bg-white border-b border-gray-100">
+        <div>
+            <h1 class="text-2xl font-black text-indigo-700 tracking-tighter">OCC FEED</h1>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Latest Updates</p>
+        </div>
+        <a href="index.html" class="p-2 px-5 bg-gray-100 rounded-2xl font-black text-[10px] text-gray-500 uppercase tracking-wide">Back</a>
     </header>
 
-    <main class="flex-grow p-5 space-y-4" id="feed"></main>
+    <main class="flex-grow p-5 space-y-5" id="feed"></main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
@@ -26,26 +34,24 @@
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore();
-        const auth = getAuth();
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // 1. Handle Announcement Visibility
+        // Announcement Logic
         onSnapshot(doc(db, "settings", "announcement"), sDoc => {
             if(sDoc.exists()){
                 const data = sDoc.data();
                 if(Date.now() < data.expiry) {
                     document.getElementById("ann-bar").classList.remove("hidden");
-                    document.getElementById("ann-msg").innerText = "🚨 " + data.text;
+                    document.getElementById("ann-msg").innerText = data.text;
                 } else {
                     document.getElementById("ann-bar").classList.add("hidden");
                 }
             }
         });
 
-        // 2. Load Feed
         onAuthStateChanged(auth, user => {
-            if(!user && localStorage.getItem("occ_admin_access") !== "true") window.location.href = "index.html";
-            const uid = user?.uid || "admin";
+            if(!user) window.location.href = "index.html";
             const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
             
             onSnapshot(q, snap => {
@@ -54,23 +60,42 @@
                 snap.forEach(sDoc => {
                     const data = sDoc.data();
                     const likes = data.likes || [];
-                    const isLiked = likes.includes(uid);
+                    const isLiked = likes.includes(user.uid);
                     
+                    // Format Timestamp
+                    let postDate = "Just now";
+                    if (data.createdAt) {
+                        const dateObj = data.createdAt.toDate();
+                        postDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
+                                   " • " + 
+                                   dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    }
+
                     const card = document.createElement("div");
-                    card.className = "bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100";
+                    card.className = "bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col";
+                    
                     card.innerHTML = `
-                        <h2 class="text-xl font-black text-slate-800 mb-2">${data.title}</h2>
-                        <p class="text-slate-500 mb-4 leading-relaxed">${data.content}</p>
-                        <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 p-3 px-5 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} transition-all">
-                            <span class="text-xl">${isLiked ? '❤️' : '🤍'}</span> <b>${likes.length}</b>
-                        </button>`;
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex-1 pr-4">
+                                <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
+                                <h2 class="text-xl font-black text-slate-800 leading-tight">${data.title}</h2>
+                            </div>
+                            ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border border-gray-50">` : ''}
+                        </div>
+                        <p class="text-slate-500 text-sm mb-5 leading-relaxed">${data.content}</p>
+                        <div class="flex items-center">
+                            <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-3 p-3 px-6 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} transition-all transform active:scale-95">
+                                <span class="text-lg">${isLiked ? '❤️' : '🤍'}</span>
+                                <b class="text-xs">${likes.length} Likes</b>
+                            </button>
+                        </div>`;
                     feed.appendChild(card);
                 });
             });
         });
 
         window.handleLike = async (id, isLiked) => {
-            const uid = auth.currentUser?.uid || "admin";
+            const uid = auth.currentUser.uid;
             const ref = doc(db, "news", id);
             await updateDoc(ref, { likes: isLiked ? arrayRemove(uid) : arrayUnion(uid) });
         };
