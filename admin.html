@@ -20,78 +20,58 @@
         <div class="w-full max-sm bg-white p-8 rounded-[2.5rem] shadow-2xl">
             <h1 class="text-2xl font-black mb-2 text-indigo-600 text-center uppercase tracking-tighter">Admin Panel</h1>
             <div class="space-y-4">
-                <input id="admin-email-input" type="email" placeholder="Admin Email" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-indigo-500">
-                <input id="admin-pass-input" type="password" placeholder="Admin Password" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-indigo-500">
-                <button id="admin-login-btn" class="w-full p-4 text-white font-bold brand-gradient rounded-2xl shadow-lg active:scale-95 transition-all uppercase tracking-widest">Unlock Panel</button>
+                <input id="admin-email-input" type="email" placeholder="Email" class="w-full p-4 bg-slate-100 rounded-2xl outline-none">
+                <input id="admin-pass-input" type="password" placeholder="Password" class="w-full p-4 bg-slate-100 rounded-2xl outline-none">
+                <button id="admin-login-btn" class="w-full p-4 text-white font-bold brand-gradient rounded-2xl">UNLOCK</button>
             </div>
-            <a href="index.html" class="block text-center mt-6 text-slate-400 text-xs font-bold uppercase tracking-widest">Exit to Home</a>
         </div>
     </div>
 
     <div id="admin-panel-content" class="hidden max-w-md mx-auto p-5 pb-24">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">Control Center</h1>
-            <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-black uppercase text-red-400 border border-red-900/30">Lock</button>
+            <h1 class="text-2xl font-black text-indigo-400 uppercase">Control</h1>
+            <button onclick="location.reload()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-black uppercase">Lock</button>
         </div>
 
-        <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">⚖️ Terms & Privacy</h2>
-            
-            <div class="mb-6">
-                <label class="text-[9px] font-black text-slate-500 uppercase ml-2 tracking-widest">Terms & Conditions</label>
-                <textarea id="terms-input" placeholder="Enter terms content..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-2 outline-none border border-slate-700 text-sm mt-1"></textarea>
-                <button id="update-terms" class="w-full p-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider">Update Terms</button>
-            </div>
-
-            <div>
-                <label class="text-[9px] font-black text-slate-500 uppercase ml-2 tracking-widest">Privacy Policy</label>
-                <textarea id="privacy-input" placeholder="Enter privacy content..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-2 outline-none border border-slate-700 text-sm mt-1"></textarea>
-                <button id="update-privacy" class="w-full p-3 bg-slate-700 text-white rounded-xl font-black text-[10px] uppercase tracking-wider">Update Privacy</button>
-            </div>
+        <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700">
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400">⚖️ Policies</h2>
+            <textarea id="terms-input" placeholder="Terms..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-2 outline-none text-sm"></textarea>
+            <button id="update-terms" class="w-full p-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase mb-4">Update Terms</button>
+            <textarea id="privacy-input" placeholder="Privacy..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-2 outline-none text-sm"></textarea>
+            <button id="update-privacy" class="w-full p-3 bg-slate-700 text-white rounded-xl font-black text-[10px] uppercase">Update Privacy</button>
         </div>
 
         <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-200 tracking-widest">📢 Live Broadcast</h2>
-            <input id="ann-text" placeholder="Announcement message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white placeholder-indigo-300">
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-200">📢 Announcement</h2>
+            <input id="ann-text" placeholder="Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white">
             <div class="flex gap-2 mb-4">
                 <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
                 <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
             </div>
-            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Publish</button>
+            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black uppercase">Publish</button>
         </div>
 
         <div class="vip-gold p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-amber-100 tracking-widest">👑 VIP Access Management</h2>
+            <h2 class="text-xs font-black uppercase mb-4 text-amber-100">👑 VIP Management</h2>
             <div class="flex gap-2 mb-4">
-                <input id="vip-code-input" placeholder="VIP Code" class="flex-1 p-4 bg-amber-700/30 rounded-2xl outline-none placeholder-amber-200 text-white border border-amber-500/20">
-                <button id="gen-vip" class="px-6 bg-white text-amber-700 rounded-2xl font-black uppercase text-[10px]">Create</button>
+                <input id="vip-code-input" placeholder="New Code" class="flex-1 p-4 bg-amber-700/30 rounded-2xl outline-none text-white border border-amber-500/20">
+                <button id="gen-vip" class="px-6 bg-white text-amber-700 rounded-2xl font-black uppercase text-[10px]">Add</button>
             </div>
-            
             <div id="vip-list-display" class="scroll-area space-y-2 border-t border-amber-500/30 pt-4">
-                <p class="text-center text-[10px] opacity-50 py-4 uppercase font-bold">Syncing VIP Database...</p>
-            </div>
+                </div>
         </div>
 
         <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
             <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">📰 Global News Feed</h2>
-            <input id="news-title" placeholder="News Headline" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
-            <input id="news-image" placeholder="Image URL (ends in .jpg/.png)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
-            <textarea id="news-content" placeholder="Full story content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none focus:ring-2 ring-indigo-500"></textarea>
-            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Post Story</button>
+            <input id="news-title" placeholder="Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <input id="news-image" placeholder="Image URL" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
+            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black uppercase">Post News</button>
         </div>
 
-        <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-2">Posted Stories</h3>
-        <div id="news-management-list" class="space-y-2 mb-10"></div>
-
-        <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-indigo-500/30">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">💬 VIP Support Requests</h2>
-            <div id="chat-list-display" class="space-y-3"></div>
-        </div>
-
-        <div class="bg-slate-800 p-6 rounded-[2.5rem] border border-slate-700">
-            <h2 class="text-xs font-black uppercase mb-4 text-slate-400 tracking-widest">💡 Feature Ideas</h2>
-            <div id="request-list-display" class="space-y-3"></div>
-        </div>
+        <div id="news-management-list" class="space-y-2 mb-6"></div>
+        <div id="chat-list-display" class="space-y-3 mb-6"></div>
+        <div id="request-list-display" class="space-y-3"></div>
     </div>
 
     <script type="module">
@@ -102,69 +82,65 @@
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
 
-        const ADMIN_E = "admin@gmail.com";
-        const ADMIN_P = "29102007";
-
+        // LOGIN LOGIC
         document.getElementById("admin-login-btn").onclick = () => {
-            if(document.getElementById("admin-email-input").value === ADMIN_E && document.getElementById("admin-pass-input").value === ADMIN_P) {
-                sessionStorage.setItem("admin_active", "true");
-                unlock();
-            } else alert("Access Denied");
+            if(document.getElementById("admin-email-input").value === "admin@gmail.com" && document.getElementById("admin-pass-input").value === "29102007") {
+                sessionStorage.setItem("adm", "y");
+                showPanel();
+            } else alert("Wrong!");
         };
 
-        function unlock() {
+        function showPanel() {
             document.getElementById("admin-auth-overlay").classList.add("hidden");
             document.getElementById("admin-panel-content").classList.remove("hidden");
-            startSync();
+            sync();
         }
 
-        window.logoutAdmin = () => { sessionStorage.removeItem("admin_active"); location.reload(); };
-        onAuthStateChanged(auth, user => { if(sessionStorage.getItem("admin_active") === "true") unlock(); });
+        if(sessionStorage.getItem("adm") === "y") showPanel();
 
-        async function startSync() {
-            // Sync Policies
+        async function sync() {
+            // Load Settings
             const t = await getDoc(doc(db, "settings", "terms"));
             if(t.exists()) document.getElementById("terms-input").value = t.data().text;
             const p = await getDoc(doc(db, "settings", "privacy"));
             if(p.exists()) document.getElementById("privacy-input").value = p.data().text;
 
-            // Real-time VIP Codes
+            // VIP LIST (Real-time)
             onSnapshot(collection(db, "vip_codes"), snap => {
                 const list = document.getElementById("vip-list-display");
-                list.innerHTML = snap.empty ? "<p class='text-center text-[10px] opacity-30 uppercase py-4'>Empty</p>" : "";
+                list.innerHTML = "";
                 snap.forEach(d => {
                     const claimed = !!d.data().usedBy;
                     list.innerHTML += `
                         <div class="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
                             <div class="flex flex-col">
                                 <span class="text-[11px] font-black uppercase text-amber-100">${d.id}</span>
-                                <span class="text-[8px] font-bold uppercase ${claimed ? 'text-green-400' : 'text-amber-500'}">${claimed ? '✅ Claimed' : '⏳ Pending'}</span>
+                                <span class="text-[8px] font-bold uppercase ${claimed ? 'text-green-400' : 'text-amber-500'}">${claimed ? 'Claimed' : 'Pending'}</span>
                             </div>
                             <button onclick="window.delVip('${d.id}')" class="text-red-400 text-[10px] font-black bg-red-950/20 px-3 py-1 rounded-lg">DEL</button>
                         </div>`;
                 });
             });
 
-            // Real-time News List
+            // News List
             onSnapshot(collection(db, "news"), snap => {
-                const list = document.getElementById("news-management-list");
-                list.innerHTML = "";
+                const nList = document.getElementById("news-management-list");
+                nList.innerHTML = "";
                 snap.forEach(d => {
-                    list.innerHTML += `<div class="flex justify-between items-center bg-slate-800 p-4 rounded-2xl mb-2 border border-slate-700">
+                    nList.innerHTML += `<div class="flex justify-between items-center bg-slate-800 p-4 rounded-2xl mb-2 border border-slate-700">
                         <span class="text-xs font-black truncate text-slate-300 uppercase tracking-tighter">${d.data().title}</span>
                         <button onclick="window.delNews('${d.id}')" class="text-red-400 text-[10px] font-black uppercase">Del</button>
                     </div>`;
                 });
             });
 
-            // Real-time Requests
+            // Requests
             onSnapshot(collection(db, "requests"), snap => {
-                const list = document.getElementById("request-list-display");
-                list.innerHTML = snap.empty ? "<p class='text-center text-[10px] opacity-20'>No requests</p>" : "";
+                const rList = document.getElementById("request-list-display");
+                rList.innerHTML = "";
                 snap.forEach(d => {
-                    list.innerHTML += `<div class="bg-slate-700/30 p-4 rounded-2xl text-xs border border-slate-700">
+                    rList.innerHTML += `<div class="bg-slate-700/30 p-4 rounded-2xl text-xs border border-slate-700 mb-2">
                         <p class="font-black text-indigo-400 uppercase mb-1">${d.data().name}</p>
                         <p class="mb-3 text-slate-300">"${d.data().request}"</p>
                         <button onclick="window.delReq('${d.id}')" class="text-slate-500 text-[9px] font-black uppercase">Dismiss</button>
@@ -174,14 +150,13 @@
 
             // VIP Chats
             onSnapshot(collection(db, "vip_chats"), snap => {
-                const list = document.getElementById("chat-list-display");
-                list.innerHTML = "";
+                const cList = document.getElementById("chat-list-display");
+                cList.innerHTML = "";
                 snap.forEach(d => {
-                    const data = d.data();
-                    if(data.status === "open") {
-                        list.innerHTML += `<div class="bg-indigo-900/20 p-4 rounded-2xl border border-indigo-500/20">
-                            <p class="text-[10px] font-black text-white uppercase">${data.userName}</p>
-                            <p class="text-xs italic text-slate-400 mb-4">"${data.lastMessage}"</p>
+                    if(d.data().status === "open") {
+                        cList.innerHTML += `<div class="bg-indigo-900/20 p-4 rounded-2xl border border-indigo-500/20 mb-2">
+                            <p class="text-[10px] font-black text-white uppercase">${d.data().userName}</p>
+                            <p class="text-xs italic text-slate-400 mb-4">"${d.data().lastMessage}"</p>
                             <button onclick="window.repVip('${d.id}')" class="w-full py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase">Reply</button>
                         </div>`;
                     }
@@ -189,7 +164,7 @@
             });
         }
 
-        // Action Handlers
+        // Action Scoping
         window.delNews = id => deleteDoc(doc(db, "news", id));
         window.delVip = id => deleteDoc(doc(db, "vip_codes", id));
         window.delReq = id => deleteDoc(doc(db, "requests", id));
@@ -198,14 +173,15 @@
             if(r) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: r });
         };
 
+        // Event Handlers
         document.getElementById("update-terms").onclick = async () => {
             await setDoc(doc(db, "settings", "terms"), { text: document.getElementById("terms-input").value, lastUpdated: serverTimestamp() });
-            alert("Terms Updated");
+            alert("Updated");
         };
 
         document.getElementById("update-privacy").onclick = async () => {
             await setDoc(doc(db, "settings", "privacy"), { text: document.getElementById("privacy-input").value, lastUpdated: serverTimestamp() });
-            alert("Privacy Updated");
+            alert("Updated");
         };
 
         document.getElementById("gen-vip").onclick = async () => {
@@ -222,7 +198,7 @@
             const m = parseInt(document.getElementById("ann-mins").value) || 0;
             const exp = Date.now() + (h * 60 + m) * 60000;
             await setDoc(doc(db, "settings", "announcement"), { text: t, expiry: exp });
-            alert("Broadcast Live");
+            alert("Published");
         };
 
         document.getElementById("post-news").onclick = async () => {
@@ -230,10 +206,7 @@
             const c = document.getElementById("news-content").value;
             const i = document.getElementById("news-image").value;
             if(t && c) {
-                await addDoc(collection(db, "news"), { title: t, content: c, imageUrl: i || "", likes: [], createdAt: serverTimestamp() });
-                document.getElementById("news-title").value = "";
-                document.getElementById("news-content").value = "";
-                document.getElementById("news-image").value = "";
+                await addDoc(collection(db, "news"), { title: t, content: c, imageUrl: i, likes: [], createdAt: serverTimestamp() });
                 alert("News Posted");
             }
         };
