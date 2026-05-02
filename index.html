@@ -15,8 +15,18 @@
         .vip-gradient { background: linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%); }
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.96); }
-        input { border: 1px solid #e2e8f0; border-radius: 1rem; padding: 12px; width: 100%; margin-bottom: 12px; outline: none; transition: 0.2s; }
-        input:focus { border-color: #4338ca; ring: 2px ring-indigo-100; }
+        
+        /* Adjusted Spacing for Inputs */
+        input { 
+            border: 1px solid #e2e8f0; 
+            border-radius: 1rem; 
+            padding: 14px; 
+            width: 100%; 
+            margin-bottom: 18px; /* Increased gap between fields */
+            outline: none; 
+            transition: 0.2s; 
+        }
+        input:focus { border-color: #4338ca; box-shadow: 0 0 0 2px rgba(67, 56, 202, 0.1); }
     </style>
 </head>
 <body class="text-slate-900">
@@ -37,7 +47,7 @@
                 <input type="email" id="login-email" placeholder="Email Address">
                 <input type="password" id="login-pass" placeholder="Password">
                 <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black mt-2 shadow-lg shadow-indigo-200">Login</button>
-                <p class="text-center text-xs mt-6 text-slate-500 font-medium">New here? <button onclick="toggleAuth(false)" class="brand-sky font-black">Create Account</button></p>
+                <p class="text-center text-xs mt-8 text-slate-500 font-medium">New here? <button onclick="toggleAuth(false)" class="brand-sky font-black">Create Account</button></p>
             </div>
 
             <div id="signup-form" class="hidden">
@@ -45,8 +55,8 @@
                 <input type="text" id="reg-name" placeholder="Full Name">
                 <input type="email" id="reg-email" placeholder="Email Address">
                 <input type="password" id="reg-pass" placeholder="Create Password">
-                <button id="do-signup" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black mt-2 shadow-lg shadow-sky-200">Sign Up</button>
-                <p class="text-center text-xs mt-6 text-slate-500 font-medium">Have an account? <button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
+                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black mt-2 shadow-lg shadow-indigo-200">Sign Up</button>
+                <p class="text-center text-xs mt-8 text-slate-500 font-medium">Have an account? <button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
             </div>
         </div>
     </div>
@@ -104,17 +114,14 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // --- UI TOGGLES ---
         window.toggleAuth = (isLogin) => {
             document.getElementById("login-form").classList.toggle("hidden", !isLogin);
             document.getElementById("signup-form").classList.toggle("hidden", isLogin);
         };
 
-        // --- AUTH OBSERVER ---
         onAuthStateChanged(auth, (user) => {
             const authSec = document.getElementById("auth-section");
             const dashSec = document.getElementById("main-dashboard");
-            
             if (user) {
                 authSec.classList.add("hidden");
                 dashSec.classList.remove("hidden");
@@ -127,7 +134,6 @@
             }
         });
 
-        // --- AUTH ACTIONS ---
         document.getElementById("do-login").onclick = () => {
             const email = document.getElementById("login-email").value;
             const pass = document.getElementById("login-pass").value;
@@ -146,9 +152,7 @@
 
         document.getElementById("logout-btn").onclick = () => signOut(auth);
 
-        // --- DASHBOARD DATA ---
         function loadDashboardData() {
-            // Announcement
             onSnapshot(doc(db, "settings", "announcement"), (s) => {
                 const data = s.data();
                 const bar = document.getElementById("ann-bar");
@@ -158,7 +162,6 @@
                 } else { bar.classList.add("hidden"); }
             });
 
-            // News Feed (Latest 3)
             const newsQ = query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3));
             onSnapshot(newsQ, (snap) => {
                 const feed = document.getElementById("news-feed");
@@ -167,7 +170,6 @@
                     const data = sDoc.data();
                     const isLiked = data.likes?.includes(auth.currentUser?.uid);
                     const content = (data.content || "").substring(0, 100) + (data.content?.length > 100 ? "..." : "");
-                    
                     const card = document.createElement("div");
                     card.className = "bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm";
                     card.innerHTML = `
@@ -190,7 +192,6 @@
             await updateDoc(ref, { likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
         };
 
-        // VIP Access
         document.getElementById("vip-btn").onclick = async () => {
             const code = prompt("Enter VIP Code:");
             if (!code) return;
