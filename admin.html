@@ -30,42 +30,47 @@
 
     <div id="admin-panel-content" class="hidden max-w-md mx-auto p-5 pb-24">
         <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">Control</h1>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Master Dashboard</p>
-            </div>
+            <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">Control</h1>
             <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">⚖️ Legal & Policies</h2>
-            <textarea id="terms-input" placeholder="Enter Terms and Conditions text..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-32 mb-4 outline-none border border-slate-700 text-sm"></textarea>
-            <button id="update-terms" class="w-full p-4 bg-indigo-600 text-white rounded-2xl font-black shadow-lg uppercase tracking-wide">Update Terms</button>
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">⚖️ Terms & Privacy Control</h2>
+            
+            <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Terms & Conditions</label>
+            <textarea id="terms-input" placeholder="Terms text..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-3 outline-none border border-slate-700 text-sm mt-1"></textarea>
+            <button id="update-terms" class="w-full p-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase mb-6">Update Terms</button>
+
+            <label class="text-[10px] font-bold text-slate-500 uppercase ml-2">Privacy Policy</label>
+            <textarea id="privacy-input" placeholder="Privacy text..." class="w-full p-4 bg-slate-900/50 text-white rounded-2xl h-24 mb-3 outline-none border border-slate-700 text-sm mt-1"></textarea>
+            <button id="update-privacy" class="w-full p-3 bg-slate-700 text-white rounded-xl font-black text-xs uppercase">Update Privacy</button>
         </div>
 
         <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl">
             <h2 class="text-xs font-black uppercase mb-4 text-indigo-200 tracking-widest">📢 Global Announcement</h2>
             <input id="ann-text" placeholder="Broadcast Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white placeholder-indigo-300">
             <div class="flex gap-2 mb-4">
-                <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center text-white placeholder-indigo-300">
-                <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center text-white placeholder-indigo-300">
+                <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
+                <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
             </div>
-            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black shadow-lg uppercase tracking-wide">Publish Announcement</button>
+            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black uppercase">Publish</button>
         </div>
 
         <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">📰 Create News</h2>
-            <input id="news-title" placeholder="News Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
-            <input id="news-image" placeholder="Image URL (Direct Link)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
-            <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none focus:ring-2 ring-indigo-500"></textarea>
-            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg uppercase tracking-wide">Post News</button>
+            <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">📰 News</h2>
+            <input id="news-title" placeholder="Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <input id="news-image" placeholder="Image URL" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
+            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black">POST NEWS</button>
         </div>
 
         <div class="vip-gold p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-amber-100 tracking-widest">👑 VIP Codes</h2>
-            <input id="vip-code-input" placeholder="Code Name" class="w-full p-4 bg-amber-700/30 rounded-2xl mb-3 outline-none placeholder-amber-200">
-            <button id="gen-vip" class="w-full p-4 bg-white text-amber-700 rounded-2xl font-black shadow-lg uppercase tracking-wide">Create Code</button>
-            <div id="vip-list" class="mt-4 space-y-2 scroll-area"></div>
+            <h2 class="text-xs font-black uppercase mb-4 text-amber-100 tracking-widest">👑 VIP Code Management</h2>
+            <input id="vip-code-input" placeholder="Code (e.g. VIP2026)" class="w-full p-4 bg-amber-700/30 rounded-2xl mb-3 outline-none placeholder-amber-200">
+            <button id="gen-vip" class="w-full p-4 bg-white text-amber-700 rounded-2xl font-black uppercase mb-4">Create Code</button>
+            
+            <div id="vip-list" class="space-y-2 scroll-area border-t border-amber-500/20 pt-4">
+                </div>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-indigo-500/30">
@@ -111,10 +116,14 @@
         onAuthStateChanged(auth, user => { if(sessionStorage.getItem("admin_verified") === "true") unlockPanel(); });
 
         async function loadData() {
-            // Load existing Terms
+            // Load Terms & Privacy initial values
             const tSnap = await getDoc(doc(db, "settings", "terms"));
             if(tSnap.exists()) document.getElementById("terms-input").value = tSnap.data().text;
+            
+            const pSnap = await getDoc(doc(db, "settings", "privacy"));
+            if(pSnap.exists()) document.getElementById("privacy-input").value = pSnap.data().text;
 
+            // Load News
             onSnapshot(collection(db, "news"), snap => {
                 const list = document.getElementById("news-list");
                 list.innerHTML = "";
@@ -122,26 +131,26 @@
                     const el = document.createElement("div");
                     el.className = "flex justify-between items-center bg-slate-800 p-4 rounded-2xl";
                     el.innerHTML = `<span class="text-sm font-bold truncate mr-4">${d.data().title}</span>
-                                   <button onclick="delNews('${d.id}')" class="text-red-400 text-xs font-black uppercase tracking-tighter">Del</button>`;
+                                   <button onclick="delNews('${d.id}')" class="text-red-400 text-xs font-black uppercase">Del</button>`;
                     list.appendChild(el);
                 });
             });
 
+            // RESTORED: VIP Code Listener with Status
             onSnapshot(collection(db, "vip_codes"), snap => {
                 const list = document.getElementById("vip-list");
                 list.innerHTML = "";
                 snap.forEach(d => {
                     const data = d.data();
-                    const statusText = data.usedBy ? "✅ Claimed" : "⏳ Pending";
-                    const el = document.createElement("div");
-                    el.className = "flex justify-between items-center bg-amber-900/30 p-3 rounded-xl border border-amber-500/20";
-                    el.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="text-xs font-black text-amber-200 uppercase tracking-tight">${d.id}</span>
-                            <span class="text-[9px] font-bold text-amber-500/80 uppercase">${statusText}</span>
-                        </div>
-                        <button onclick="delVip('${d.id}')" class="text-white opacity-40 text-[10px] font-black uppercase">Delete</button>`;
-                    list.appendChild(el);
+                    const status = data.usedBy ? "✅ Claimed" : "⏳ Pending";
+                    list.innerHTML += `
+                        <div class="flex justify-between items-center bg-amber-900/30 p-3 rounded-xl border border-amber-500/10">
+                            <div class="flex flex-col">
+                                <span class="text-[11px] font-black uppercase text-amber-100">${d.id}</span>
+                                <span class="text-[8px] font-bold uppercase ${data.usedBy ? 'text-green-400' : 'text-amber-500'}">${status}</span>
+                            </div>
+                            <button onclick="delVip('${d.id}')" class="text-white opacity-40 hover:opacity-100 text-[10px] font-black uppercase">Delete</button>
+                        </div>`;
                 });
             });
 
@@ -149,10 +158,9 @@
                 const list = document.getElementById("request-list");
                 list.innerHTML = "";
                 snap.forEach(d => {
-                    const data = d.data();
                     list.innerHTML += `<div class="bg-slate-700/50 p-4 rounded-2xl text-xs">
-                        <p class="font-black text-indigo-400 uppercase mb-1">${data.name}</p>
-                        <p class="mb-3">"${data.request}"</p>
+                        <p class="font-black text-indigo-400 uppercase mb-1">${d.data().name}</p>
+                        <p class="mb-3">"${d.data().request}"</p>
                         <button onclick="delReq('${d.id}')" class="text-slate-500 font-bold uppercase">Dismiss</button>
                     </div>`;
                 });
@@ -182,11 +190,17 @@
             if(reply) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: reply });
         };
 
-        // NEW: UPDATE TERMS ACTION
+        // SEPARATE LEGAL HANDLERS
         document.getElementById("update-terms").onclick = async () => {
             const text = document.getElementById("terms-input").value;
             await setDoc(doc(db, "settings", "terms"), { text, lastUpdated: serverTimestamp() });
-            alert("Terms Updated Successfully!");
+            alert("Terms Updated!");
+        };
+
+        document.getElementById("update-privacy").onclick = async () => {
+            const text = document.getElementById("privacy-input").value;
+            await setDoc(doc(db, "settings", "privacy"), { text, lastUpdated: serverTimestamp() });
+            alert("Privacy Updated!");
         };
 
         document.getElementById("pub-ann").onclick = async () => {
@@ -196,9 +210,6 @@
             if(!text) return alert("Enter a message");
             const expiry = Date.now() + (hrs * 60 + mins) * 60000;
             await setDoc(doc(db, "settings", "announcement"), { text, expiry });
-            document.getElementById("ann-text").value = "";
-            document.getElementById("ann-hours").value = "";
-            document.getElementById("ann-mins").value = "";
             alert("Announcement Published!");
         };
 
