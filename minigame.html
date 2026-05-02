@@ -1,54 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>OCC Bounce</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCC Bounce</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        canvas { background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        body { touch-action: none; overflow: hidden; }
+        canvas { background: white; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); width: 100%; max-width: 380px; }
         .brand-gradient { background: linear-gradient(135deg,#7c3aed,#2563eb); }
     </style>
 </head>
-<body class="brand-gradient flex flex-col items-center justify-center min-h-screen p-4 overflow-hidden">
-    <div class="text-white text-center mb-4">
-        <h1 class="text-3xl font-black">OCC BOUNCE</h1>
-        <p>Tap to jump!</p>
-        <div class="text-4xl font-bold mt-2" id="score">0</div>
+<body class="brand-gradient flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="text-white text-center mb-6">
+        <h1 class="text-4xl font-black tracking-tighter">OCC BOUNCE</h1>
+        <div class="text-5xl font-bold mt-2 opacity-90" id="score">0</div>
     </div>
     
-    <canvas id="gameCanvas" width="350" height="500"></canvas>
+    <div class="relative">
+        <canvas id="gameCanvas" width="380" height="580"></canvas>
+        <div id="start-overlay" class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-[30px]">
+            <button onclick="startGame()" class="bg-white text-indigo-600 px-8 py-4 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all">START GAME</button>
+        </div>
+    </div>
     
-    <a href="index.html" class="mt-8 text-white/70 font-bold uppercase tracking-widest text-sm">Exit Game</a>
+    <a href="index.html" class="mt-8 text-white/60 font-bold uppercase tracking-widest text-xs py-3 px-6 border border-white/20 rounded-full">Exit Game</a>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let score = 0;
-        let gameActive = true;
+        let gameActive = false;
+        let ball, obstacles;
 
-        const ball = { x: 175, y: 250, radius: 15, velocity: 0, gravity: 0.4, jump: -7 };
-        const obstacles = [];
+        function init() {
+            score = 0;
+            document.getElementById('score').innerText = "0";
+            ball = { x: 80, y: 290, radius: 18, velocity: 0, gravity: 0.35, jump: -6.5 };
+            obstacles = [];
+        }
+
+        function startGame() {
+            init();
+            gameActive = true;
+            document.getElementById('start-overlay').classList.add('hidden');
+            requestAnimationFrame(gameLoop);
+        }
 
         function createObstacle() {
-            const gap = 150;
-            const pos = Math.random() * (canvas.height - gap - 100) + 50;
-            obstacles.push({ x: canvas.width, y: pos, gap: gap, width: 50 });
+            const gap = 180; // Easier gap
+            const pos = Math.random() * (canvas.height - gap - 150) + 75;
+            obstacles.push({ x: canvas.width, y: pos, gap: gap, width: 65 });
         }
 
         function update() {
-            if (!gameActive) return;
-
             ball.velocity += ball.gravity;
             ball.y += ball.velocity;
 
             if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) gameOver();
 
-            if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < canvas.width - 200) createObstacle();
+            if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < canvas.width - 220) createObstacle();
 
             obstacles.forEach((obs, i) => {
-                obs.x -= 3;
-                if (obs.x + obs.width < 0) { obstacles.splice(i, 1); score++; document.getElementById('score').innerText = score; }
+                obs.x -= 2.8; // Slower speed for mobile
+                if (obs.x + obs.width < 0) {
+                    obstacles.splice(i, 1);
+                    score++;
+                    document.getElementById('score').innerText = score;
+                }
 
-                // Collision
                 if (ball.x + ball.radius > obs.x && ball.x - ball.radius < obs.x + obs.width) {
                     if (ball.y - ball.radius < obs.y || ball.y + ball.radius > obs.y + obs.gap) gameOver();
                 }
@@ -66,26 +86,33 @@
             ctx.closePath();
 
             // Draw Obstacles
-            ctx.fillStyle = "#e2e8f0";
+            ctx.fillStyle = "#f1f5f9";
             obstacles.forEach(obs => {
+                ctx.roundRect ? ctx.beginPath() : null;
                 ctx.fillRect(obs.x, 0, obs.width, obs.y);
                 ctx.fillRect(obs.x, obs.y + obs.gap, obs.width, canvas.height);
             });
+        }
 
-            if (gameActive) requestAnimationFrame(() => { update(); draw(); });
+        function gameLoop() {
+            if (!gameActive) return;
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
         }
 
         function gameOver() {
             gameActive = false;
+            document.getElementById('start-overlay').classList.remove('hidden');
             alert("Game Over! Score: " + score);
-            location.reload();
         }
 
-        window.onmousedown = () => { ball.velocity = ball.jump; };
-        window.ontouchstart = (e) => { e.preventDefault(); ball.velocity = ball.jump; };
-
-        draw();
+        window.onmousedown = (e) => { if(gameActive) ball.velocity = ball.jump; };
+        window.ontouchstart = (e) => { 
+            e.preventDefault();
+            if(gameActive) ball.velocity = ball.jump; 
+        };
+        init(); draw();
     </script>
 </body>
 </html>
-
