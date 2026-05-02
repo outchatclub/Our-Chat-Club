@@ -37,28 +37,38 @@
             <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
         </div>
 
+        <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl">
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-200 tracking-widest">📢 Global Announcement</h2>
+            <input id="ann-text" placeholder="Broadcast Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white placeholder-indigo-300">
+            <div class="flex gap-2 mb-4">
+                <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center text-white placeholder-indigo-300">
+                <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center text-white placeholder-indigo-300">
+            </div>
+            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black shadow-lg uppercase tracking-wide">Publish Announcement</button>
+        </div>
+
         <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
             <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">📰 Create News</h2>
             <input id="news-title" placeholder="News Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
             <input id="news-image" placeholder="Image URL (Direct Link)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
             <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none focus:ring-2 ring-indigo-500"></textarea>
-            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg">POST NEWS</button>
+            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg uppercase tracking-wide">Post News</button>
         </div>
 
         <div class="vip-gold p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-amber-100">👑 Generate VIP Code</h2>
-            <input id="vip-code-input" placeholder="Enter Code (e.g. VIP2026)" class="w-full p-4 bg-amber-700/30 rounded-2xl mb-3 outline-none placeholder-amber-200">
-            <button id="gen-vip" class="w-full p-4 bg-white text-amber-700 rounded-2xl font-black">CREATE CODE</button>
+            <h2 class="text-xs font-black uppercase mb-4 text-amber-100 tracking-widest">👑 VIP Codes</h2>
+            <input id="vip-code-input" placeholder="Code Name" class="w-full p-4 bg-amber-700/30 rounded-2xl mb-3 outline-none placeholder-amber-200">
+            <button id="gen-vip" class="w-full p-4 bg-white text-amber-700 rounded-2xl font-black shadow-lg uppercase tracking-wide">Create Code</button>
             <div id="vip-list" class="mt-4 space-y-2 scroll-area"></div>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-indigo-500/30">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400">💬 Active VIP Chats</h2>
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">💬 VIP Chats</h2>
             <div id="chat-list" class="scroll-area space-y-3"></div>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700">
-            <h2 class="text-xs font-black uppercase mb-4 text-slate-400">💡 Feature Requests</h2>
+            <h2 class="text-xs font-black uppercase mb-4 text-slate-400 tracking-widest">💡 Feature Requests</h2>
             <div id="request-list" class="scroll-area space-y-3"></div>
         </div>
         
@@ -107,7 +117,6 @@
                 });
             });
 
-            // --- UPDATED VIP CODE LISTENER ---
             onSnapshot(collection(db, "vip_codes"), snap => {
                 const list = document.getElementById("vip-list");
                 list.innerHTML = "";
@@ -161,6 +170,22 @@
         window.replyVip = async id => {
             const reply = prompt("Enter reply for VIP:");
             if(reply) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: reply });
+        };
+
+        // --- ANNOUNCEMENT HANDLER ---
+        document.getElementById("pub-ann").onclick = async () => {
+            const text = document.getElementById("ann-text").value;
+            const hrs = parseInt(document.getElementById("ann-hours").value) || 0;
+            const mins = parseInt(document.getElementById("ann-mins").value) || 0;
+            if(!text) return alert("Enter a message");
+            
+            const expiry = Date.now() + (hrs * 60 + mins) * 60000;
+            await setDoc(doc(db, "settings", "announcement"), { text, expiry });
+            
+            document.getElementById("ann-text").value = "";
+            document.getElementById("ann-hours").value = "";
+            document.getElementById("ann-mins").value = "";
+            alert("Announcement Published!");
         };
 
         document.getElementById("post-news").onclick = async () => {
