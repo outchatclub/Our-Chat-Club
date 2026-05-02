@@ -9,8 +9,6 @@
         .brand-gradient { background: linear-gradient(135deg,#7c3aed,#2563eb); }
         .hidden { display: none !important; }
         .vip-gold { background: linear-gradient(135deg, #f59e0b, #b45309); }
-        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); }
-        /* Custom Scrollbar for Chat/Requests */
         .scroll-area { max-height: 300px; overflow-y: auto; }
         .scroll-area::-webkit-scrollbar { width: 3px; }
         .scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
@@ -19,8 +17,8 @@
 <body class="bg-slate-900 text-white min-h-screen font-sans">
 
     <div id="admin-auth-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-6">
-        <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] shadow-2xl text-slate-900">
-            <h1 class="text-2xl font-black mb-2 text-indigo-600 text-center">ADMIN PANEL</h1>
+        <div class="w-full max-sm bg-white p-8 rounded-[2.5rem] shadow-2xl text-slate-900">
+            <h1 class="text-2xl font-black mb-2 text-indigo-600 text-center uppercase tracking-tighter">Admin Panel</h1>
             <div class="space-y-4">
                 <input id="admin-email-input" type="email" placeholder="Admin Email" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-indigo-500">
                 <input id="admin-pass-input" type="password" placeholder="Admin Password" class="w-full p-4 bg-slate-100 rounded-2xl outline-none focus:ring-2 ring-indigo-500">
@@ -36,7 +34,15 @@
                 <h1 class="text-2xl font-black text-indigo-400">CONTROL</h1>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Master Dashboard</p>
             </div>
-            <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold">LOCK</button>
+            <button onclick="logoutAdmin()" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
+        </div>
+
+        <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
+            <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">📰 Create News</h2>
+            <input id="news-title" placeholder="News Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
+            <input id="news-image" placeholder="Image URL (Direct Link)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none focus:ring-2 ring-indigo-500">
+            <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none focus:ring-2 ring-indigo-500"></textarea>
+            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg">POST NEWS</button>
         </div>
 
         <div class="vip-gold p-6 rounded-[2.5rem] mb-6 shadow-xl">
@@ -48,36 +54,15 @@
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-indigo-500/30">
             <h2 class="text-xs font-black uppercase mb-4 text-indigo-400">💬 Active VIP Chats</h2>
-            <div id="chat-list" class="scroll-area space-y-3">
-                <p class="text-center text-slate-500 text-[10px] py-4">No active messages.</p>
-            </div>
+            <div id="chat-list" class="scroll-area space-y-3"></div>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] mb-6 border border-slate-700">
             <h2 class="text-xs font-black uppercase mb-4 text-slate-400">💡 Feature Requests</h2>
-            <div id="request-list" class="scroll-area space-y-3">
-                <p class="text-center text-slate-500 text-[10px] py-4">No requests yet.</p>
-            </div>
+            <div id="request-list" class="scroll-area space-y-3"></div>
         </div>
         
-        <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-200">📢 Announcement</h2>
-            <input id="ann-text" placeholder="Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none">
-            <div class="flex gap-2 mb-4">
-                <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
-                <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
-            </div>
-            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black">PUBLISH</button>
-        </div>
-
-        <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase text-slate-400 mb-4">📰 Create News</h2>
-            <input id="news-title" placeholder="Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
-            <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
-            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black">POST NEWS</button>
-        </div>
-
-        <div id="news-list" class="space-y-3"></div>
+        <div id="news-list" class="space-y-3 mt-6"></div>
     </div>
 
     <script type="module">
@@ -85,12 +70,7 @@
         import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
-            authDomain: "our-chat-club.firebaseapp.com", 
-            projectId: "our-chat-club" 
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -99,8 +79,7 @@
         const MASTER_PASS = "29102007";
 
         document.getElementById("admin-login-btn").onclick = () => {
-            if(document.getElementById("admin-email-input").value === MASTER_EMAIL && 
-               document.getElementById("admin-pass-input").value === MASTER_PASS) {
+            if(document.getElementById("admin-email-input").value === MASTER_EMAIL && document.getElementById("admin-pass-input").value === MASTER_PASS) {
                 sessionStorage.setItem("admin_verified", "true");
                 unlockPanel();
             } else { alert("Wrong credentials."); }
@@ -113,14 +92,9 @@
         }
 
         window.logoutAdmin = () => { sessionStorage.removeItem("admin_verified"); location.reload(); };
+        onAuthStateChanged(auth, user => { if(sessionStorage.getItem("admin_verified") === "true") unlockPanel(); });
 
-        onAuthStateChanged(auth, user => {
-            if(sessionStorage.getItem("admin_verified") === "true") unlockPanel();
-        });
-
-        // --- CORE FUNCTIONS ---
         function loadData() {
-            // Manage News
             onSnapshot(collection(db, "news"), snap => {
                 const list = document.getElementById("news-list");
                 list.innerHTML = "";
@@ -128,96 +102,70 @@
                     const el = document.createElement("div");
                     el.className = "flex justify-between items-center bg-slate-800 p-4 rounded-2xl";
                     el.innerHTML = `<span class="text-sm font-bold truncate mr-4">${d.data().title}</span>
-                                   <button onclick="delNews('${d.id}')" class="text-red-400 text-xs font-black">DEL</button>`;
+                                   <button onclick="delNews('${d.id}')" class="text-red-400 text-xs font-black uppercase">Del</button>`;
                     list.appendChild(el);
                 });
             });
 
-            // Manage VIP Codes
-            onSnapshot(collection(db, "vip_codes"), snap => {
-                const list = document.getElementById("vip-list");
-                list.innerHTML = "";
-                snap.forEach(d => {
-                    const el = document.createElement("div");
-                    el.className = "text-[10px] bg-amber-900/40 p-3 rounded-xl flex justify-between items-center";
-                    el.innerHTML = `<span>Code: <b>${d.id}</b> ${d.data().usedBy ? '✅' : '⏳'}</span>
-                                   <button onclick="delVip('${d.id}')" class="text-white opacity-50">DEL</button>`;
-                    list.appendChild(el);
-                });
-            });
-
-            // VIP Feature Requests (New)
             onSnapshot(collection(db, "requests"), snap => {
                 const list = document.getElementById("request-list");
                 list.innerHTML = "";
-                if(snap.empty) list.innerHTML = `<p class="text-center text-slate-500 text-[10px] py-4">No requests yet.</p>`;
                 snap.forEach(d => {
                     const data = d.data();
-                    const el = document.createElement("div");
-                    el.className = "bg-slate-700/50 p-4 rounded-2xl border border-slate-700";
-                    el.innerHTML = `<p class="text-[10px] font-black text-indigo-400 mb-1 uppercase">${data.name}</p>
-                                   <p class="text-xs mb-3">"${data.request}"</p>
-                                   <button onclick="delReq('${d.id}')" class="text-[9px] font-bold text-slate-500 uppercase">Dismiss</button>`;
-                    list.appendChild(el);
+                    list.innerHTML += `<div class="bg-slate-700/50 p-4 rounded-2xl text-xs">
+                        <p class="font-black text-indigo-400 uppercase mb-1">${data.name}</p>
+                        <p class="mb-3">"${data.request}"</p>
+                        <button onclick="delReq('${d.id}')" class="text-slate-500 font-bold uppercase">Dismiss</button>
+                    </div>`;
                 });
             });
 
-            // VIP Chat Requests (New)
             onSnapshot(collection(db, "vip_chats"), snap => {
                 const list = document.getElementById("chat-list");
                 list.innerHTML = "";
-                let hasActive = false;
                 snap.forEach(d => {
                     const data = d.data();
                     if(data.status === "open") {
-                        hasActive = true;
-                        const el = document.createElement("div");
-                        el.className = "bg-indigo-900/20 p-4 rounded-2xl border border-indigo-500/20";
-                        el.innerHTML = `<p class="text-[10px] font-black text-white mb-1">${data.userName}</p>
-                                       <p class="text-xs italic text-slate-300 mb-4">"${data.lastMessage}"</p>
-                                       <button onclick="replyVip('${d.id}')" class="w-full py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase">Send Reply</button>`;
-                        list.appendChild(el);
+                        list.innerHTML += `<div class="bg-indigo-900/20 p-4 rounded-2xl border border-indigo-500/20">
+                            <p class="text-[10px] font-black text-white mb-1 uppercase">${data.userName}</p>
+                            <p class="text-xs italic text-slate-300 mb-4">"${data.lastMessage}"</p>
+                            <button onclick="replyVip('${d.id}')" class="w-full py-2 bg-indigo-600 rounded-xl text-[10px] font-black uppercase">Reply</button>
+                        </div>`;
                     }
                 });
-                if(!hasActive) list.innerHTML = `<p class="text-center text-slate-500 text-[10px] py-4">No active messages.</p>`;
             });
         }
 
-        // Global Action Functions
         window.delNews = id => deleteDoc(doc(db, "news", id));
-        window.delVip = id => deleteDoc(doc(db, "vip_codes", id));
         window.delReq = id => deleteDoc(doc(db, "requests", id));
-        window.replyVip = async (id) => {
+        window.replyVip = async id => {
             const reply = prompt("Enter reply for VIP:");
             if(reply) await updateDoc(doc(db, "vip_chats", id), { status: "closed", adminReply: reply });
-        };
-
-        // UI Handlers
-        document.getElementById("gen-vip").onclick = async () => {
-            const code = document.getElementById("vip-code-input").value.trim();
-            if(!code) return;
-            await setDoc(doc(db, "vip_codes", code), { code, usedBy: null, createdAt: serverTimestamp() });
-            document.getElementById("vip-code-input").value = "";
         };
 
         document.getElementById("post-news").onclick = async () => {
             const title = document.getElementById("news-title").value;
             const content = document.getElementById("news-content").value;
+            const imageUrl = document.getElementById("news-image").value;
             if(title && content) {
-                await addDoc(collection(db, "news"), { title, content, likes: [], createdAt: serverTimestamp() });
+                await addDoc(collection(db, "news"), { 
+                    title, 
+                    content, 
+                    imageUrl: imageUrl || "", 
+                    likes: [], 
+                    createdAt: serverTimestamp() 
+                });
                 document.getElementById("news-title").value = "";
                 document.getElementById("news-content").value = "";
+                document.getElementById("news-image").value = "";
                 alert("News Posted!");
             }
         };
 
-        document.getElementById("pub-ann").onclick = async () => {
-            const text = document.getElementById("ann-text").value;
-            const hrs = parseInt(document.getElementById("ann-hours").value) || 0;
-            const mins = parseInt(document.getElementById("ann-mins").value) || 0;
-            const expiry = Date.now() + (hrs * 60 + mins) * 60000;
-            await setDoc(doc(db, "settings", "announcement"), { text, expiry });
-            alert("Announcement Updated!");
+        document.getElementById("gen-vip").onclick = async () => {
+            const code = document.getElementById("vip-code-input").value.trim();
+            if(code) await setDoc(doc(db, "vip_codes", code), { code, usedBy: null, createdAt: serverTimestamp() });
+            document.getElementById("vip-code-input").value = "";
         };
     </script>
 </body>
