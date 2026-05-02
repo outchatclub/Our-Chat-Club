@@ -6,44 +6,63 @@
     <title>Terms & Conditions - OCC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; }</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Smooth transition for button hover */
+        .btn-transition { transition: all 0.3s ease; }
+    </style>
 </head>
 <body class="bg-gray-50 text-slate-800 p-6">
     <div class="max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 mt-10">
         <h1 class="text-3xl font-black text-indigo-700 mb-2 uppercase tracking-tighter">Terms & Conditions</h1>
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Effective Date: 02/05/2026</p>
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8">Effective Date: 02/05/2026</p>
         
         <div class="text-sm leading-relaxed text-slate-600 space-y-6">
             <section>
                 <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">1. Acceptance of Terms</h3>
-                [span_0](start_span)<p>By accessing ourchatclub.in, you agree to be bound by these Terms and Conditions[span_0](end_span). [span_1](start_span)You must use this website only for lawful purposes[span_1](end_span).</p>
+                <p>By accessing ourchatclub.in, you agree to be bound by these Terms and Conditions. You must use this website only for lawful purposes.</p>
             </section>
 
             <section>
                 <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">2. User Accounts</h3>
-                [span_2](start_span)<p>You are responsible for maintaining the confidentiality of your account[span_2](end_span). [span_3](start_span)[span_4](start_span)We reserve the right to suspend or terminate access at our discretion[span_3](end_span)[span_4](end_span).</p>
+                <p>You are responsible for maintaining the confidentiality of your account credentials. We reserve the right to suspend or terminate access at our sole discretion without prior notice.</p>
             </section>
 
             <section>
                 <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">3. User Content</h3>
-                [span_5](start_span)<p>You retain ownership of your content[span_5](end_span). [span_6](start_span)However, you grant us a royalty-free license to use and distribute such content on our platform[span_6](end_span). [span_7](start_span)We reserve the right to remove content that violates these terms[span_7](end_span).</p>
+                <p>You retain ownership of your content. However, you grant Our Chat Club (OCC) a royalty-free, perpetual license to use and distribute such content on our platform. We reserve the right to remove content that violates these terms.</p>
             </section>
 
             <section>
                 <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">4. Prohibited Activities</h3>
-                [span_8](start_span)<p>You agree not to harass other users, spread scams, or upload malicious code[span_8](end_span). [span_9](start_span)Impersonating any person or entity is strictly prohibited[span_9](end_span).</p>
+                <p>You agree not to harass other users, spread scams, or upload malicious code. Impersonating any person, brand, or entity is strictly prohibited.</p>
             </section>
 
             <section>
                 <h3 class="font-black text-slate-800 uppercase text-[11px] tracking-widest mb-2">5. Legal Notice</h3>
-                [span_10](start_span)<p>This website is provided on an "as is" basis[span_10](end_span). [span_11](start_span)These terms are governed by the laws of India[span_11](end_span). [span_12](start_span)Any disputes are subject to the exclusive jurisdiction of Indian courts[span_12](end_span).</p>
+                <p>This website is provided on an "as is" and "as available" basis. These terms are governed by the laws of India. Any disputes arising from these terms are subject to the exclusive jurisdiction of the courts in India.</p>
             </section>
         </div>
 
         <div class="mt-12 pt-8 border-t border-slate-50 flex flex-col gap-4">
-            <button onclick="history.back()" class="w-full p-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-wide shadow-lg shadow-indigo-100">Accept & Go Back</button>
-            <p class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Contact: ourchatclub@gmail.com</p>
+            <button onclick="handleAccept()" class="btn-transition w-full p-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-wide shadow-lg shadow-indigo-100 active:scale-[0.98]">
+                Accept & Continue
+            </button>
+            <p class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Support: <span class="text-indigo-600">ourchatclub@gmail.com</span>
+            </p>
         </div>
     </div>
+
+    <script>
+        function handleAccept() {
+            // If there is history, go back; otherwise, go to home
+            if (document.referrer !== "") {
+                history.back();
+            } else {
+                window.location.href = "/";
+            }
+        }
+    </script>
 </body>
 </html>
