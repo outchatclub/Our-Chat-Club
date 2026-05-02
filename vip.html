@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; overflow-x: hidden; }
         .vip-gold { color: #f59e0b; }
         .vip-bg-gold { background-color: #f59e0b; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
@@ -15,13 +15,14 @@
         .id-card { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 2px solid #f59e0b; position: relative; }
         .btn-press:active { transform: scale(0.95); }
         
-        /* Chat Box Styles */
         .chat-container { height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 5px; }
-        .chat-container::-webkit-scrollbar { width: 3px; }
-        .chat-container::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.3); border-radius: 10px; }
-        .msg { padding: 12px 16px; border-radius: 1.25rem; font-size: 13px; max-width: 85%; line-height: 1.4; }
-        .msg-user { align-self: flex-end; background: #4338ca; color: white; border-bottom-right-radius: 4px; }
+        .msg { padding: 12px 16px; border-radius: 1.25rem; font-size: 13px; max-width: 85%; }
+        .msg-user { align-self: flex-end; background: #4338ca; border-bottom-right-radius: 4px; }
         .msg-admin { align-self: flex-start; background: rgba(255,255,255,0.1); color: #f59e0b; border-bottom-left-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.2); }
+
+        /* VIP GAME UI */
+        #game-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #gameCanvas { background: #000; border: 4px solid #4338ca; border-radius: 20px; box-shadow: 0 0 20px #4338ca55; touch-action: none; }
     </style>
 </head>
 <body class="p-6 pb-24">
@@ -31,7 +32,7 @@
         <p class="text-slate-400 text-xs uppercase tracking-widest mb-10">Secret Access Required</p>
         <div class="glass p-8 rounded-[2.5rem]">
             <input type="text" id="vip-code-input" placeholder="Enter VIP Code" class="w-full bg-slate-800 border-none rounded-2xl p-4 text-center text-white mb-6 outline-none ring-2 ring-transparent focus:ring-amber-500">
-            <button id="submit-code" class="btn-press w-full vip-bg-gold text-white py-4 rounded-2xl font-black mb-4">UNLOCK ACCESS</button>
+            <button id="submit-code" class="btn-press w-full vip-bg-gold text-white py-4 rounded-2xl font-black mb-4 uppercase">Unlock Access</button>
             <button onclick="location.href='index.html'" class="text-slate-500 text-xs font-bold uppercase tracking-widest">Exit</button>
         </div>
     </div>
@@ -46,7 +47,7 @@
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-[8px] font-bold text-amber-500 uppercase tracking-widest">Official VIP ID</p>
-                    <h2 id="id-name" class="text-xl font-black mt-1 uppercase">---</h2>
+                    <h2 id="id-name" class="text-xl font-black mt-1 uppercase">Member</h2>
                 </div>
                 <div class="text-2xl">👑</div>
             </div>
@@ -60,26 +61,34 @@
             <h3 class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-4 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Admin Chat
             </h3>
-            
-            <div id="chat-display" class="chat-container mb-4">
-                <p class="text-[10px] text-slate-500 text-center mt-10 uppercase tracking-widest">Start a conversation...</p>
-            </div>
-
+            <div id="chat-display" class="chat-container mb-4"></div>
             <div class="flex gap-2">
-                <input type="text" id="chat-input" placeholder="Type a message..." class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-xs outline-none focus:border-indigo-500">
+                <input type="text" id="chat-input" placeholder="Type a message..." class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-xs outline-none focus:border-indigo-500 text-white">
                 <button id="send-chat" class="btn-press bg-indigo-600 px-4 rounded-xl text-lg">➜</button>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <button onclick="openRequest()" class="btn-press glass p-6 rounded-3xl text-center">
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="openRequest()" class="btn-press glass p-8 rounded-[2.5rem] text-center flex flex-col items-center">
                 <div class="text-2xl mb-2">💡</div>
-                <span class="text-xs font-black uppercase">Request Feature</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">Request Feature</span>
             </button>
-            <button id="start-game-btn" class="btn-press glass p-6 rounded-3xl text-center border-amber-500/20 border">
+            <button onclick="openVipGame()" class="btn-press glass p-8 rounded-[2.5rem] text-center flex flex-col items-center">
                 <div class="text-2xl mb-2">🎮</div>
-                <span class="text-xs font-black uppercase">VIP Game</span>
+                <span class="text-[10px] font-black uppercase tracking-widest">VIP Game</span>
             </button>
+        </div>
+    </div>
+
+    <div id="game-overlay">
+        <div class="absolute top-10 left-10 text-white">
+            <h2 class="text-2xl font-black vip-gold">NEON JUMP</h2>
+            <p id="game-score" class="text-lg font-bold">Score: 0</p>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="mt-8 flex gap-4">
+            <button onclick="closeVipGame()" class="bg-slate-800 px-8 py-3 rounded-xl font-black text-xs uppercase">Exit Game</button>
+            <button onclick="restartGame()" class="vip-bg-gold px-8 py-3 rounded-xl font-black text-xs uppercase">Restart</button>
         </div>
     </div>
 
@@ -97,48 +106,18 @@
             if (!user) location.href = 'index.html';
             document.getElementById("id-name").innerText = user.displayName;
             document.getElementById("id-number").innerText = `UID: ${user.uid.substring(0,8).toUpperCase()}`;
-            
-            // --- REAL-TIME CHAT SYNC ---
             onSnapshot(doc(db, "vip_chats", user.uid), (s) => {
                 const data = s.data();
                 const display = document.getElementById("chat-display");
                 if (data) {
-                    display.innerHTML = ""; // Clear loader
-                    
-                    // User Message
-                    if (data.lastMessage) {
-                        display.innerHTML += `<div class="msg msg-user">${data.lastMessage}</div>`;
-                    }
-                    
-                    // Admin Reply
-                    if (data.adminReply) {
-                        display.innerHTML += `<div class="msg msg-admin"><b>Admin:</b> ${data.adminReply}</div>`;
-                    }
-                    
-                    // Auto-scroll to bottom
+                    display.innerHTML = "";
+                    if (data.lastMessage) display.innerHTML += `<div class="msg msg-user">${data.lastMessage}</div>`;
+                    if (data.adminReply) display.innerHTML += `<div class="msg msg-admin"><b>Admin:</b> ${data.adminReply}</div>`;
                     display.scrollTop = display.scrollHeight;
                 }
             });
         });
 
-        // SEND CHAT LOGIC
-        document.getElementById("send-chat").onclick = async () => {
-            const input = document.getElementById("chat-input");
-            const msg = input.value.trim();
-            if(!msg) return;
-
-            await setDoc(doc(db, "vip_chats", auth.currentUser.uid), {
-                userName: auth.currentUser.displayName,
-                lastMessage: msg,
-                status: "open",
-                timestamp: Date.now()
-                // We keep adminReply if it exists, or it stays empty
-            }, { merge: true });
-
-            input.value = "";
-        };
-
-        // ACCESS GATE
         document.getElementById("submit-code").onclick = async () => {
             const code = document.getElementById("vip-code-input").value;
             const snap = await getDoc(doc(db, "vip_codes", code));
@@ -146,7 +125,19 @@
                 await updateDoc(doc(db, "vip_codes", code), { usedBy: auth.currentUser.uid });
                 document.getElementById("gate-section").classList.add("hidden");
                 document.getElementById("vip-content").classList.remove("hidden");
-            } else { alert("Unauthorized code."); }
+            } else alert("Invalid Code");
+        };
+
+        document.getElementById("send-chat").onclick = async () => {
+            const input = document.getElementById("chat-input");
+            if(!input.value.trim()) return;
+            await setDoc(doc(db, "vip_chats", auth.currentUser.uid), {
+                userName: auth.currentUser.displayName,
+                lastMessage: input.value,
+                status: "open",
+                timestamp: Date.now()
+            }, { merge: true });
+            input.value = "";
         };
 
         window.openRequest = () => {
@@ -154,7 +145,66 @@
             if(req) addDoc(collection(db, "requests"), { name: auth.currentUser.displayName, request: req, date: new Date().toLocaleString() });
         };
 
-        document.getElementById("start-game-btn").onclick = () => alert("Game Loading...");
+        // --- VIP GAME ENGINE ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameActive = false;
+        let score = 0;
+        let player, obstacles;
+
+        window.openVipGame = () => {
+            document.getElementById('game-overlay').style.display = 'flex';
+            restartGame();
+        };
+
+        window.closeVipGame = () => {
+            document.getElementById('game-overlay').style.display = 'none';
+            gameActive = false;
+        };
+
+        window.restartGame = () => {
+            score = 0;
+            gameActive = true;
+            player = { x: 50, y: 150, w: 30, h: 30, dy: 0, jump: -6, grav: 0.3 };
+            obstacles = [];
+            document.getElementById('game-score').innerText = "Score: 0";
+            requestAnimationFrame(updateGame);
+        };
+
+        function updateGame() {
+            if (!gameActive) return;
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Player Physics
+            player.dy += player.grav;
+            player.y += player.dy;
+            if (player.y + player.h > canvas.height) { player.y = canvas.height - player.h; player.dy = 0; }
+            if (player.y < 0) { player.y = 0; player.dy = 0; }
+
+            ctx.fillStyle = "#f59e0b";
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+
+            // Obstacles
+            if (Math.random() < 0.02) obstacles.push({ x: canvas.width, y: Math.random() * (canvas.height - 50), w: 30, h: 50 });
+            obstacles.forEach((o, i) => {
+                o.x -= 4;
+                ctx.fillStyle = "#4338ca";
+                ctx.fillRect(o.x, o.y, o.w, o.h);
+                if (o.x < -30) { obstacles.splice(i, 1); score++; document.getElementById('game-score').innerText = "Score: " + score; }
+                if (player.x < o.x + o.w && player.x + player.w > o.x && player.y < o.y + o.h && player.y + player.h > o.y) {
+                    gameActive = false; alert("Game Over! Score: " + score);
+                }
+            });
+
+            requestAnimationFrame(updateGame);
+        }
+
+        const handleJump = () => { if(gameActive) player.dy = player.jump; };
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleJump(); });
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') handleJump(); });
+        
+        canvas.width = 300; canvas.height = 450;
     </script>
 </body>
 </html>
