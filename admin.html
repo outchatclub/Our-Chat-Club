@@ -3,29 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin - OCC</title>
+    <title>Admin Control - OCC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .brand-gradient { background: linear-gradient(135deg,#7c3aed,#2563eb); }
         .hidden { display: none !important; }
         .scroll-area { max-height: 400px; overflow-y: auto; }
+        .scroll-area::-webkit-scrollbar { width: 3px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen">
+<body class="bg-slate-900 text-white min-h-screen font-sans">
 
     <div id="admin-auth-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-6">
         <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] shadow-2xl text-center">
             <h1 class="text-2xl font-black mb-6 text-indigo-600 uppercase tracking-tighter">Admin Access</h1>
-            <input id="admin-email-input" type="email" placeholder="Admin Email" class="w-full p-4 bg-slate-100 rounded-2xl mb-4 outline-none text-slate-900 border focus:border-indigo-500">
-            <input id="admin-pass-input" type="password" placeholder="Password" class="w-full p-4 bg-slate-100 rounded-2xl mb-6 outline-none text-slate-900 border focus:border-indigo-500">
-            <button id="admin-login-btn" class="w-full p-4 text-white font-bold brand-gradient rounded-2xl shadow-lg active:scale-95 transition-all">UNLOCK PANEL</button>
+            <div class="space-y-4">
+                <input id="admin-email-input" type="email" placeholder="Admin Email" class="w-full p-4 bg-slate-100 rounded-2xl outline-none text-slate-900 border focus:border-indigo-500">
+                <input id="admin-pass-input" type="password" placeholder="Password" class="w-full p-4 bg-slate-100 rounded-2xl outline-none text-slate-900 border focus:border-indigo-500">
+                <button id="admin-login-btn" class="w-full p-4 text-white font-bold brand-gradient rounded-2xl shadow-lg active:scale-95 transition-all">UNLOCK PANEL</button>
+            </div>
             <a href="index.html" class="block mt-6 text-slate-400 text-xs font-bold uppercase tracking-widest">Back to Site</a>
         </div>
     </div>
 
     <div id="admin-panel-content" class="hidden max-w-md mx-auto p-5 pb-24">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">OCC Admin</h1>
+            <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">OCC Master</h1>
             <button id="logout-admin-btn" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase border border-slate-700">Lock</button>
         </div>
 
@@ -36,7 +40,7 @@
                 <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
                 <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
             </div>
-            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black uppercase shadow-md active:scale-95 transition-all">Publish Bar</button>
+            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black uppercase shadow-md active:scale-95 transition-all">Publish</button>
         </div>
 
         <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
@@ -44,7 +48,7 @@
             <input id="news-title" placeholder="Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
             <input id="news-image" placeholder="Image URL (Blank for news.png)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none text-xs">
             <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
-            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase">Publish News</button>
+            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg active:scale-95 transition-all">PUBLISH NEWS</button>
         </div>
 
         <div class="bg-slate-800 p-6 rounded-[2.5rem] border border-slate-700 shadow-xl">
@@ -70,7 +74,6 @@
 
         const MASTER_EMAIL = "admin@gmail.com";
 
-        // UI Function to toggle views
         function showPanel() {
             document.getElementById("admin-auth-overlay").classList.add("hidden");
             document.getElementById("admin-panel-content").classList.remove("hidden");
@@ -78,27 +81,27 @@
 
         // Login Handler
         document.getElementById("admin-login-btn").onclick = async () => {
-            const email = document.getElementById("admin-email-input").value;
+            const email = document.getElementById("admin-email-input").value.trim().toLowerCase();
             const pass = document.getElementById("admin-pass-input").value;
             
             try {
                 const cred = await signInWithEmailAndPassword(auth, email, pass);
-                if (cred.user.email === MASTER_EMAIL) {
+                if (cred.user.email.toLowerCase() === MASTER_EMAIL) {
                     sessionStorage.setItem("admin_verified", "true");
                     showPanel();
                     loadData();
                 } else {
-                    alert("Access Denied: Not an admin account.");
+                    alert("Unauthorized: Only the Master Admin can enter.");
                     await signOut(auth);
                 }
             } catch (e) { 
-                alert("Login Failed: " + e.message); 
+                alert("Login Error: " + e.message); 
             }
         };
 
-        // Persistent Auth Check
+        // Persistent Auth Observer
         onAuthStateChanged(auth, user => {
-            if (user && user.email === MASTER_EMAIL && sessionStorage.getItem("admin_verified") === "true") {
+            if (user && user.email.toLowerCase() === MASTER_EMAIL && sessionStorage.getItem("admin_verified") === "true") {
                 showPanel();
                 loadData();
             } else {
@@ -107,38 +110,36 @@
             }
         });
 
-        // Logout Handler
+        // Logout
         document.getElementById("logout-admin-btn").onclick = async () => {
             await signOut(auth);
             sessionStorage.removeItem("admin_verified");
             location.reload();
         };
 
-        // Data Loaders
         function loadData() {
-            // Real-time Users List
+            // Monitor Users
             onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc")), snap => {
                 const list = document.getElementById("user-list");
                 list.innerHTML = "";
                 snap.forEach(d => {
                     const data = d.data();
-                    const date = data.createdAt ? data.createdAt.toDate().toLocaleString('en-GB') : "Old Member";
+                    const date = data.createdAt ? data.createdAt.toDate().toLocaleString('en-GB') : "Member";
                     list.innerHTML += `
                         <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
-                            <p class="font-black text-sm text-white">${data.name || 'Anonymous'}</p>
+                            <p class="font-black text-sm text-white">${data.name || 'User'}</p>
                             <p class="text-[9px] text-indigo-400 uppercase tracking-widest mt-1">${date}</p>
                         </div>`;
                 });
             });
         }
 
-        // Action: Announcement
+        // Announcement Publisher
         document.getElementById("pub-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
             const h = parseInt(document.getElementById("ann-hours").value || 0);
             const m = parseInt(document.getElementById("ann-mins").value || 0);
-            
-            if(!text) return alert("Enter message!");
+            if(!text) return alert("Enter a message!");
             
             const expiry = Date.now() + (h * 3600000) + (m * 60000);
             try {
@@ -147,7 +148,7 @@
             } catch (e) { alert(e.message); }
         };
 
-        // Action: News
+        // News Publisher
         document.getElementById("post-news").onclick = async () => {
             const title = document.getElementById("news-title").value;
             const content = document.getElementById("news-content").value;
@@ -157,14 +158,9 @@
 
             try {
                 await addDoc(collection(db, "news"), { 
-                    title, 
-                    content, 
-                    imageUrl: img, 
-                    likes: [], 
-                    createdAt: serverTimestamp() 
+                    title, content, imageUrl: img, likes: [], createdAt: serverTimestamp() 
                 });
-                alert("News Posted Successfully!");
-                // Clear fields
+                alert("News Posted!");
                 document.getElementById("news-title").value = "";
                 document.getElementById("news-content").value = "";
                 document.getElementById("news-image").value = "";
