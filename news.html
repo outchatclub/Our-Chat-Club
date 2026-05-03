@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <header class="p-6 bg-white border-b flex justify-between items-center">
+    <header class="p-6 bg-white border-b flex justify-between items-center sticky top-0 z-50">
         <div>
             <h1 class="text-2xl font-black text-indigo-700">OCC FEED</h1>
             <div class="gtranslate_wrapper mt-2"></div>
@@ -40,14 +40,24 @@
                 snap.forEach(sDoc => {
                     const data = sDoc.data();
                     const isLiked = data.likes?.includes(user.uid);
+                    
+                    let postDate = "Just now";
+                    if (data.createdAt) {
+                        const dateObj = data.createdAt.toDate();
+                        postDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + " • " + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    }
+
                     feed.innerHTML += `
                         <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100">
-                            <div class="flex justify-between mb-4">
-                                <h2 class="text-xl font-black text-slate-800">${data.title}</h2>
-                                <img src="${data.imageUrl || 'news.png'}" class="w-16 h-16 rounded-2xl object-cover">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex-1 pr-4">
+                                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
+                                    <h2 class="text-xl font-black text-slate-800 leading-tight">${data.title}</h2>
+                                </div>
+                                <img src="${data.imageUrl || 'news.png'}" class="w-20 h-20 rounded-2xl object-cover border border-gray-50">
                             </div>
-                            <p class="text-slate-500 text-sm mb-5">${data.content}</p>
-                            <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="p-3 px-6 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} font-black text-xs">
+                            <p class="text-slate-500 text-sm mb-5 leading-relaxed">${data.content}</p>
+                            <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 p-3 px-6 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} font-black text-xs transition-all active:scale-95">
                                 ${isLiked ? '❤️' : '🤍'} ${data.likes?.length || 0} Likes
                             </button>
                         </div>`;
