@@ -4,148 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OCC - Official</title>
-    
-    <link rel="icon" href="favicon.ico" sizes="any">
-    <link rel="icon" href="favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
-    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1340372907809425" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
         .brand-indigo { color: #4338ca; }
         .brand-bg-indigo { background-color: #4338ca; }
-        .brand-sky { color: #0ea5e9; }
-        .brand-bg-sky { background-color: #0ea5e9; }
-        .vip-gradient { background: linear-gradient(135deg, #4338ca 0%, #1e1b4b 100%); }
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.96); }
-        input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 24px; outline: none; transition: 0.2s; font-size: 0.9rem; }
-        input:focus { border-color: #4338ca; box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.05); }
-        
-        /* Sidebar Styles */
+        input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 24px; outline: none; }
         #sidebar { transition: transform 0.3s ease-in-out; }
         .sidebar-open { transform: translateX(0) !important; }
         .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
     </style>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1340372907809425"
-     crossorigin="anonymous"></script>
 </head>
 <body class="text-slate-900">
-
     <div id="sidebar-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
-
     <div id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white z-[70] shadow-2xl -translate-x-full flex flex-col p-8">
         <div class="mb-10 flex justify-between items-center">
             <h2 class="text-3xl font-black brand-indigo tracking-tighter">MENU</h2>
             <button onclick="toggleMenu()" class="text-slate-400 text-2xl font-bold">&times;</button>
         </div>
         <nav class="flex flex-col gap-4">
-            <button onclick="location.reload()" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all">
-                <span>🏠</span> Home
-            </button>
-            <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all">
-                <span>🎬</span> YouTube
-            </a>
-            <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all">
-                <span>📸</span> Instagram
-            </a>
-            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all">
-                <span>🆘</span> Get Help
-            </a>
+            <button onclick="location.reload()" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all"><span>🏠</span> Home</button>
+            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all"><span>🆘</span> Get Help</a>
         </nav>
-        <div class="mt-auto pt-8 border-t border-slate-100">
-            <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest text-center">OCC Platform v2.0</p>
-        </div>
-    </div>
-
-    <div id="ann-bar" class="hidden brand-bg-indigo p-3 text-center text-white text-[11px] font-bold uppercase tracking-widest sticky top-0 z-50">
-        <span id="ann-text-display"></span>
     </div>
 
     <div id="auth-section" class="hidden max-w-md mx-auto p-8 pt-20">
-        <div class="text-center mb-10">
-            <h1 class="text-5xl font-black brand-indigo tracking-tighter mb-2">OCC</h1>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Join the Club</p>
-        </div>
         <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50">
             <div id="login-form">
                 <h2 class="text-2xl font-black mb-8">Login</h2>
                 <input type="email" id="login-email" placeholder="Email Address">
                 <input type="password" id="login-pass" placeholder="Password">
-                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Login</button>
-                <p class="text-center text-xs mt-10 text-slate-500 font-medium">New here? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Create Account</button></p>
+                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black">Login</button>
+                <p class="text-center text-xs mt-10">New? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Sign Up</button></p>
             </div>
             <div id="signup-form" class="hidden">
-                <h2 class="text-2xl font-black mb-8">Create Account</h2>
+                <h2 class="text-2xl font-black mb-8">Join OCC</h2>
                 <input type="text" id="reg-name" placeholder="Full Name">
                 <input type="email" id="reg-email" placeholder="Email Address">
-                <input type="password" id="reg-pass" placeholder="Create Password">
-                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">Sign Up</button>
-                <p class="text-center text-xs mt-10 text-slate-500 font-medium">Have an account? <button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
+                <input type="password" id="reg-pass" placeholder="Password">
+                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black">Create Account</button>
+                <p class="text-center text-xs mt-10"><button onclick="toggleAuth(true)" class="brand-indigo font-black">Back to Login</button></p>
             </div>
         </div>
     </div>
 
     <div id="main-dashboard" class="hidden max-w-md mx-auto p-6 pb-24">
         <div class="flex justify-between items-center mb-8 mt-2">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleMenu()" class="btn-press bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-indigo-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <div>
-                    <h1 class="text-3xl font-black brand-indigo tracking-tighter leading-none">OCC</h1>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Official Dashboard</p>
-                </div>
-            </div>
-            <button id="logout-btn" class="btn-press bg-white border border-red-50 px-5 py-2 rounded-2xl text-xs font-black text-red-500 shadow-sm">LOGOUT</button>
+            <button onclick="toggleMenu()" class="btn-press bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h1 class="text-3xl font-black brand-indigo tracking-tighter">OCC</h1>
+            <button id="logout-btn" class="text-xs font-black text-red-500">LOGOUT</button>
         </div>
 
         <section class="mb-10">
-            <div class="vip-gradient p-8 rounded-[2.5rem] shadow-2xl border-b-8 border-indigo-950">
-                <h2 class="text-white font-black text-2xl mb-1 tracking-tight">👑 VIP PANEL</h2>
-                <p id="user-display" class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-6">Member Access</p>
-                <button onclick="location.href='vip.html'" class="btn-press w-full brand-bg-sky text-white py-4 rounded-2xl font-black text-sm uppercase tracking-wide">Enter Premium Zone</button>
-            </div>
-        </section>
-
-        <section class="mb-10">
-            <div class="gtranslate_wrapper"></div>
-<script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
-<script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
-            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Latest News</h3>
+            <div class="gtranslate_wrapper mb-4"></div>
+            <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
+            <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
+            
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Feed</h3>
             <div id="news-feed" class="space-y-4"></div>
-            <button onclick="location.href='news.html'" class="btn-press w-full mt-6 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 uppercase tracking-widest">More News</button>
+            <button onclick="location.href='news.html'" class="w-full mt-6 py-4 bg-white border rounded-2xl text-[11px] font-black text-slate-400 uppercase">View More</button>
         </section>
 
         <section class="mb-12">
-            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-center">Entertainment</h3>
-            <button onclick="location.href='minigame.html'" class="btn-press w-full bg-white border border-slate-200 p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
+            <button onclick="location.href='minigame.html'" class="w-full bg-white border p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-5">
                     <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl">🎮</div>
-                    <div class="text-left">
-                        <span class="block font-black text-slate-800 text-lg">MINI GAMES</span>
-                        <span class="text-[10px] text-slate-400 font-bold uppercase">Enjoy & Relax</span>
-                    </div>
+                    <span class="font-black text-slate-800 text-lg">MINI GAMES</span>
                 </div>
-                <span class="brand-sky text-xl">➜</span>
+                <span class="text-indigo-600 font-bold">➜</span>
             </button>
         </section>
-
-        <footer class="mt-16 text-center border-t border-slate-200 pt-8">
-            <div class="flex justify-center gap-4 mb-3">
-                <a href="privacy.html" class="text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest">Privacy Policy</a>
-                <span class="text-slate-300">•</span>
-                <a href="terms.html" class="text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest">Terms & Conditions</a>
-            </div>
-            <p class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em]">© 2026 OUR CHAT CLUB</p>
-        </footer>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, query, collection, orderBy, limit, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, query, collection, orderBy, limit, serverTimestamp, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -153,48 +92,28 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Sidebar Toggle function
-        window.toggleMenu = () => {
-            document.getElementById("sidebar").classList.toggle("sidebar-open");
-            document.getElementById("sidebar-overlay").classList.toggle("overlay-active");
-        };
-
-        window.toggleAuth = (isLogin) => {
-            document.getElementById("login-form").classList.toggle("hidden", !isLogin);
-            document.getElementById("signup-form").classList.toggle("hidden", isLogin);
-        };
+        window.toggleMenu = () => { document.getElementById("sidebar").classList.toggle("sidebar-open"); document.getElementById("sidebar-overlay").classList.toggle("overlay-active"); };
+        window.toggleAuth = (isLogin) => { document.getElementById("login-form").classList.toggle("hidden", !isLogin); document.getElementById("signup-form").classList.toggle("hidden", isLogin); };
 
         onAuthStateChanged(auth, user => {
             document.getElementById("auth-section").classList.toggle("hidden", !!user);
             document.getElementById("main-dashboard").classList.toggle("hidden", !user);
-            if(user) {
-                document.getElementById("user-display").innerText = `Logged in as: ${user.displayName || 'Member'}`;
-                loadData();
-            }
+            if(user) loadData();
         });
 
         document.getElementById("do-login").onclick = () => signInWithEmailAndPassword(auth, document.getElementById("login-email").value, document.getElementById("login-pass").value).catch(e => alert(e.message));
-        
         document.getElementById("do-signup").onclick = async () => {
             const name = document.getElementById("reg-name").value;
+            const email = document.getElementById("reg-email").value;
             try {
-                const res = await createUserWithEmailAndPassword(auth, document.getElementById("reg-email").value, document.getElementById("reg-pass").value);
+                const res = await createUserWithEmailAndPassword(auth, email, document.getElementById("reg-pass").value);
                 await updateProfile(res.user, { displayName: name });
+                await setDoc(doc(db, "users", res.user.uid), { name, email, createdAt: serverTimestamp() });
             } catch(e) { alert(e.message); }
         };
-
         document.getElementById("logout-btn").onclick = () => signOut(auth);
 
         function loadData() {
-            onSnapshot(doc(db, "settings", "announcement"), s => {
-                const d = s.data();
-                const bar = document.getElementById("ann-bar");
-                if(d && d.expiry > Date.now()) {
-                    document.getElementById("ann-text-display").innerText = d.text;
-                    bar.classList.remove("hidden");
-                } else bar.classList.add("hidden");
-            });
-
             const newsQ = query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3));
             onSnapshot(newsQ, snap => {
                 const feed = document.getElementById("news-feed");
@@ -202,37 +121,21 @@
                 snap.forEach(sDoc => {
                     const d = sDoc.data();
                     const isLiked = d.likes?.includes(auth.currentUser?.uid);
-                    const imgHtml = d.imageUrl ? `<img src="${d.imageUrl}" class="w-16 h-16 rounded-2xl object-cover ml-4 shadow-sm">` : '';
-                    
-                    let postDate = "Just now";
-                    if (d.createdAt) {
-                        const dateObj = d.createdAt.toDate();
-                        postDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + 
-                                   " • " + 
-                                   dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                    }
-
                     feed.innerHTML += `
                         <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
-                            <div class="flex justify-between items-start mb-3">
+                            <div class="flex justify-between items-center mb-3">
                                 <div class="flex-1">
-                                    <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
                                     <h4 class="font-black text-slate-800 text-lg leading-tight mb-1">${d.title}</h4>
-                                    <p class="text-slate-500 text-[11px] leading-relaxed">${(d.content || "").substring(0, 70)}...</p>
+                                    <p class="text-slate-500 text-[11px]">${d.content.substring(0, 60)}...</p>
                                 </div>
-                                ${imgHtml}
+                                <img src="${d.imageUrl || 'news.png'}" class="w-16 h-16 rounded-2xl object-cover ml-4">
                             </div>
-                            <div class="flex justify-between items-center">
-                                <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">
-                                    ${isLiked ? '❤️' : '🤍'} ${d.likes?.length || 0}
-                                </button>
-                                <a href="news.html?id=${sDoc.id}" class="brand-sky font-black text-[11px] uppercase tracking-tighter">Read More ➜</a>
-                            </div>
+                            <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">${isLiked ? '❤️' : '🤍'} ${d.likes?.length || 0}</button>
                         </div>`;
                 });
             });
         }
-        window.toggleLike = async (id, currentlyLiked) => updateDoc(doc(db, "news", id), { likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
+        window.toggleLike = (id, currentlyLiked) => updateDoc(doc(db, "news", id), { likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
     </script>
 </body>
 </html>
