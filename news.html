@@ -4,73 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OCC Feed</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1340372907809425" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        .hidden { display: none !important; }
-        .btn-press:active { transform: scale(0.96); }
-
-        /* Sidebar Styles */
-        #sidebar { transition: transform 0.3s ease-in-out; }
-        .sidebar-open { transform: translateX(0) !important; }
-        .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
-    </style>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1340372907809425"
-     crossorigin="anonymous"></script>
 </head>
-<body class="bg-gray-50 flex flex-col min-h-screen">
-
-    <div id="sidebar-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
-
-    <div id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white z-[70] shadow-2xl -translate-x-full flex flex-col p-8">
-        <div class="mb-10 flex justify-between items-center">
-            <h2 class="text-3xl font-black text-indigo-700 tracking-tighter">MENU</h2>
-            <button onclick="toggleMenu()" class="text-slate-400 text-2xl font-bold">&times;</button>
+<body class="bg-gray-50 min-h-screen">
+    <header class="p-6 bg-white border-b flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-black text-indigo-700">OCC FEED</h1>
+            <div class="gtranslate_wrapper mt-2"></div>
         </div>
-        <nav class="flex flex-col gap-4">
-            <button onclick="location.href='index.html'" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all">
-                <span>🏠</span> Home
-            </button>
-            <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all">
-                <span>🎬</span> YouTube
-            </a>
-            <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all">
-                <span>📸</span> Instagram
-            </a>
-            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all">
-                <span>🆘</span> Get Help
-            </a>
-        </nav>
-        <div class="mt-auto pt-8 border-t border-slate-100">
-            <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest text-center">OCC Platform v2.0</p>
-        </div>
-    </div>
-
-    <div id="ann-bar" class="hidden bg-indigo-600 text-white p-4 text-center font-extrabold text-[11px] shadow-xl sticky top-0 z-50 uppercase tracking-widest">
-        <span id="ann-msg"></span>
-    </div>
-
-    <header class="p-6 flex justify-between items-center bg-white border-b border-gray-100">
-        <div class="flex items-center gap-4">
-            <button onclick="toggleMenu()" class="btn-press bg-slate-50 p-3 rounded-2xl text-indigo-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <div>
-                <h1 class="text-2xl font-black text-indigo-700 tracking-tighter leading-none">OCC FEED</h1>
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Latest Updates</p>
-            </div>
-        </div>
-        <div class="gtranslate_wrapper"></div>
-<script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
-<script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
+        <button onclick="location.href='index.html'" class="text-xs font-bold text-slate-400">BACK</button>
     </header>
+    
+    <main class="p-5 space-y-5" id="feed"></main>
 
-    <main class="flex-grow p-5 space-y-5" id="feed"></main>
+    <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
+    <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, collection, onSnapshot, query, orderBy, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -78,73 +31,30 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Sidebar Toggle
-        window.toggleMenu = () => {
-            document.getElementById("sidebar").classList.toggle("sidebar-open");
-            document.getElementById("sidebar-overlay").classList.toggle("overlay-active");
-        };
-
-        // Announcement Logic
-        onSnapshot(doc(db, "settings", "announcement"), sDoc => {
-            if(sDoc.exists()){
-                const data = sDoc.data();
-                if(Date.now() < data.expiry) {
-                    document.getElementById("ann-bar").classList.remove("hidden");
-                    document.getElementById("ann-msg").innerText = data.text;
-                } else {
-                    document.getElementById("ann-bar").classList.add("hidden");
-                }
-            }
-        });
-
         onAuthStateChanged(auth, user => {
             if(!user) window.location.href = "index.html";
             const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
-            
             onSnapshot(q, snap => {
                 const feed = document.getElementById("feed");
                 feed.innerHTML = "";
                 snap.forEach(sDoc => {
                     const data = sDoc.data();
-                    const likes = data.likes || [];
-                    const isLiked = likes.includes(user.uid);
-                    
-                    let postDate = "Just now";
-                    if (data.createdAt) {
-                        const dateObj = data.createdAt.toDate();
-                        postDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
-                                   " • " + 
-                                   dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-                    }
-
-                    const card = document.createElement("div");
-                    card.className = "bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 flex flex-col";
-                    
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex-1 pr-4">
-                                <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
-                                <h2 class="text-xl font-black text-slate-800 leading-tight">${data.title}</h2>
+                    const isLiked = data.likes?.includes(user.uid);
+                    feed.innerHTML += `
+                        <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100">
+                            <div class="flex justify-between mb-4">
+                                <h2 class="text-xl font-black text-slate-800">${data.title}</h2>
+                                <img src="${data.imageUrl || 'news.png'}" class="w-16 h-16 rounded-2xl object-cover">
                             </div>
-                            ${data.imageUrl ? `<img src="${data.imageUrl}" class="w-16 h-16 rounded-2xl object-cover shadow-sm border border-gray-50">` : ''}
-                        </div>
-                        <p class="text-slate-500 text-sm mb-5 leading-relaxed">${data.content}</p>
-                        <div class="flex items-center">
-                            <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-3 p-3 px-6 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} transition-all transform active:scale-95">
-                                <span class="text-lg">${isLiked ? '❤️' : '🤍'}</span>
-                                <b class="text-xs">${likes.length} Likes</b>
+                            <p class="text-slate-500 text-sm mb-5">${data.content}</p>
+                            <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="p-3 px-6 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} font-black text-xs">
+                                ${isLiked ? '❤️' : '🤍'} ${data.likes?.length || 0} Likes
                             </button>
                         </div>`;
-                    feed.appendChild(card);
                 });
             });
         });
-
-        window.handleLike = async (id, isLiked) => {
-            const uid = auth.currentUser.uid;
-            const ref = doc(db, "news", id);
-            await updateDoc(ref, { likes: isLiked ? arrayRemove(uid) : arrayUnion(uid) });
-        };
+        window.handleLike = (id, isLiked) => updateDoc(doc(db, "news", id), { likes: isLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
     </script>
 </body>
 </html>
