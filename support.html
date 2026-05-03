@@ -7,83 +7,84 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc; 
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        /* Animated Gradient Text */
-        .coming-soon-text {
-            font-size: 4rem;
-            font-weight: 900;
-            letter-spacing: -0.05em;
-            text-transform: uppercase;
-            background: linear-gradient(to right, #4338ca 20%, #0ea5e9 40%, #0ea5e9 60%, #4338ca 80%);
-            background-size: 200% auto;
-            color: #000;
-            background-clip: text;
-            text-fill-color: transparent;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        /* Pulse Glow Effect */
-        .glow-circle {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: rgba(67, 56, 202, 0.1);
-            filter: blur(80px);
-            border-radius: 50%;
-            z-index: -1;
-            animation: pulse 4s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.5); opacity: 0.8; }
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .btn-press:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="text-slate-900">
+<body class="text-slate-900 min-h-screen p-6">
 
-    <div class="glow-circle"></div>
+    <div class="max-w-md mx-auto">
+        <header class="text-center mb-10 pt-10">
+            <h1 class="text-4xl font-black text-indigo-700 tracking-tighter">OCC HELP</h1>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Official Support Center</p>
+        </header>
 
-    <div class="text-center px-6">
-        <div class="mb-4">
-            <h1 class="text-6xl font-black text-indigo-700 tracking-tighter mb-2">OCC</h1>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Support Center</p>
+        <div id="ticket-box" class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50">
+            <div class="animate-pulse flex flex-col items-center py-10">
+                <div class="h-4 bg-slate-100 w-3/4 rounded-full mb-4"></div>
+                <div class="h-4 bg-slate-100 w-1/2 rounded-full"></div>
+            </div>
         </div>
 
-        <div class="relative py-10">
-            <h2 class="coming-soon-text sm:text-7xl">COMING<br>SOON</h2>
-        </div>
-
-        <p class="text-slate-500 font-medium text-sm max-w-xs mx-auto mb-10 leading-relaxed">
-            We're building a world-class help center for the club. Stay tuned!
-        </p>
-
-        <button onclick="location.href='index.html'" class="btn-press bg-white border border-slate-200 px-8 py-4 rounded-2xl text-[11px] font-black text-indigo-600 uppercase tracking-widest shadow-sm hover:shadow-md transition-all">
-            ← Back to Dashboard
-        </button>
+        <button onclick="location.href='index.html'" class="w-full mt-10 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-indigo-600 transition-all">← Back to Dashboard</button>
     </div>
 
-    <div class="fixed bottom-10 text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">
-        Our Chat Club © 2026
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, user => {
+            if(!user) location.href = 'index.html';
+            monitorTicket(user);
+        });
+
+        function monitorTicket(user) {
+            onSnapshot(doc(db, "support_tickets", user.uid), s => {
+                const box = document.getElementById("ticket-box");
+                const data = s.data();
+
+                if(!s.exists() || data.status === "closed") {
+                    box.innerHTML = `
+                        <h2 class="text-xl font-black mb-6">Raise a Ticket</h2>
+                        <textarea id="ticket-msg" placeholder="Tell us what's wrong..." class="w-full p-5 bg-slate-50 rounded-2xl h-32 mb-6 outline-none border focus:ring-2 ring-indigo-500/10"></textarea>
+                        <button id="send-btn" class="btn-press w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-indigo-100">SUBMIT REQUEST</button>
+                    `;
+                    document.getElementById("send-btn").onclick = async () => {
+                        const m = document.getElementById("ticket-msg").value;
+                        if(m.trim()) {
+                            await setDoc(doc(db, "support_tickets", user.uid), {
+                                userId: user.uid, userName: user.displayName, message: m,
+                                status: "open", adminReply: null, createdAt: serverTimestamp(), lastUpdated: Date.now()
+                            });
+                        }
+                    };
+                } else {
+                    box.innerHTML = `
+                        <div class="text-center">
+                            <div class="inline-block p-4 bg-indigo-50 rounded-full mb-4 text-2xl">🛡️</div>
+                            <h2 class="text-xl font-black mb-2">Ticket In Progress</h2>
+                            <p class="text-xs text-slate-400 mb-8 px-4">Your ticket is being reviewed. You can only have one active request.</p>
+                            <div class="bg-slate-50 p-5 rounded-2xl text-left mb-4">
+                                <span class="text-[9px] font-black text-indigo-400 uppercase">Your Message:</span>
+                                <p class="text-xs text-slate-600 mt-1 italic">"${data.message}"</p>
+                            </div>
+                            ${data.adminReply ? `
+                                <div class="bg-indigo-600 p-5 rounded-2xl text-left shadow-xl animate-bounce">
+                                    <span class="text-[9px] font-black text-white/60 uppercase">Staff Response:</span>
+                                    <p class="text-xs text-white font-bold mt-1">"${data.adminReply}"</p>
+                                </div>
+                            ` : `<div class="py-4 text-[10px] font-bold text-slate-300 animate-pulse uppercase tracking-widest">Waiting for Staff...</div>`}
+                        </div>
+                    `;
+                }
+            });
+        }
+    </script>
 </body>
 </html>
