@@ -13,7 +13,7 @@
         .brand-bg-indigo { background-color: #4338ca; }
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.96); }
-        input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 20px; outline: none; }
+        input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 24px; outline: none; }
         #sidebar { transition: transform 0.3s ease-in-out; }
         .sidebar-open { transform: translateX(0) !important; }
         .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
@@ -37,21 +37,21 @@
     </div>
 
     <div id="auth-section" class="hidden max-w-md mx-auto p-8 pt-20">
-        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50">
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50 text-center">
             <div id="login-form">
                 <h2 class="text-2xl font-black mb-8">Login</h2>
-                <input type="email" id="login-email" placeholder="Email">
+                <input type="email" id="login-email" placeholder="Email Address">
                 <input type="password" id="login-pass" placeholder="Password">
-                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Login</button>
-                <p class="text-center text-xs mt-10">New? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Join Club</button></p>
+                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black">Login</button>
+                <p class="text-xs mt-10">New? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Join Club</button></p>
             </div>
             <div id="signup-form" class="hidden">
                 <h2 class="text-2xl font-black mb-8">Join OCC</h2>
                 <input type="text" id="reg-name" placeholder="Full Name">
                 <input type="email" id="reg-email" placeholder="Email">
                 <input type="password" id="reg-pass" placeholder="Password">
-                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Sign Up</button>
-                <p class="text-center text-xs mt-10"><button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
+                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black">Create Account</button>
+                <p class="text-xs mt-10"><button onclick="toggleAuth(true)" class="brand-indigo font-black">Back to Login</button></p>
             </div>
         </div>
     </div>
@@ -69,13 +69,14 @@
             <div class="gtranslate_wrapper mb-4"></div>
             <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
             <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
-            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Feed</h3>
+            
+            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Latest Feed</h3>
             <div id="news-feed" class="space-y-4"></div>
-            <button onclick="location.href='news.html'" class="w-full mt-6 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 uppercase">View More</button>
+            <button onclick="location.href='news.html'" class="w-full mt-6 py-4 bg-white border rounded-2xl text-[11px] font-black text-slate-400 uppercase">View History</button>
         </section>
 
         <section class="mb-12">
-            <button onclick="location.href='minigame.html'" class="btn-press w-full bg-white border p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
+            <button onclick="location.href='minigame.html'" class="w-full bg-white border p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-5">
                     <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl">🎮</div>
                     <span class="font-black text-slate-800 text-lg">MINI GAMES</span>
@@ -133,14 +134,22 @@
                 snap.forEach(sDoc => {
                     const d = sDoc.data();
                     const isLiked = d.likes?.includes(auth.currentUser?.uid);
+                    
+                    let postDate = "Just now";
+                    if (d.createdAt) {
+                        const dateObj = d.createdAt.toDate();
+                        postDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + " • " + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    }
+
                     feed.innerHTML += `
                         <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
                             <div class="flex justify-between items-center mb-3">
                                 <div class="flex-1">
+                                    <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
                                     <h4 class="font-black text-slate-800 text-lg leading-tight mb-1">${d.title}</h4>
-                                    <p class="text-slate-500 text-[11px]">${d.content.substring(0, 60)}...</p>
+                                    <p class="text-slate-500 text-[11px]">${(d.content || "").substring(0, 60)}...</p>
                                 </div>
-                                <img src="${d.imageUrl || 'news.png'}" class="w-16 h-16 rounded-2xl object-cover ml-4">
+                                <img src="${d.imageUrl || 'news.png'}" class="w-16 h-16 rounded-2xl object-cover ml-4 border">
                             </div>
                             <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">${isLiked ? '❤️' : '🤍'} ${d.likes?.length || 0}</button>
                         </div>`;
