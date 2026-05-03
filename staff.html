@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Staff Portal - OCC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .brand-gradient { background: linear-gradient(135deg, #6366f1, #a855f7); }
+        .scroll-area { max-height: 400px; overflow-y: auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen font-sans">
+
+    <div class="max-w-md mx-auto p-6 pb-24">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">Staff Panel</h1>
+            <button onclick="location.href='index.html'" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Exit</button>
+        </div>
+
+        <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
+            <button onclick="showTab('news')" class="bg-indigo-600 px-5 py-3 rounded-2xl font-black text-[10px] uppercase">News</button>
+            <button onclick="showTab('users')" class="bg-slate-800 px-5 py-3 rounded-2xl font-black text-[10px] uppercase">Users</button>
+            <button onclick="showTab('tickets')" class="bg-slate-800 px-5 py-3 rounded-2xl font-black text-[10px] uppercase">Tickets</button>
+        </div>
+
+        <div id="tab-news" class="tab-content active bg-white text-slate-900 p-6 rounded-[2.5rem] shadow-xl">
+            <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">Broadcast News</h2>
+            <input id="news-title" placeholder="Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <input id="news-image" placeholder="Image URL (Blank for default)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none text-xs">
+            <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
+            <button id="post-news-staff" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg uppercase text-xs">Publish to Feed</button>
+        </div>
+
+        <div id="tab-users" class="tab-content">
+            <div class="bg-slate-800 p-6 rounded-[2.5rem] border border-slate-700">
+                <h2 class="text-xs font-black uppercase text-indigo-400 mb-4 tracking-widest">Platform Members</h2>
+                <div id="user-list" class="space-y-3 scroll-area"></div>
+            </div>
+        </div>
+
+        <div id="tab-tickets" class="tab-content">
+            <div class="bg-slate-800 p-6 rounded-[2.5rem] border border-indigo-500/30">
+                <h2 class="text-xs font-black uppercase text-indigo-400 mb-4 tracking-widest">Active Tickets</h2>
+                <div id="ticket-list" class="space-y-4 scroll-area"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        window.showTab = (tab) => {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        };
+
+        onAuthStateChanged(auth, user => {
+            if(!user) location.href = 'index.html';
+            loadData();
+        });
+
+        function loadData() {
+            // User List with Timestamp
+            onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc")), snap => {
+                const list = document.getElementById("user-list");
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    const date = data.createdAt ? data.createdAt.toDate().toLocaleString('en-GB') : "System";
+                    list.innerHTML += `<div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
+                        <p class="text-sm font-black text-white">${data.name}</p>
+                        <p class="text-[10px] text-slate-500">${data.email}</p>
+                        <p class="text-[9px] font-bold text-indigo-400 mt-2 uppercase">Joined: ${date}</p>
+                    </div>`;
+                });
+            });
+
+            // Support Tickets
+            onSnapshot(collection(db, "support_tickets"), snap => {
+                const list = document.getElementById("ticket-list");
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    if(data.status === "closed") return;
+
+                    // 48h Auto-close logic
+                    const limit = 48 * 60 * 60 * 1000;
+                    if(Date.now() - data.lastUpdated > limit && !data.adminReply) {
+                        updateDoc(doc(db, "support_tickets", d.id), { status: "closed" });
+                        return;
+                    }
+
+                    list.innerHTML += `
+                        <div class="bg-white text-slate-900 p-4 rounded-3xl">
+                            <div class="flex justify-between mb-2">
+                                <b class="text-[10px] uppercase text-indigo-600">${data.userName}</b>
+                                <span class="text-[9px] font-bold text-slate-400">${data.createdAt?.toDate().toLocaleTimeString()}</span>
+                            </div>
+                            <p class="text-xs mb-4">"${data.message}"</p>
+                            <div class="flex gap-2">
+                                <button onclick="replyTicket('${d.id}')" class="flex-1 bg-indigo-600 text-white p-2 rounded-xl text-[10px] font-black">REPLY</button>
+                                <button onclick="closeTicket('${d.id}')" class="flex-1 bg-slate-200 p-2 rounded-xl text-[10px] font-black">CLOSE</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+
+        document.getElementById("post-news-staff").onclick = async () => {
+            const title = document.getElementById("news-title").value;
+            const content = document.getElementById("news-content").value;
+            let img = document.getElementById("news-image").value.trim() || "news.png";
+
+            if(title && content) {
+                await addDoc(collection(db, "news"), {
+                    title, content, imageUrl: img, likes: [], createdAt: serverTimestamp()
+                });
+                alert("News Posted!");
+                location.reload();
+            }
+        };
+
+        window.replyTicket = async (id) => {
+            const r = prompt("Your Response:");
+            if(r) await updateDoc(doc(db, "support_tickets", id), { adminReply: r, lastUpdated: Date.now() });
+        };
+
+        window.closeTicket = async (id) => {
+            if(confirm("Close this ticket?")) await updateDoc(doc(db, "support_tickets", id), { status: "closed" });
+        };
+    </script>
+</body>
+</html>
+
