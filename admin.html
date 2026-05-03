@@ -13,40 +13,41 @@
 </head>
 <body class="bg-slate-900 text-white min-h-screen">
 
-    <div id="admin-auth-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-6 text-slate-900">
-        <div class="w-full max-sm bg-white p-8 rounded-[2.5rem] shadow-2xl text-center">
-            <h1 class="text-2xl font-black mb-6 text-indigo-600 uppercase">Admin Unlock</h1>
-            <input id="admin-email-input" type="email" placeholder="Email" class="w-full p-4 bg-slate-100 rounded-2xl mb-4 outline-none">
-            <input id="admin-pass-input" type="password" placeholder="Password" class="w-full p-4 bg-slate-100 rounded-2xl mb-6 outline-none">
-            <button id="admin-login-btn" class="w-full p-4 text-white font-bold brand-gradient rounded-2xl">UNLOCK</button>
+    <div id="admin-auth-overlay" class="fixed inset-0 z-[100] bg-slate-900 flex items-center justify-center p-6">
+        <div class="w-full max-w-sm bg-white p-8 rounded-[2.5rem] shadow-2xl text-center">
+            <h1 class="text-2xl font-black mb-6 text-indigo-600 uppercase tracking-tighter">Admin Access</h1>
+            <input id="admin-email-input" type="email" placeholder="Admin Email" class="w-full p-4 bg-slate-100 rounded-2xl mb-4 outline-none text-slate-900 border focus:border-indigo-500">
+            <input id="admin-pass-input" type="password" placeholder="Password" class="w-full p-4 bg-slate-100 rounded-2xl mb-6 outline-none text-slate-900 border focus:border-indigo-500">
+            <button id="admin-login-btn" class="w-full p-4 text-white font-bold brand-gradient rounded-2xl shadow-lg active:scale-95 transition-all">UNLOCK PANEL</button>
+            <a href="index.html" class="block mt-6 text-slate-400 text-xs font-bold uppercase tracking-widest">Back to Site</a>
         </div>
     </div>
 
     <div id="admin-panel-content" class="hidden max-w-md mx-auto p-5 pb-24">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-2xl font-black text-indigo-400 uppercase">OCC Admin</h1>
-            <button id="logout-admin-btn" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase">Lock</button>
+            <h1 class="text-2xl font-black text-indigo-400 uppercase tracking-tighter">OCC Admin</h1>
+            <button id="logout-admin-btn" class="bg-slate-800 p-3 px-5 rounded-2xl text-xs font-bold uppercase border border-slate-700">Lock</button>
         </div>
 
         <div class="bg-indigo-600 p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase mb-4 text-indigo-200 tracking-widest">📢 Global Announcement</h2>
-            <input id="ann-text" placeholder="Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white">
+            <h2 class="text-xs font-black uppercase mb-4 text-indigo-200 tracking-widest">📢 Global Bar</h2>
+            <input id="ann-text" placeholder="Message..." class="w-full p-4 bg-indigo-700/50 rounded-2xl mb-3 outline-none text-white placeholder-indigo-300">
             <div class="flex gap-2 mb-4">
                 <input id="ann-hours" type="number" placeholder="Hrs" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
                 <input id="ann-mins" type="number" placeholder="Mins" class="w-1/2 p-4 bg-indigo-700/50 rounded-2xl outline-none text-center">
             </div>
-            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black uppercase">Publish</button>
+            <button id="pub-ann" class="w-full p-4 bg-white text-indigo-600 rounded-2xl font-black uppercase shadow-md active:scale-95 transition-all">Publish Bar</button>
         </div>
 
         <div class="bg-white text-slate-900 p-6 rounded-[2.5rem] mb-6 shadow-xl">
-            <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">📰 Post News</h2>
+            <h2 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">📰 Create News</h2>
             <input id="news-title" placeholder="Title" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
-            <input id="news-image" placeholder="Image URL (Blank for news.png)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none">
+            <input id="news-image" placeholder="Image URL (Blank for news.png)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none text-xs">
             <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
-            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg">POST NEWS</button>
+            <button id="post-news" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase">Publish News</button>
         </div>
 
-        <div class="bg-slate-800 p-6 rounded-[2.5rem] border border-slate-700">
+        <div class="bg-slate-800 p-6 rounded-[2.5rem] border border-slate-700 shadow-xl">
             <h2 class="text-xs font-black uppercase mb-4 text-indigo-400 tracking-widest">👥 Registered Users</h2>
             <div id="user-list" class="scroll-area space-y-3"></div>
         </div>
@@ -57,54 +58,118 @@
         import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, query, orderBy, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
+            authDomain: "our-chat-club.firebaseapp.com", 
+            projectId: "our-chat-club" 
+        };
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
+        const MASTER_EMAIL = "admin@gmail.com";
+
+        // UI Function to toggle views
+        function showPanel() {
+            document.getElementById("admin-auth-overlay").classList.add("hidden");
+            document.getElementById("admin-panel-content").classList.remove("hidden");
+        }
+
+        // Login Handler
         document.getElementById("admin-login-btn").onclick = async () => {
+            const email = document.getElementById("admin-email-input").value;
+            const pass = document.getElementById("admin-pass-input").value;
+            
             try {
-                const cred = await signInWithEmailAndPassword(auth, document.getElementById("admin-email-input").value, document.getElementById("admin-pass-input").value);
-                if (cred.user.email === "admin@gmail.com") {
+                const cred = await signInWithEmailAndPassword(auth, email, pass);
+                if (cred.user.email === MASTER_EMAIL) {
                     sessionStorage.setItem("admin_verified", "true");
-                    location.reload();
+                    showPanel();
+                    loadData();
+                } else {
+                    alert("Access Denied: Not an admin account.");
+                    await signOut(auth);
                 }
-            } catch (e) { alert(e.message); }
+            } catch (e) { 
+                alert("Login Failed: " + e.message); 
+            }
         };
 
+        // Persistent Auth Check
         onAuthStateChanged(auth, user => {
-            if (user && user.email === "admin@gmail.com" && sessionStorage.getItem("admin_verified") === "true") {
-                document.getElementById("admin-auth-overlay").classList.add("hidden");
-                document.getElementById("admin-panel-content").classList.remove("hidden");
+            if (user && user.email === MASTER_EMAIL && sessionStorage.getItem("admin_verified") === "true") {
+                showPanel();
                 loadData();
+            } else {
+                document.getElementById("admin-auth-overlay").classList.remove("hidden");
+                document.getElementById("admin-panel-content").classList.add("hidden");
             }
         });
 
+        // Logout Handler
+        document.getElementById("logout-admin-btn").onclick = async () => {
+            await signOut(auth);
+            sessionStorage.removeItem("admin_verified");
+            location.reload();
+        };
+
+        // Data Loaders
         function loadData() {
+            // Real-time Users List
             onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc")), snap => {
                 const list = document.getElementById("user-list");
                 list.innerHTML = "";
                 snap.forEach(d => {
                     const data = d.data();
-                    list.innerHTML += `<div class="bg-slate-900/50 p-4 rounded-2xl"><p class="font-black text-sm">${data.name}</p><p class="text-[9px] text-indigo-400 uppercase">${data.createdAt?.toDate().toLocaleString()}</p></div>`;
+                    const date = data.createdAt ? data.createdAt.toDate().toLocaleString('en-GB') : "Old Member";
+                    list.innerHTML += `
+                        <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700/50">
+                            <p class="font-black text-sm text-white">${data.name || 'Anonymous'}</p>
+                            <p class="text-[9px] text-indigo-400 uppercase tracking-widest mt-1">${date}</p>
+                        </div>`;
                 });
             });
         }
 
+        // Action: Announcement
         document.getElementById("pub-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
-            const expiry = Date.now() + (parseInt(document.getElementById("ann-hours").value || 0) * 3600000) + (parseInt(document.getElementById("ann-mins").value || 0) * 60000);
-            await setDoc(doc(db, "settings", "announcement"), { text, expiry });
-            alert("Published!");
+            const h = parseInt(document.getElementById("ann-hours").value || 0);
+            const m = parseInt(document.getElementById("ann-mins").value || 0);
+            
+            if(!text) return alert("Enter message!");
+            
+            const expiry = Date.now() + (h * 3600000) + (m * 60000);
+            try {
+                await setDoc(doc(db, "settings", "announcement"), { text, expiry });
+                alert("Announcement Published!");
+            } catch (e) { alert(e.message); }
         };
 
+        // Action: News
         document.getElementById("post-news").onclick = async () => {
+            const title = document.getElementById("news-title").value;
+            const content = document.getElementById("news-content").value;
             const img = document.getElementById("news-image").value.trim() || "news.png";
-            await addDoc(collection(db, "news"), { title: document.getElementById("news-title").value, content: document.getElementById("news-content").value, imageUrl: img, likes: [], createdAt: serverTimestamp() });
-            alert("News Posted!");
-        };
 
-        document.getElementById("logout-admin-btn").onclick = () => { signOut(auth); sessionStorage.removeItem("admin_verified"); location.reload(); };
+            if(!title || !content) return alert("Title and Content required!");
+
+            try {
+                await addDoc(collection(db, "news"), { 
+                    title, 
+                    content, 
+                    imageUrl: img, 
+                    likes: [], 
+                    createdAt: serverTimestamp() 
+                });
+                alert("News Posted Successfully!");
+                // Clear fields
+                document.getElementById("news-title").value = "";
+                document.getElementById("news-content").value = "";
+                document.getElementById("news-image").value = "";
+            } catch (e) { alert(e.message); }
+        };
     </script>
 </body>
 </html>
