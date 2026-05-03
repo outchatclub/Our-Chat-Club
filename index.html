@@ -13,7 +13,7 @@
         .brand-bg-indigo { background-color: #4338ca; }
         .hidden { display: none !important; }
         .btn-press:active { transform: scale(0.96); }
-        input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 24px; outline: none; }
+        input { border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 16px; width: 100%; margin-bottom: 20px; outline: none; }
         #sidebar { transition: transform 0.3s ease-in-out; }
         .sidebar-open { transform: translateX(0) !important; }
         .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
@@ -23,31 +23,35 @@
     <div id="sidebar-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
     <div id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white z-[70] shadow-2xl -translate-x-full flex flex-col p-8">
         <div class="mb-10 flex justify-between items-center">
-            <h2 class="text-3xl font-black brand-indigo tracking-tighter">MENU</h2>
+            <h2 class="text-3xl font-black brand-indigo">MENU</h2>
             <button onclick="toggleMenu()" class="text-slate-400 text-2xl font-bold">&times;</button>
         </div>
         <nav class="flex flex-col gap-4">
-            <button onclick="location.reload()" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all"><span>🏠</span> Home</button>
-            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all"><span>🆘</span> Get Help</a>
+            <button onclick="location.reload()" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700">🏠 Home</button>
+            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700">🆘 Get Help</a>
         </nav>
+    </div>
+
+    <div id="ann-bar" class="hidden brand-bg-indigo p-3 text-center text-white text-[11px] font-bold uppercase tracking-widest sticky top-0 z-50">
+        <span id="ann-text-display"></span>
     </div>
 
     <div id="auth-section" class="hidden max-w-md mx-auto p-8 pt-20">
         <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50">
             <div id="login-form">
                 <h2 class="text-2xl font-black mb-8">Login</h2>
-                <input type="email" id="login-email" placeholder="Email Address">
+                <input type="email" id="login-email" placeholder="Email">
                 <input type="password" id="login-pass" placeholder="Password">
-                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black">Login</button>
-                <p class="text-center text-xs mt-10">New? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Sign Up</button></p>
+                <button id="do-login" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Login</button>
+                <p class="text-center text-xs mt-10">New? <button onclick="toggleAuth(false)" class="brand-indigo font-black">Join Club</button></p>
             </div>
             <div id="signup-form" class="hidden">
                 <h2 class="text-2xl font-black mb-8">Join OCC</h2>
                 <input type="text" id="reg-name" placeholder="Full Name">
-                <input type="email" id="reg-email" placeholder="Email Address">
+                <input type="email" id="reg-email" placeholder="Email">
                 <input type="password" id="reg-pass" placeholder="Password">
-                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black">Create Account</button>
-                <p class="text-center text-xs mt-10"><button onclick="toggleAuth(true)" class="brand-indigo font-black">Back to Login</button></p>
+                <button id="do-signup" class="btn-press w-full brand-bg-indigo text-white py-4 rounded-2xl font-black shadow-lg">Sign Up</button>
+                <p class="text-center text-xs mt-10"><button onclick="toggleAuth(true)" class="brand-indigo font-black">Login Instead</button></p>
             </div>
         </div>
     </div>
@@ -65,19 +69,18 @@
             <div class="gtranslate_wrapper mb-4"></div>
             <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
             <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
-            
             <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Feed</h3>
             <div id="news-feed" class="space-y-4"></div>
-            <button onclick="location.href='news.html'" class="w-full mt-6 py-4 bg-white border rounded-2xl text-[11px] font-black text-slate-400 uppercase">View More</button>
+            <button onclick="location.href='news.html'" class="w-full mt-6 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 uppercase">View More</button>
         </section>
 
         <section class="mb-12">
-            <button onclick="location.href='minigame.html'" class="w-full bg-white border p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
+            <button onclick="location.href='minigame.html'" class="btn-press w-full bg-white border p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-5">
                     <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl">🎮</div>
                     <span class="font-black text-slate-800 text-lg">MINI GAMES</span>
                 </div>
-                <span class="text-indigo-600 font-bold">➜</span>
+                <span class="text-indigo-600 font-bold text-xl">➜</span>
             </button>
         </section>
     </div>
@@ -114,6 +117,15 @@
         document.getElementById("logout-btn").onclick = () => signOut(auth);
 
         function loadData() {
+            onSnapshot(doc(db, "settings", "announcement"), s => {
+                const d = s.data();
+                const bar = document.getElementById("ann-bar");
+                if(d && d.expiry > Date.now()) {
+                    document.getElementById("ann-text-display").innerText = d.text;
+                    bar.classList.remove("hidden");
+                } else bar.classList.add("hidden");
+            });
+
             const newsQ = query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3));
             onSnapshot(newsQ, snap => {
                 const feed = document.getElementById("news-feed");
