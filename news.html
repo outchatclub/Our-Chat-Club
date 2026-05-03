@@ -8,12 +8,32 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <header class="p-6 bg-white border-b flex justify-between items-center sticky top-0 z-50">
-        <div>
-            <h1 class="text-2xl font-black text-indigo-700">OCC FEED</h1>
-            <div class="gtranslate_wrapper mt-2"></div>
+    <div id="sidebar-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-slate-900/40 z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    
+    <div id="sidebar" class="fixed top-0 left-0 h-full w-72 bg-white z-[70] shadow-2xl -translate-x-full flex flex-col p-8">
+        <div class="mb-10 flex justify-between items-center">
+            <h2 class="text-3xl font-black text-indigo-700 tracking-tighter">MENU</h2>
+            <button onclick="toggleMenu()" class="text-slate-400 text-2xl font-bold">&times;</button>
         </div>
-        <button onclick="location.href='index.html'" class="text-xs font-bold text-slate-400">BACK</button>
+        <nav class="flex flex-col gap-4">
+            <button onclick="location.href='index.html'" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700">🏠 Home</button>
+            <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700">🎬 YouTube</a>
+            <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700">📸 Instagram</a>
+            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700">🆘 Get Help</a>
+        </nav>
+    </div>
+
+    <header class="p-6 bg-white border-b flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <button onclick="toggleMenu()" class="bg-slate-50 p-2 rounded-xl text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <div>
+                <h1 class="text-xl font-black text-indigo-700">OCC FEED</h1>
+                <div class="gtranslate_wrapper mt-1"></div>
+            </div>
+        </div>
+        <button onclick="location.href='index.html'" class="text-xs font-black text-slate-400 uppercase tracking-widest">Back</button>
     </header>
     
     <main class="p-5 space-y-5" id="feed"></main>
@@ -30,6 +50,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        window.toggleMenu = () => { document.getElementById("sidebar").classList.toggle("-translate-x-full"); document.getElementById("sidebar-overlay").classList.toggle("opacity-0"); document.getElementById("sidebar-overlay").classList.toggle("pointer-events-none"); };
 
         onAuthStateChanged(auth, user => {
             if(!user) window.location.href = "index.html";
@@ -51,13 +73,13 @@
                         <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100">
                             <div class="flex justify-between items-start mb-4">
                                 <div class="flex-1 pr-4">
-                                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
+                                    <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
                                     <h2 class="text-xl font-black text-slate-800 leading-tight">${data.title}</h2>
                                 </div>
-                                <img src="${data.imageUrl || 'news.png'}" class="w-20 h-20 rounded-2xl object-cover border border-gray-50">
+                                <img src="${data.imageUrl || 'news.png'}" class="w-16 h-16 rounded-2xl object-cover border border-gray-50 shadow-sm">
                             </div>
                             <p class="text-slate-500 text-sm mb-5 leading-relaxed">${data.content}</p>
-                            <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-2 p-3 px-6 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} font-black text-xs transition-all active:scale-95">
+                            <button onclick="handleLike('${sDoc.id}', ${isLiked})" class="flex items-center gap-3 p-3 px-6 rounded-2xl ${isLiked ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-400'} font-black text-xs transition-all active:scale-95">
                                 ${isLiked ? '❤️' : '🤍'} ${data.likes?.length || 0} Likes
                             </button>
                         </div>`;
