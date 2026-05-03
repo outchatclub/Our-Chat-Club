@@ -59,8 +59,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, query, orderBy, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
@@ -74,51 +74,47 @@
 
         const MASTER_EMAIL = "admin@gmail.com";
 
-        function showPanel() {
-            document.getElementById("admin-auth-overlay").classList.add("hidden");
-            document.getElementById("admin-panel-content").classList.remove("hidden");
-        }
+        const overlay = document.getElementById("admin-auth-overlay");
+        const panel = document.getElementById("admin-panel-content");
 
-        // Login Handler
+        // Auth Observer: This handles the UI state automatically
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email.toLowerCase() === MASTER_EMAIL) {
+                overlay.classList.add("hidden");
+                panel.classList.remove("hidden");
+                loadData();
+            } else {
+                overlay.classList.remove("hidden");
+                panel.classList.add("hidden");
+                if (user) signOut(auth); // Force log out if not the admin
+            }
+        });
+
+        // Login Logic
         document.getElementById("admin-login-btn").onclick = async () => {
             const email = document.getElementById("admin-email-input").value.trim().toLowerCase();
             const pass = document.getElementById("admin-pass-input").value;
             
+            if (email !== MASTER_EMAIL) {
+                alert("Access Denied: Invalid Admin Email.");
+                return;
+            }
+
             try {
-                const cred = await signInWithEmailAndPassword(auth, email, pass);
-                if (cred.user.email.toLowerCase() === MASTER_EMAIL) {
-                    sessionStorage.setItem("admin_verified", "true");
-                    showPanel();
-                    loadData();
-                } else {
-                    alert("Unauthorized: Only the Master Admin can enter.");
-                    await signOut(auth);
-                }
+                await signInWithEmailAndPassword(auth, email, pass);
+                // Observer above will handle showing the panel
             } catch (e) { 
                 alert("Login Error: " + e.message); 
             }
         };
 
-        // Persistent Auth Observer
-        onAuthStateChanged(auth, user => {
-            if (user && user.email.toLowerCase() === MASTER_EMAIL && sessionStorage.getItem("admin_verified") === "true") {
-                showPanel();
-                loadData();
-            } else {
-                document.getElementById("admin-auth-overlay").classList.remove("hidden");
-                document.getElementById("admin-panel-content").classList.add("hidden");
-            }
-        });
-
-        // Logout
+        // Logout Logic
         document.getElementById("logout-admin-btn").onclick = async () => {
             await signOut(auth);
-            sessionStorage.removeItem("admin_verified");
             location.reload();
         };
 
         function loadData() {
-            // Monitor Users
             onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc")), snap => {
                 const list = document.getElementById("user-list");
                 list.innerHTML = "";
@@ -131,6 +127,11 @@
                             <p class="text-[9px] text-indigo-400 uppercase tracking-widest mt-1">${date}</p>
                         </div>`;
                 });
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                if(error.code === 'permission-denied') {
+                    alert("Permission Denied: Your account doesn't have Firestore access.");
+                }
             });
         }
 
@@ -143,9 +144,10 @@
             
             const expiry = Date.now() + (h * 3600000) + (m * 60000);
             try {
+                // Matches Rules: match /settings/{doc} -> allow write: if isAdmin()
                 await setDoc(doc(db, "settings", "announcement"), { text, expiry });
                 alert("Announcement Published!");
-            } catch (e) { alert(e.message); }
+            } catch (e) { alert("Publish Error: " + e.message); }
         };
 
         // News Publisher
@@ -157,6 +159,7 @@
             if(!title || !content) return alert("Title and Content required!");
 
             try {
+                // Matches Rules: match /news/{newsId} -> allow create: if isStaff()
                 await addDoc(collection(db, "news"), { 
                     title, content, imageUrl: img, likes: [], createdAt: serverTimestamp() 
                 });
@@ -164,7 +167,7 @@
                 document.getElementById("news-title").value = "";
                 document.getElementById("news-content").value = "";
                 document.getElementById("news-image").value = "";
-            } catch (e) { alert(e.message); }
+            } catch (e) { alert("News Error: " + e.message); }
         };
     </script>
 </body>
