@@ -11,6 +11,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .hidden { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="bg-slate-900 text-white min-h-screen font-sans">
@@ -23,6 +24,7 @@
 
         <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
             <button onclick="showTab('news')" class="bg-indigo-600 px-5 py-3 rounded-2xl font-black text-[10px] uppercase">News</button>
+            <button onclick="showTab('public-news')" class="bg-slate-800 px-5 py-3 rounded-2xl font-black text-[10px] uppercase">Public Posts</button>
             <button onclick="showTab('users')" class="bg-slate-800 px-5 py-3 rounded-2xl font-black text-[10px] uppercase">Users</button>
             <button onclick="showTab('tickets')" class="bg-slate-800 px-5 py-3 rounded-2xl font-black text-[10px] uppercase">Tickets</button>
         </div>
@@ -33,6 +35,13 @@
             <input id="news-image" placeholder="Image URL (Blank for default)" class="w-full p-4 bg-slate-100 rounded-2xl mb-3 outline-none text-xs">
             <textarea id="news-content" placeholder="Content..." class="w-full p-4 bg-slate-100 rounded-2xl h-24 mb-4 outline-none"></textarea>
             <button id="post-news-staff" class="w-full p-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg uppercase text-xs">Publish to Feed</button>
+        </div>
+
+        <div id="tab-public-news" class="tab-content">
+            <div class="bg-slate-800 p-6 rounded-[2.5rem] border border-slate-700">
+                <h2 class="text-xs font-black uppercase text-orange-400 mb-4 tracking-widest">Community Posts</h2>
+                <div id="public-news-list" class="space-y-3 scroll-area"></div>
+            </div>
         </div>
 
         <div id="tab-users" class="tab-content">
@@ -62,6 +71,9 @@
 
         window.showTab = (tab) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('nav button, div.flex.gap-2 button').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-800'));
+            const activeBtn = event.currentTarget;
+            if(activeBtn) activeBtn.classList.replace('bg-slate-800', 'bg-indigo-600');
             document.getElementById('tab-' + tab).classList.add('active');
         };
 
@@ -71,7 +83,6 @@
         });
 
         function loadData() {
-            // User List with Timestamp
             onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc")), snap => {
                 const list = document.getElementById("user-list");
                 list.innerHTML = "";
@@ -86,21 +97,34 @@
                 });
             });
 
-            // Support Tickets
+            // Public News Management
+            onSnapshot(query(collection(db, "publicNews"), orderBy("createdAt", "desc")), snap => {
+                const list = document.getElementById("public-news-list");
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    list.innerHTML += `
+                        <div class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 flex justify-between items-center">
+                            <div class="overflow-hidden">
+                                <p class="text-xs font-bold text-white truncate w-40">${data.title}</p>
+                                <p class="text-[9px] text-slate-500 font-black">By: ${data.authorName}</p>
+                            </div>
+                            <button onclick="deletePublicPost('${d.id}')" class="bg-red-600/20 text-red-500 text-[9px] font-black px-3 py-2 rounded-xl border border-red-500/20">DELETE</button>
+                        </div>`;
+                });
+            });
+
             onSnapshot(collection(db, "support_tickets"), snap => {
                 const list = document.getElementById("ticket-list");
                 list.innerHTML = "";
                 snap.forEach(d => {
                     const data = d.data();
                     if(data.status === "closed") return;
-
-                    // 48h Auto-close logic
                     const limit = 48 * 60 * 60 * 1000;
                     if(Date.now() - data.lastUpdated > limit && !data.adminReply) {
                         updateDoc(doc(db, "support_tickets", d.id), { status: "closed" });
                         return;
                     }
-
                     list.innerHTML += `
                         <div class="bg-white text-slate-900 p-4 rounded-3xl">
                             <div class="flex justify-between mb-2">
@@ -116,6 +140,13 @@
                 });
             });
         }
+
+        window.deletePublicPost = async (id) => {
+            if(confirm("Delete this public post?")) {
+                await deleteDoc(doc(db, "publicNews", id));
+                alert("Post Removed");
+            }
+        };
 
         document.getElementById("post-news-staff").onclick = async () => {
             const title = document.getElementById("news-title").value;
@@ -142,4 +173,3 @@
     </script>
 </body>
 </html>
-
