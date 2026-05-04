@@ -30,8 +30,12 @@
         <nav class="flex flex-col gap-4">
             <a href="index.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all"><span>🏠</span> Home</a>
             <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all"><span>🎬</span> YouTube</a>
+            <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all"><span>📸</span> Instagram</a>
             <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all"><span>🆘</span> Get Help</a>
         </nav>
+        <div class="mt-auto pt-8 border-t border-slate-100">
+            <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest text-center">OCC Platform v2.0</p>
+        </div>
     </div>
 
     <div class="max-w-md mx-auto p-6 flex justify-between items-center">
@@ -43,6 +47,10 @@
     </div>
 
     <div class="max-w-md mx-auto px-6 pb-24">
+        <div class="gtranslate_wrapper mb-6"></div>
+        <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
+        <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
+
         <div id="public-feed" class="space-y-6">
             <p class="text-center text-slate-400 text-sm mt-10">Loading global stories...</p>
         </div>
@@ -117,7 +125,6 @@
         let currentUserProfile = null;
         let reportingNewsId = null;
 
-        // UI Functions
         window.toggleMenu = () => { document.getElementById("sidebar").classList.toggle("sidebar-open"); document.getElementById("sidebar-overlay").classList.toggle("overlay-active"); };
         window.closeModals = () => { document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden')); };
 
@@ -127,11 +134,10 @@
                 if (snap.exists()) currentUserProfile = snap.data();
                 loadPublicNews();
             } else {
-                loadPublicNews(); // Anyone can see news
+                loadPublicNews();
             }
         });
 
-        // Check Profile before posting
         document.getElementById("post-news-btn").onclick = () => {
             if (!auth.currentUser) return alert("Please login to the main site first.");
             if (!currentUserProfile) {
@@ -141,7 +147,6 @@
             }
         };
 
-        // Create Public Profile
         document.getElementById("save-profile").onclick = async () => {
             const name = document.getElementById("pub-name").value;
             const phone = document.getElementById("pub-phone").value;
@@ -153,7 +158,6 @@
             document.getElementById("post-modal").classList.remove("hidden");
         };
 
-        // Post News
         document.getElementById("submit-news").onclick = async () => {
             const title = document.getElementById("news-title").value;
             const content = document.getElementById("news-content").value;
