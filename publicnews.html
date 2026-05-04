@@ -91,7 +91,7 @@
             <select id="report-type">
                 <option value="Harmful">Harmful Content</option>
                 <option value="Illegal">Illegal Content</option>
-            </select>
+            </handled>
             <textarea id="report-reason" maxlength="1000" rows="3" placeholder="Describe the issue... (Max 1000 chars)"></textarea>
             <button id="submit-report" class="w-full bg-red-500 text-white py-4 rounded-2xl font-black shadow-lg btn-press">Submit Report</button>
             <button onclick="closeModals()" class="w-full mt-4 text-slate-400 font-bold text-xs">CANCEL</button>
@@ -140,7 +140,7 @@
         });
 
         document.getElementById("post-news-btn").onclick = () => {
-            if (!auth.currentUser) return alert("Please login to the main site first.");
+            if (!auth.currentUser) return alert("Please login first.");
             if (!currentUserProfile) {
                 document.getElementById("profile-modal").classList.remove("hidden");
             } else {
@@ -149,44 +149,63 @@
         };
 
         document.getElementById("save-profile").onclick = async () => {
-            const name = document.getElementById("pub-name").value;
-            const phone = document.getElementById("pub-phone").value;
+            const name = document.getElementById("pub-name").value.trim();
+            const phone = document.getElementById("pub-phone").value.trim();
             if (!name || !phone) return alert("All fields required");
             
-            await setDoc(doc(db, "publicProfiles", auth.currentUser.uid), { name, phone });
-            currentUserProfile = { name, phone };
-            closeModals();
-            document.getElementById("post-modal").classList.remove("hidden");
+            try {
+                await setDoc(doc(db, "publicProfiles", auth.currentUser.uid), { name, phone });
+                currentUserProfile = { name, phone };
+                closeModals();
+                document.getElementById("post-modal").classList.remove("hidden");
+            } catch (e) { alert("Error saving profile: " + e.message); }
         };
 
         document.getElementById("submit-news").onclick = async () => {
-            const title = document.getElementById("news-title").value;
-            const content = document.getElementById("news-content").value;
+            const title = document.getElementById("news-title").value.trim();
+            const content = document.getElementById("news-content").value.trim();
             const category = document.getElementById("news-category").value;
 
-            if (title.length > 50 || content.length > 2000 || !title || !content) return alert("Check constraints (Title max 50 chars, Content max 2000 chars)");
+            if (!title || !content) return alert("Title and Content cannot be empty.");
+            if (title.length > 50 || content.length > 2000) return alert("Character limits exceeded.");
 
-            // Requirement 2: Rate limit (1 post per hour)
-            const hourAgo = new Date(Date.now() - 3600000);
-            const qRate = query(collection(db, "publicNews"), 
-                               where("uid", "==", auth.currentUser.uid), 
-                               where("createdAt", ">", hourAgo),
-                               limit(1));
-            const rateSnap = await getDocs(qRate);
-            if (!rateSnap.empty) return alert("You can only post once every hour. Please wait.");
+            try {
+                // Fixed Rate Limit Logic: Only query if user exists
+                const hourAgo = new Date(Date.now() - 3600000);
+                const qRate = query(
+                    collection(db, "publicNews"), 
+                    where("uid", "==", auth.currentUser.uid), 
+                    orderBy("createdAt", "desc"),
+                    limit(1)
+                );
+                
+                const rateSnap = await getDocs(qRate);
+                if (!rateSnap.empty) {
+                    const lastPost = rateSnap.docs[0].data().createdAt?.toDate();
+                    if (lastPost && lastPost > hourAgo) {
+                        return alert("You can only post once every hour. Please wait.");
+                    }
+                }
 
-            const newsRef = doc(collection(db, "publicNews"));
-            await setDoc(newsRef, {
-                title, content, category,
-                authorName: currentUserProfile.name,
-                authorInitial: currentUserProfile.name.charAt(0).toUpperCase(),
-                likes: [],
-                reports: [],
-                createdAt: serverTimestamp(),
-                uid: auth.currentUser.uid
-            });
-            closeModals();
-            alert("News posted!");
+                const newsRef = doc(collection(db, "publicNews"));
+                await setDoc(newsRef, {
+                    title, content, category,
+                    authorName: currentUserProfile.name,
+                    authorInitial: currentUserProfile.name.charAt(0).toUpperCase(),
+                    likes: [],
+                    reports: [],
+                    createdAt: serverTimestamp(),
+                    uid: auth.currentUser.uid
+                });
+                
+                closeModals();
+                document.getElementById("news-title").value = "";
+                document.getElementById("news-content").value = "";
+                alert("News posted successfully!");
+            } catch (e) { 
+                console.error(e);
+                alert("Error publishing news. Please try again."); 
+            }
         };
 
         function loadPublicNews() {
@@ -194,13 +213,15 @@
             onSnapshot(q, snap => {
                 const feed = document.getElementById("public-feed");
                 feed.innerHTML = "";
+                if (snap.empty) {
+                    feed.innerHTML = '<p class="text-center text-slate-400 text-sm mt-10">No stories found.</p>';
+                    return;
+                }
                 snap.forEach(sDoc => {
                     const d = sDoc.data();
                     const isLiked = d.likes?.includes(auth.currentUser?.uid);
                     const reportCount = d.reports?.length || 0;
                     const summary = d.content.substring(0, 100) + (d.content.length > 100 ? "..." : "");
-                    
-                    // Requirement 1: Show delete button if user is owner
                     const deleteBtn = d.uid === auth.currentUser?.uid ? 
                         `<button onclick="deleteNews('${sDoc.id}')" class="text-red-500 font-black text-[10px] uppercase ml-4">Delete</button>` : '';
 
@@ -208,7 +229,7 @@
                         <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden">
                             <div class="flex justify-between items-start mb-4">
                                 <div class="w-12 h-12 brand-bg-indigo rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-inner">
-                                    ${d.authorInitial}
+                                    ${d.authorInitial || '?'}
                                 </div>
                                 <div class="flex items-center">
                                     <span class="bg-slate-50 text-[9px] font-black text-slate-400 px-3 py-1 rounded-full uppercase tracking-widest">${d.category}</span>
@@ -230,20 +251,23 @@
             });
         }
 
-        // Requirement 1: Delete Function
         window.deleteNews = async (id) => {
             if (confirm("Are you sure you want to delete this news post?")) {
-                await deleteDoc(doc(db, "publicNews", id));
-                alert("Post deleted.");
+                try {
+                    await deleteDoc(doc(db, "publicNews", id));
+                    alert("Post deleted.");
+                } catch (e) { alert("Error deleting post."); }
             }
         };
 
         window.toggleLike = async (id, currentlyLiked) => {
             if (!auth.currentUser) return alert("Login to like");
             const newsRef = doc(db, "publicNews", id);
-            await updateDoc(newsRef, { 
-                likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) 
-            });
+            try {
+                await updateDoc(newsRef, { 
+                    likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) 
+                });
+            } catch (e) { console.error(e); }
         };
 
         window.openReportModal = async (id) => {
@@ -256,29 +280,33 @@
         };
 
         document.getElementById("submit-report").onclick = async () => {
-            const reason = document.getElementById("report-reason").value;
+            const reason = document.getElementById("report-reason").value.trim();
             const type = document.getElementById("report-type").value;
             if (!reason) return alert("Reason required");
-            await updateDoc(doc(db, "publicNews", reportingNewsId), {
-                reports: arrayUnion({ type, reason, user: auth.currentUser.uid })
-            });
-            closeModals();
-            alert("Report submitted.");
+            try {
+                await updateDoc(doc(db, "publicNews", reportingNewsId), {
+                    reports: arrayUnion({ type, reason, user: auth.currentUser.uid })
+                });
+                closeModals();
+                alert("Report submitted.");
+            } catch (e) { alert("Error submitting report."); }
         };
 
         window.openReadMore = async (id) => {
-            const snap = await getDoc(doc(db, "publicNews", id));
-            const d = snap.data();
-            document.getElementById("rm-title").innerText = d.title;
-            document.getElementById("rm-category").innerText = d.category;
-            document.getElementById("rm-content").innerText = d.content;
-            document.getElementById("rm-meta").innerHTML = `<div class="w-8 h-8 brand-bg-indigo rounded-lg flex items-center justify-center text-white text-xs font-black">${d.authorInitial}</div> <span class="text-[11px] font-bold text-slate-400">By ${d.authorName}</span>`;
-            const reportList = document.getElementById("rm-reports-list");
-            reportList.innerHTML = d.reports?.length ? "" : "No reports yet.";
-            d.reports?.forEach(r => {
-                reportList.innerHTML += `<p>• [${r.type}] ${r.reason}</p>`;
-            });
-            document.getElementById("readmore-modal").classList.remove("hidden");
+            try {
+                const snap = await getDoc(doc(db, "publicNews", id));
+                const d = snap.data();
+                document.getElementById("rm-title").innerText = d.title;
+                document.getElementById("rm-category").innerText = d.category;
+                document.getElementById("rm-content").innerText = d.content;
+                document.getElementById("rm-meta").innerHTML = `<div class="w-8 h-8 brand-bg-indigo rounded-lg flex items-center justify-center text-white text-xs font-black">${d.authorInitial}</div> <span class="text-[11px] font-bold text-slate-400">By ${d.authorName}</span>`;
+                const reportList = document.getElementById("rm-reports-list");
+                reportList.innerHTML = d.reports?.length ? "" : "No reports yet.";
+                d.reports?.forEach(r => {
+                    reportList.innerHTML += `<p>• [${r.type}] ${r.reason}</p>`;
+                });
+                document.getElementById("readmore-modal").classList.remove("hidden");
+            } catch (e) { alert("Error loading details."); }
         };
     </script>
 </body>
