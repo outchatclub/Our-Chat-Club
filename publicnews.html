@@ -171,7 +171,7 @@
 
             try {
                 const hourAgo = new Date(Date.now() - 3600000);
-                // Simplified query to avoid index requirement while still checking last post time
+                // Simplified query logic to prevent the "Missing Index" error
                 const qRate = query(
                     collection(db, "publicNews"), 
                     where("uid", "==", auth.currentUser.uid),
