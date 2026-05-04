@@ -70,7 +70,7 @@
     <div id="post-modal" class="modal hidden">
         <div class="bg-white w-full max-w-sm p-8 rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90vh]">
             <h2 class="text-xl font-black mb-6">Write News</h2>
-            <input type="text" id="news-title" maxlength="20" placeholder="Title (Max 20 chars)">
+            <input type="text" id="news-title" maxlength="50" placeholder="Title (Max 50 chars)">
             <select id="news-category">
                 <option value="Others">Select Category</option>
                 <option value="Entertainment">Entertainment</option>
@@ -92,7 +92,7 @@
                 <option value="Harmful">Harmful Content</option>
                 <option value="Illegal">Illegal Content</option>
             </select>
-            <textarea id="report-reason" rows="3" placeholder="Describe the issue..."></textarea>
+            <textarea id="report-reason" maxlength="1000" rows="3" placeholder="Describe the issue... (Max 1000 chars)"></textarea>
             <button id="submit-report" class="w-full bg-red-500 text-white py-4 rounded-2xl font-black shadow-lg btn-press">Submit Report</button>
             <button onclick="closeModals()" class="w-full mt-4 text-slate-400 font-bold text-xs">CANCEL</button>
         </div>
@@ -134,7 +134,9 @@
                 if (snap.exists()) currentUserProfile = snap.data();
                 loadPublicNews();
             } else {
-                loadPublicNews();
+                // Requirement 3: Guard access and redirect to index.html if not logged in
+                alert("Access Denied. Please login first.");
+                window.location.href = "index.html";
             }
         });
 
@@ -163,7 +165,8 @@
             const content = document.getElementById("news-content").value;
             const category = document.getElementById("news-category").value;
 
-            if (title.length > 20 || content.length > 2000 || !title || !content) return alert("Check constraints");
+            // Requirement 2: Title limit updated to 50
+            if (title.length > 50 || content.length > 2000 || !title || !content) return alert("Check constraints (Title max 50 chars, Content max 2000 chars)");
 
             const newsRef = doc(collection(db, "publicNews"));
             await setDoc(newsRef, {
@@ -213,13 +216,24 @@
             });
         }
 
-        window.toggleLike = (id, currentlyLiked) => {
+        window.toggleLike = async (id, currentlyLiked) => {
             if (!auth.currentUser) return alert("Login to like");
-            updateDoc(doc(db, "publicNews", id), { likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
+            // Requirement 1: Only one like allowed (toggle functionality)
+            const newsRef = doc(db, "publicNews", id);
+            await updateDoc(newsRef, { 
+                likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) 
+            });
         };
 
-        window.openReportModal = (id) => {
+        window.openReportModal = async (id) => {
             if (!auth.currentUser) return alert("Login to report");
+            
+            // Requirement 1: Check if already reported
+            const snap = await getDoc(doc(db, "publicNews", id));
+            const hasReported = snap.data().reports?.some(r => r.user === auth.currentUser.uid);
+            
+            if (hasReported) return alert("You have already reported this post.");
+            
             reportingNewsId = id;
             document.getElementById("report-modal").classList.remove("hidden");
         };
@@ -227,6 +241,8 @@
         document.getElementById("submit-report").onclick = async () => {
             const reason = document.getElementById("report-reason").value;
             const type = document.getElementById("report-type").value;
+            
+            // Requirement 1: Reason limit (1000 chars) checked by textarea maxlength="1000"
             if (!reason) return alert("Reason required");
 
             await updateDoc(doc(db, "publicNews", reportingNewsId), {
