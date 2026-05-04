@@ -171,16 +171,24 @@
 
             try {
                 const hourAgo = new Date(Date.now() - 3600000);
-                // Simplified query logic to prevent the "Missing Index" error
+                // Simplified query to avoid the "Missing Index" error
                 const qRate = query(
                     collection(db, "publicNews"), 
                     where("uid", "==", auth.currentUser.uid),
-                    where("createdAt", ">", hourAgo),
-                    limit(1)
+                    limit(10) // Check last few posts manually to ensure 1-hour rule
                 );
                 
                 const rateSnap = await getDocs(qRate);
-                if (!rateSnap.empty) {
+                let canPost = true;
+                
+                rateSnap.forEach(doc => {
+                    const postTime = doc.data().createdAt?.toDate();
+                    if (postTime && postTime > hourAgo) {
+                        canPost = false;
+                    }
+                });
+
+                if (!canPost) {
                     return alert("You can only post once every hour. Please wait.");
                 }
 
