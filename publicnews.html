@@ -91,7 +91,7 @@
             <select id="report-type">
                 <option value="Harmful">Harmful Content</option>
                 <option value="Illegal">Illegal Content</option>
-            </handled>
+            </select>
             <textarea id="report-reason" maxlength="1000" rows="3" placeholder="Describe the issue... (Max 1000 chars)"></textarea>
             <button id="submit-report" class="w-full bg-red-500 text-white py-4 rounded-2xl font-black shadow-lg btn-press">Submit Report</button>
             <button onclick="closeModals()" class="w-full mt-4 text-slate-400 font-bold text-xs">CANCEL</button>
@@ -170,21 +170,18 @@
             if (title.length > 50 || content.length > 2000) return alert("Character limits exceeded.");
 
             try {
-                // Fixed Rate Limit Logic: Only query if user exists
                 const hourAgo = new Date(Date.now() - 3600000);
+                // Simplified query to avoid index requirement while still checking last post time
                 const qRate = query(
                     collection(db, "publicNews"), 
-                    where("uid", "==", auth.currentUser.uid), 
-                    orderBy("createdAt", "desc"),
+                    where("uid", "==", auth.currentUser.uid),
+                    where("createdAt", ">", hourAgo),
                     limit(1)
                 );
                 
                 const rateSnap = await getDocs(qRate);
                 if (!rateSnap.empty) {
-                    const lastPost = rateSnap.docs[0].data().createdAt?.toDate();
-                    if (lastPost && lastPost > hourAgo) {
-                        return alert("You can only post once every hour. Please wait.");
-                    }
+                    return alert("You can only post once every hour. Please wait.");
                 }
 
                 const newsRef = doc(collection(db, "publicNews"));
@@ -203,8 +200,8 @@
                 document.getElementById("news-content").value = "";
                 alert("News posted successfully!");
             } catch (e) { 
-                console.error(e);
-                alert("Error publishing news. Please try again."); 
+                console.error("Submission Error:", e);
+                alert("Error: " + e.message); 
             }
         };
 
