@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Physics Stacker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --accent: #7000ff;
+            --bg: #0a0a12;
+        }
+        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Inter', sans-serif; }
+        
+        #hud {
+            position: absolute;
+            top: 30px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            pointer-events: none;
+            z-index: 10;
+        }
+        #score-label { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; }
+        #score { font-size: 48px; font-weight: 800; display: block; text-shadow: 0 0 20px var(--primary); }
+
+        #game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(15, 15, 25, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--primary);
+            color: white;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: var(--primary);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="hud">
+    <span id="score-label">Current Altitude</span>
+    <span id="score">0m</span>
+</div>
+
+<div id="game-over">
+    <h2 style="margin: 0; color: var(--primary);">TOWER COLLAPSED</h2>
+    <p id="final-score">You reached 0m</p>
+    <button onclick="location.reload()">RETRY MISSION</button>
+</div>
+
+<script>
+const { Engine, Render, Runner, Bodies, Composite, Events, Body } = Matter;
+
+const engine = Engine.create();
+const render = Render.create({
+    element: document.body,
+    engine: engine,
+    options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: 'transparent'
+    }
+});
+
+// Settings
+let score = 0;
+let highestPoint = window.innerHeight - 100;
+let isGameOver = false;
+
+// Create High-Friction Base
+const ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 40, 300, 100, { 
+    isStatic: true,
+    friction: 1,
+    render: { fillStyle: '#1a1a2e', strokeStyle: '#00f2ff', lineWidth: 2 }
+});
+Composite.add(engine.world, ground);
+
+// Spawner Logic
+let currentPreview;
+function createPreview() {
+    if(isGameOver) return;
+    const size = Math.max(30, 80 - (score / 2)); // Gets smaller as you score
+    currentPreview = { x: window.innerWidth/2, size: size };
+}
+
+window.addEventListener('mousemove', (e) => {
+    if(currentPreview) currentPreview.x = e.clientX;
+});
+
+window.addEventListener('mousedown', () => {
+    if(isGameOver || !currentPreview) return;
+
+    const block = Bodies.rectangle(currentPreview.x, -50, currentPreview.size, currentPreview.size, {
+        friction: 0.8,
+        restitution: 0.1,
+        render: {
+            fillStyle: score % 2 === 0 ? '#00f2ff' : '#7000ff',
+            shadowBlur: 15,
+            shadowColor: '#00f2ff'
+        }
+    });
+
+    Composite.add(engine.world, block);
+    score++;
+    document.getElementById('score').innerText = score + 'm';
+    createPreview();
+});
+
+// Professional Camera Follow
+Events.on(engine, 'beforeUpdate', () => {
+    let minTop = window.innerHeight;
+    
+    engine.world.bodies.forEach(body => {
+        if (!body.isStatic && body.position.y < minTop) {
+            minTop = body.position.y;
+        }
+    });
+
+    if (minTop < window.innerHeight / 2) {
+        const targetY = (window.innerHeight / 2) - minTop;
+        // Smoothly pan the world
+        Matter.Composite.translate(engine.world, { x: 0, y: targetY * 0.05 });
+    }
+});
+
+// Win/Loss Condition
+Events.on(engine, 'afterUpdate', () => {
+    engine.world.bodies.forEach(body => {
+        if (body.position.y > window.innerHeight + 100 && !body.isStatic) {
+            endGame();
+        }
+    });
+});
+
+function endGame() {
+    isGameOver = true;
+    document.getElementById('game-over').style.display = 'block';
+    document.getElementById('final-score').innerText = `Final Altitude: ${score}m`;
+}
+
+Render.run(render);
+Runner.run(Runner.create(), engine);
+createPreview();
+
+// Responsive
+window.addEventListener('resize', () => {
+    render.canvas.width = window.innerWidth;
+    render.canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
+
