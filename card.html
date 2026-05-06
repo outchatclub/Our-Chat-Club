@@ -2,82 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCC - Scratch & Win</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCC Professional Scratch</title>
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #7b2ff7 0%, #2b58f0 100%);
-            --dark-bg: #0a0b10;
-            --card-bg: #161822;
-            --text-main: #ffffff;
+            --primary: #7b2ff7;
+            --secondary: #2b58f0;
             --accent: #00f2ff;
+            --bg: #0a0b10;
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
         body {
             margin: 0;
-            padding: 0;
-            background-color: var(--dark-bg);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-main);
+            background-color: var(--bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: white;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
+            touch-action: none;
         }
 
-        /* Branding Section */
-        .header {
-            margin-bottom: 20px;
-            text-align: center;
+        /* Top Wallet UI */
+        .wallet-container {
+            background: var(--glass);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
-        .logo-text {
-            font-size: 2.5rem;
+
+        #wallet-amount {
             font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-        }
-        .sub-text {
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-            opacity: 0.7;
-            text-transform: uppercase;
-        }
-
-        /* Game Container */
-        .game-container {
-            position: relative;
-            width: 320px;
-            height: 450px;
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
-            text-align: center;
-        }
-
-        .points-display {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+            font-size: 1.4rem;
             color: var(--accent);
         }
 
-        /* The Scratch Card */
-        #scratch-card {
+        /* Card Container */
+        .card-frame {
             position: relative;
-            width: 280px;
-            height: 280px;
-            margin: 0 auto;
-            background: #fff; /* Where points are hidden */
-            border-radius: 15px;
-            overflow: hidden;
-            user-select: none;
+            width: 320px;
+            height: 320px;
+            background: #161822;
+            border-radius: 30px;
+            padding: 10px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
-        #points-reveal {
+        #scratch-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #fff; /* The reveal layer background */
+        }
+
+        /* The Reward Layer (Behind the scratch) */
+        .reward-layer {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
@@ -85,201 +75,211 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #f0f0f0;
+            text-align: center;
+            background: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%);
             color: #1a1a1a;
-            z-index: 1;
         }
 
-        #points-reveal h2 { font-size: 3rem; margin: 0; color: #2b58f0; }
-        
-        #scratch-canvas {
+        .reward-layer h3 { margin: 0; font-size: 0.9rem; opacity: 0.6; text-transform: uppercase; }
+        .reward-layer .points { font-size: 4rem; font-weight: 900; color: var(--secondary); line-height: 1; margin: 10px 0; }
+
+        /* The Scratch Canvas */
+        #canvas {
             position: absolute;
             top: 0; left: 0;
             z-index: 2;
-            cursor: crosshair;
-            touch-action: none;
+            cursor: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>'), auto;
         }
 
-        /* Timer Overlay */
-        #timer-overlay {
+        /* Cooldown Overlay */
+        .cooldown-overlay {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(22, 24, 34, 0.95);
+            background: rgba(10, 11, 16, 0.95);
+            z-index: 10;
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10;
-            border-radius: 24px;
+            border-radius: 30px;
+            backdrop-filter: blur(8px);
         }
 
-        .countdown-circle {
-            font-size: 3rem;
-            font-weight: bold;
-            color: var(--accent);
-            border: 4px solid var(--accent);
-            width: 100px; height: 100px;
+        .timer-ring {
+            width: 80px; height: 80px;
+            border: 4px solid var(--primary);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
             margin-bottom: 15px;
+            box-shadow: 0 0 20px var(--primary);
         }
 
-        .btn-disabled {
+        /* Status Text */
+        .status-msg {
             margin-top: 20px;
-            padding: 10px 20px;
-            background: #333;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            opacity: 0.5;
+            letter-spacing: 1px;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1 class="logo-text">OCC</h1>
-        <div class="sub-text">Our Chat Club Rewards</div>
+    <div class="wallet-container">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f2ff" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+        <span id="wallet-amount">0</span>
     </div>
 
-    <div class="game-container">
-        <div class="points-display">Total Wallet: <span id="wallet">0</span> pts</div>
-        
-        <div id="scratch-card">
-            <div id="points-reveal">
-                <p>YOU WON</p>
-                <h2 id="won-points">0</h2>
-                <p>POINTS</p>
+    <div class="card-frame">
+        <div id="scratch-area">
+            <div class="reward-layer">
+                <h3>You Unlocked</h3>
+                <div class="points" id="points-value">0</div>
+                <p style="margin:0; font-weight:bold; color:#777">OCC POINTS</p>
             </div>
-            <canvas id="scratch-canvas" width="280" height="280"></canvas>
+            <canvas id="canvas"></canvas>
         </div>
 
-        <p id="instruction" style="margin-top: 20px; opacity: 0.6;">Scratch the card to reveal points!</p>
-
-        <div id="timer-overlay">
-            <p>Generating New Card...</p>
-            <div class="countdown-circle" id="seconds">15</div>
-            <p>Please wait</p>
+        <div class="cooldown-overlay" id="timer-screen">
+            <div class="timer-ring" id="countdown">15</div>
+            <p style="margin:0; font-weight:600">Syncing with Club...</p>
         </div>
     </div>
+
+    <p class="status-msg" id="hint">Scratch 45% to claim your reward</p>
 
     <script>
-        const canvas = document.getElementById('scratch-canvas');
-        const ctx = canvas.getContext('2d');
-        const walletEl = document.getElementById('wallet');
-        const wonPointsEl = document.getElementById('won-points');
-        const timerOverlay = document.getElementById('timer-overlay');
-        const secondsEl = document.getElementById('seconds');
-
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const walletEl = document.getElementById('wallet-amount');
+        const pointsEl = document.getElementById('points-value');
+        const timerScreen = document.getElementById('timer-screen');
+        const countdownEl = document.getElementById('countdown');
+        
+        let width = 300;
+        let height = 300;
         let isDrawing = false;
+        let currentPoints = 0;
         let totalWallet = 0;
-        let pointsThisRound = 0;
-        let scratchedPercentage = 0;
-        let isScratched = false;
+        let isScratchedComplete = false;
 
-        function initCard() {
-            isScratched = false;
-            scratchedPercentage = 0;
-            pointsThisRound = Math.floor(Math.random() * 50) + 10; // 10-60 points
-            wonPointsEl.innerText = pointsThisRound;
+        function init() {
+            isScratchedComplete = false;
+            canvas.width = width;
+            canvas.height = height;
             
-            // Create Scratch Layer (Gradient Like Logo)
-            const grad = ctx.createLinearGradient(0, 0, 280, 280);
-            grad.addColorStop(0, '#7b2ff7');
-            grad.addColorStop(1, '#2b58f0');
+            // Random points for this card
+            currentPoints = Math.floor(Math.random() * 90) + 10;
+            pointsEl.innerText = currentPoints;
+
+            // Create a professional gradient cover
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#7b2ff7'); // Logo Purple
+            gradient.addColorStop(1, '#2b58f0'); // Logo Blue
             
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 280, 280);
-            
-            // Add some pattern to the top
-            ctx.fillStyle = "rgba(255,255,255,0.1)";
-            for(let i=0; i<100; i++) {
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+
+            // Add a subtle pattern/noise
+            ctx.fillStyle = "rgba(255,255,255,0.05)";
+            for(let i=0; i<300; i++) {
                 ctx.beginPath();
-                ctx.arc(Math.random()*280, Math.random()*280, 1, 0, Math.PI*2);
+                ctx.arc(Math.random()*width, Math.random()*height, Math.random()*1.5, 0, Math.PI*2);
                 ctx.fill();
             }
+
+            // Add OCC Branding Text on card
+            ctx.font = "bold 40px Arial";
+            ctx.fillStyle = "rgba(255,255,255,0.2)";
+            ctx.textAlign = "center";
+            ctx.fillText("OCC", width/2, height/2 + 15);
+        }
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX || e.touches[0].clientX) - rect.left,
+                y: (e.clientY || e.touches[0].clientY) - rect.top
+            };
         }
 
         function scratch(e) {
-            if (isScratched) return;
+            if(isScratchedComplete) return;
             isDrawing = true;
-            draw(e);
+            handleMove(e);
         }
 
-        function draw(e) {
-            if (!isDrawing) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.pageX || e.touches[0].pageX) - rect.left;
-            const y = (e.pageY || e.touches[0].pageY) - rect.top;
-
+        function handleMove(e) {
+            if(!isDrawing || isScratchedComplete) return;
+            
+            const pos = getMousePos(e);
             ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
-            ctx.arc(x, y, 25, 0, Math.PI * 2);
+            ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
             ctx.fill();
 
-            checkScratchedAmount();
+            checkProgress();
         }
 
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        function checkScratchedAmount() {
-            if (isScratched) return;
-
-            const imageData = ctx.getImageData(0, 0, 280, 280);
+        function checkProgress() {
+            // Optimization: check every 20th pixel to save CPU
+            const imageData = ctx.getImageData(0, 0, width, height);
             const pixels = imageData.data;
-            let transparentPixels = 0;
+            let clearPixels = 0;
 
-            for (let i = 3; i < pixels.length; i += 4) {
-                if (pixels[i] === 0) transparentPixels++;
+            for (let i = 3; i < pixels.length; i += 80) {
+                if (pixels[i] === 0) clearPixels++;
             }
 
-            scratchedPercentage = (transparentPixels / (pixels.length / 4)) * 100;
+            const percentage = (clearPixels / (pixels.length / 80)) * 100;
 
-            if (scratchedPercentage > 45) { // Auto-reveal at 45%
-                isScratched = true;
-                ctx.clearRect(0, 0, 280, 280);
-                awardPoints();
+            if (percentage > 45) {
+                finishScratch();
             }
         }
 
-        function awardPoints() {
-            totalWallet += pointsThisRound;
+        function finishScratch() {
+            isScratchedComplete = true;
+            isDrawing = false;
+            ctx.clearRect(0, 0, width, height); // Fully reveal
+            
+            // UPDATE WALLET AUTOMATICALLY
+            totalWallet += currentPoints;
             walletEl.innerText = totalWallet;
             
-            // Start 15s Timer
-            setTimeout(startCooldown, 1000);
+            // Trigger 15s Timer
+            setTimeout(showCooldown, 800);
         }
 
-        function startCooldown() {
-            timerOverlay.style.display = 'flex';
-            let timeLeft = 15;
-            secondsEl.innerText = timeLeft;
+        function showCooldown() {
+            timerScreen.style.display = 'flex';
+            let seconds = 15;
+            countdownEl.innerText = seconds;
 
-            const countdown = setInterval(() => {
-                timeLeft--;
-                secondsEl.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerOverlay.style.display = 'none';
-                    initCard();
+            const timer = setInterval(() => {
+                seconds--;
+                countdownEl.innerText = seconds;
+                if(seconds <= 0) {
+                    clearInterval(timer);
+                    timerScreen.style.display = 'none';
+                    init();
                 }
             }, 1000);
         }
 
-        // Event Listeners
         canvas.addEventListener('mousedown', scratch);
         canvas.addEventListener('touchstart', scratch);
-        window.addEventListener('mousemove', draw);
-        window.addEventListener('touchmove', draw);
-        window.addEventListener('mouseup', stopDrawing);
-        window.addEventListener('touchend', stopDrawing);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('mouseup', () => isDrawing = false);
+        window.addEventListener('touchend', () => isDrawing = false);
 
-        initCard();
+        init();
     </script>
 </body>
 </html>
