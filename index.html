@@ -17,18 +17,17 @@
         .sidebar-open { transform: translateX(0) !important; }
         .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
         
-        /* Updated Wallet Style to allow space for Logout */
         .wallet-float {
             position: fixed;
             top: 65px; 
             right: 20px;
             background: white;
-            padding: 6px 14px;
+            padding: 8px 16px;
             border-radius: 50px;
             border: 2px solid #4338ca;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             box-shadow: 0 4px 12px rgba(67, 56, 202, 0.15);
             z-index: 40;
         }
@@ -47,6 +46,8 @@
             <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all"><span>📺</span> YouTube</a>
             <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all"><span>📸</span> Instagram</a>
             <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all"><span>🎧</span> Get Help</a>
+            
+            <button id="logout-btn-sidebar" class="flex items-center gap-4 p-4 rounded-2xl bg-red-50 font-black text-red-500 hover:bg-red-100 transition-all mt-10"><span>🚪</span> Logout</button>
         </nav>
     </div>
 
@@ -55,8 +56,8 @@
     </div>
 
     <div id="index-wallet" class="hidden wallet-float">
-        <span style="font-size: 1rem;">💰</span>
-        <span id="wallet-amount-index" class="font-black brand-indigo text-md">...</span>
+        <span style="font-size: 1.2rem;">💰</span>
+        <span id="wallet-amount-index" class="font-black brand-indigo text-lg">...</span>
     </div>
 
     <div id="auth-section" class="hidden max-w-md mx-auto p-8 pt-20">
@@ -161,8 +162,14 @@
             } catch(e) { alert(e.message); }
         };
 
-        // Logout from Top Button
+        // Top Logout Button Logic
         document.getElementById("logout-btn-top").onclick = () => signOut(auth);
+
+        // Sidebar Logout Button Trigger
+        document.getElementById("logout-btn-sidebar").onclick = () => {
+            signOut(auth);
+            toggleMenu(); 
+        };
     </script>
 </body>
 </html>
