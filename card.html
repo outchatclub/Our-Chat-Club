@@ -10,18 +10,15 @@
             --secondary: #2b58f0;
             --accent: #00f2ff;
             --bg: #0a0b10;
-            --glass: rgba(255, 255, 255, 0.05);
+            --glass: rgba(255, 255, 255, 0.1);
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             background-color: var(--bg);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             color: white;
             display: flex;
             flex-direction: column;
@@ -32,27 +29,26 @@
             touch-action: none;
         }
 
+        /* Wallet Section */
         .wallet-container {
             background: var(--glass);
-            padding: 12px 28px;
+            padding: 12px 30px;
             border-radius: 50px;
-            border: 1px solid rgba(0, 242, 255, 0.2);
+            border: 2px solid var(--accent);
             margin-bottom: 30px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            z-index: 100;
+            gap: 10px;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
         }
 
         #wallet-amount {
-            font-weight: 800;
-            font-size: 1.6rem;
+            font-weight: 900;
+            font-size: 1.8rem;
             color: var(--accent);
-            min-width: 20px;
-            display: inline-block;
         }
 
+        /* Card Section */
         .card-frame {
             position: relative;
             width: 320px;
@@ -60,8 +56,7 @@
             background: #161822;
             border-radius: 30px;
             padding: 10px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
 
         #scratch-area {
@@ -81,22 +76,21 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%);
+            background: white;
             color: #1a1a1a;
             z-index: 1;
         }
 
-        .reward-layer h3 { margin: 0; font-size: 0.9rem; opacity: 0.6; text-transform: uppercase; }
-        .reward-layer .points { font-size: 4.5rem; font-weight: 900; color: var(--secondary); margin: 5px 0; }
+        .points { font-size: 4.5rem; font-weight: 900; color: var(--secondary); margin: 0; }
 
         canvas {
             position: absolute;
             top: 0; left: 0;
             z-index: 2;
             border-radius: 20px;
-            cursor: crosshair;
         }
 
+        /* Cooldown Screen */
         .cooldown-overlay {
             position: absolute;
             top: 0; left: 0;
@@ -108,7 +102,6 @@
             align-items: center;
             justify-content: center;
             border-radius: 30px;
-            backdrop-filter: blur(12px);
         }
 
         .timer-ring {
@@ -118,162 +111,141 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.2rem;
-            font-weight: 900;
-            margin-bottom: 15px;
-            box-shadow: 0 0 20px var(--primary);
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="wallet-container">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f2ff" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+        <span style="font-size: 1.2rem;">💰</span>
         <span id="wallet-amount">0</span>
     </div>
 
     <div class="card-frame">
         <div id="scratch-area">
             <div class="reward-layer">
-                <h3>You Unlocked</h3>
-                <div class="points" id="points-value">0</div>
-                <p style="margin:0; font-weight:bold; color:#777">OCC POINTS</p>
+                <p style="margin:0; opacity:0.6;">YOU WON</p>
+                <div class="points" id="points-display">0</div>
+                <p style="margin:0; font-weight:bold; color:#777">POINTS</p>
             </div>
             <canvas id="canvas"></canvas>
         </div>
 
-        <div class="cooldown-overlay" id="timer-screen">
-            <div class="timer-ring" id="countdown">15</div>
-            <p style="margin:0; font-weight:600">Syncing with Club...</p>
+        <div class="cooldown-overlay" id="cooldown-screen">
+            <div class="timer-ring" id="timer">15</div>
+            <p>Next Card in...</p>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const walletAmountEl = document.getElementById('wallet-amount');
-        const pointsValueEl = document.getElementById('points-value');
-        const timerScreen = document.getElementById('timer-screen');
-        const countdownEl = document.getElementById('countdown');
-        
-        let walletTotal = 0;
-        let currentCardPoints = 0;
-        let isDragging = false;
-        let scratchFinished = false;
-        const canvasSize = 300;
+        const walletDisplay = document.getElementById('wallet-amount');
+        const pointsDisplay = document.getElementById('points-display');
+        const cooldownScreen = document.getElementById('cooldown-screen');
+        const timerDisplay = document.getElementById('timer');
 
-        function setupCard() {
-            scratchFinished = false;
-            canvas.width = canvasSize;
-            canvas.height = canvasSize;
-            
-            // ৫ থেকে ৫০ এর মধ্যে র‍্যান্ডম পয়েন্ট
-            currentCardPoints = Math.floor(Math.random() * (50 - 5 + 1)) + 5;
-            pointsValueEl.innerText = currentCardPoints;
+        let walletTotal = 0; // গ্লোবাল ওয়ালেট
+        let currentPoints = 0;
+        let isDrawing = false;
+        let isClaimed = false;
 
-            // প্রফেশনাল গ্রেডিয়েন্ট কভার
-            const gradient = ctx.createLinearGradient(0, 0, canvasSize, canvasSize);
-            gradient.addColorStop(0, '#7b2ff7');
-            gradient.addColorStop(1, '#2b58f0');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvasSize, canvasSize);
+        function initCard() {
+            isClaimed = false;
+            canvas.width = 300;
+            canvas.height = 300;
 
-            // ব্র্যান্ডিং টেক্সট
-            ctx.font = "bold 45px sans-serif";
-            ctx.fillStyle = "rgba(255,255,255,0.15)";
+            // ৫ থেকে ৫০ এর মধ্যে পয়েন্ট
+            currentPoints = Math.floor(Math.random() * 46) + 5;
+            pointsDisplay.innerText = currentPoints;
+
+            // কভার ডিজাইন
+            const grad = ctx.createLinearGradient(0, 0, 300, 300);
+            grad.addColorStop(0, '#7b2ff7');
+            grad.addColorStop(1, '#2b58f0');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 300, 300);
+
+            ctx.font = "bold 40px Arial";
+            ctx.fillStyle = "rgba(255,255,255,0.3)";
             ctx.textAlign = "center";
-            ctx.fillText("OCC", canvasSize/2, canvasSize/2 + 15);
+            ctx.fillText("SCRATCH ME", 150, 160);
         }
 
-        function getMousePos(e) {
+        function getPos(e) {
             const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - rect.left, y: cy - rect.top };
         }
 
-        function handleScratch(e) {
-            if(scratchFinished) return;
-            isDragging = true;
-            processMove(e);
+        function scrub(e) {
+            if (isClaimed) return;
+            isDrawing = true;
+            paint(e);
         }
 
-        function processMove(e) {
-            if(!isDragging || scratchFinished) return;
-            const pos = getMousePos(e);
-            
+        function paint(e) {
+            if (!isDrawing || isClaimed) return;
+            const p = getPos(e);
             ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 28, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, 30, 0, Math.PI * 2);
             ctx.fill();
-
-            checkScratchProgress();
+            checkPercent();
         }
 
-        function checkScratchProgress() {
-            const pixels = ctx.getImageData(0, 0, canvasSize, canvasSize).data;
-            let transparent = 0;
-            
-            // পারফরম্যান্সের জন্য প্রতি ৮০তম পিক্সেল চেক করা হচ্ছে
-            for (let i = 3; i < pixels.length; i += 80) {
-                if (pixels[i] === 0) transparent++;
+        function checkPercent() {
+            const data = ctx.getImageData(0, 0, 300, 300).data;
+            let clear = 0;
+            for (let i = 3; i < data.length; i += 100) {
+                if (data[i] === 0) clear++;
             }
 
-            const percent = (transparent / (pixels.length / 80)) * 100;
-
-            // ৪০% স্ক্র্যাচ হলে ওয়ালেটে পয়েন্ট যোগ হবে
-            if (percent >= 40) {
-                claimPoints();
+            // ৪০% এর বেশি স্ক্র্যাচ হলে ক্লেইম হবে
+            if ((clear / (data.length / 100)) * 100 > 40) {
+                claimNow();
             }
         }
 
-        function claimPoints() {
-            if(scratchFinished) return;
-            scratchFinished = true;
-            isDragging = false;
+        function claimNow() {
+            if (isClaimed) return;
+            isClaimed = true;
+            isDrawing = false;
+            ctx.clearRect(0, 0, 300, 300);
 
-            // ক্যানভাস ক্লিয়ার করে রিওয়ার্ড দেখানো
-            ctx.clearRect(0, 0, canvasSize, canvasSize);
+            // ওয়ালেটে অ্যাড করার মূল লজিক
+            walletTotal += currentPoints;
+            walletDisplay.innerText = walletTotal;
 
-            // ওয়ালেট আপডেট করা (অবিলম্বে)
-            walletTotal += currentCardPoints;
-            walletAmountEl.innerText = walletTotal;
-
-            // ১৫ সেকেন্ডের ওয়েট পিরিয়ড শুরু
-            setTimeout(triggerCooldown, 600);
+            // ১৫ সেকেন্ডের টাইমডাউন
+            setTimeout(() => {
+                cooldownScreen.style.display = 'flex';
+                let left = 15;
+                timerDisplay.innerText = left;
+                const clock = setInterval(() => {
+                    left--;
+                    timerDisplay.innerText = left;
+                    if (left <= 0) {
+                        clearInterval(clock);
+                        cooldownScreen.style.display = 'none';
+                        initCard();
+                    }
+                }, 1000);
+            }, 800);
         }
 
-        function triggerCooldown() {
-            timerScreen.style.display = 'flex';
-            let timeLeft = 15;
-            countdownEl.innerText = timeLeft;
+        canvas.addEventListener('mousedown', scrub);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); scrub(e); });
+        window.addEventListener('mousemove', paint);
+        window.addEventListener('touchmove', (e) => { paint(e); });
+        window.addEventListener('mouseup', () => isDrawing = false);
+        window.addEventListener('touchend', () => isDrawing = false);
 
-            const countdownInterval = setInterval(() => {
-                timeLeft--;
-                countdownEl.innerText = timeLeft;
-                if(timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    timerScreen.style.display = 'none';
-                    setupCard();
-                }
-            }, 1000);
-        }
-
-        // ইভেন্ট লিসেনার
-        canvas.addEventListener('mousedown', handleScratch);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleScratch(e); }, {passive: false});
-        
-        window.addEventListener('mousemove', processMove);
-        window.addEventListener('touchmove', (e) => { processMove(e); }, {passive: false});
-        
-        window.addEventListener('mouseup', () => isDragging = false);
-        window.addEventListener('touchend', () => isDragging = false);
-
-        // অ্যাপ শুরু
-        setupCard();
+        initCard();
     </script>
 </body>
 </html>
