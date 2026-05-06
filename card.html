@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -11,6 +11,10 @@
             --accent: #00f2ff;
             --bg: #0a0b10;
             --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box; /* इससे वो फालतू की सफ़ेद लाइनें नहीं आएँगी */
         }
 
         body {
@@ -27,6 +31,7 @@
             touch-action: none;
         }
 
+        /* Wallet UI */
         .wallet-container {
             background: var(--glass);
             padding: 10px 25px;
@@ -37,15 +42,10 @@
             align-items: center;
             gap: 10px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: all 0.2s ease;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        /* Animation for when points are added */
-        .wallet-update {
-            transform: scale(1.15);
-            border-color: var(--accent);
-            background: rgba(0, 242, 255, 0.1);
-        }
+        .bump { transform: scale(1.2); border-color: var(--accent); }
 
         #wallet-amount {
             font-weight: 800;
@@ -53,6 +53,7 @@
             color: var(--accent);
         }
 
+        /* Card Container */
         .card-frame {
             position: relative;
             width: 320px;
@@ -66,8 +67,8 @@
 
         #scratch-area {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: 300px;
+            height: 300px;
             border-radius: 20px;
             overflow: hidden;
             background: #fff;
@@ -81,22 +82,23 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            background: radial-gradient(circle, #ffffff 0%, #e8e8e8 100%);
+            background: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%);
             color: #1a1a1a;
             z-index: 1;
         }
 
-        .reward-layer h3 { margin: 0; font-size: 0.9rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
-        .reward-layer .points { font-size: 4.5rem; font-weight: 900; color: var(--secondary); line-height: 1; margin: 5px 0; }
+        .reward-layer h3 { margin: 0; font-size: 0.9rem; opacity: 0.6; text-transform: uppercase; }
+        .reward-layer .points { font-size: 4.5rem; font-weight: 900; color: var(--secondary); margin: 5px 0; }
 
-        #canvas {
+        canvas {
             position: absolute;
             top: 0; left: 0;
             z-index: 2;
+            border-radius: 20px;
             touch-action: none;
         }
 
+        /* Cooldown Overlay */
         .cooldown-overlay {
             position: absolute;
             top: 0; left: 0;
@@ -121,7 +123,7 @@
             font-size: 2rem;
             font-weight: bold;
             margin-bottom: 15px;
-            box-shadow: 0 0 25px rgba(123, 47, 247, 0.4);
+            box-shadow: 0 0 20px var(--primary);
         }
 
         .status-msg { margin-top: 25px; height: 20px; }
@@ -129,7 +131,7 @@
 </head>
 <body>
 
-    <div class="wallet-container" id="wallet-ui">
+    <div class="wallet-container" id="wallet-box">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f2ff" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
         <span id="wallet-amount">0</span>
     </div>
@@ -139,14 +141,14 @@
             <div class="reward-layer">
                 <h3>You Unlocked</h3>
                 <div class="points" id="points-value">0</div>
-                <p style="margin:0; font-weight:800; color:#888; font-size: 0.8rem;">OCC POINTS</p>
+                <p style="margin:0; font-weight:bold; color:#777">OCC POINTS</p>
             </div>
             <canvas id="canvas"></canvas>
         </div>
 
         <div class="cooldown-overlay" id="timer-screen">
             <div class="timer-ring" id="countdown">15</div>
-            <p style="margin:0; font-weight:600; color: #fff; opacity: 0.8;">Syncing with Club...</p>
+            <p style="margin:0; font-weight:600">Syncing with Club...</p>
         </div>
     </div>
 
@@ -156,135 +158,110 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const walletEl = document.getElementById('wallet-amount');
-        const walletUI = document.getElementById('wallet-ui');
+        const walletBox = document.getElementById('wallet-box');
         const pointsEl = document.getElementById('points-value');
         const timerScreen = document.getElementById('timer-screen');
         const countdownEl = document.getElementById('countdown');
         
-        // GLOBAL STATE - Ensures points persist between cards
-        let totalWallet = 0; 
+        let totalWallet = 0;
         let currentPoints = 0;
         let isDrawing = false;
         let isScratchedComplete = false;
-        const width = 300;
-        const height = 300;
+        const size = 300;
 
         function init() {
             isScratchedComplete = false;
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = size;
+            canvas.height = size;
             
-            // Random points 5-50
-            currentPoints = Math.floor(Math.random() * (50 - 5 + 1)) + 5;
+            // 5 से 50 के बीच रैंडम पॉइंट्स
+            currentPoints = Math.floor(Math.random() * 46) + 5;
             pointsEl.innerText = currentPoints;
 
-            // Draw Card Cover
-            const gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, '#7b2ff7'); 
-            gradient.addColorStop(1, '#2b58f0'); 
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
+            // कवर डिजाइन
+            const grad = ctx.createLinearGradient(0, 0, size, size);
+            grad.addColorStop(0, '#7b2ff7');
+            grad.addColorStop(1, '#2b58f0');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, size, size);
 
-            // Subtle Pattern
-            ctx.fillStyle = "rgba(255,255,255,0.1)";
-            for(let i=0; i<100; i++) {
-                ctx.beginPath();
-                ctx.arc(Math.random()*width, Math.random()*height, Math.random()*2, 0, Math.PI*2);
-                ctx.fill();
-            }
-
-            ctx.font = "bold 40px sans-serif";
+            // ब्रांडिंग
+            ctx.font = "bold 40px Arial";
             ctx.fillStyle = "rgba(255,255,255,0.2)";
             ctx.textAlign = "center";
-            ctx.fillText("OCC", width/2, height/2 + 15);
+            ctx.fillText("OCC", size/2, size/2 + 15);
         }
 
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - rect.left, y: cy - rect.top };
         }
 
         function scratch(e) {
             if(isScratchedComplete) return;
             isDrawing = true;
-            draw(e);
+            move(e);
         }
 
-        function draw(e) {
+        function move(e) {
             if(!isDrawing || isScratchedComplete) return;
-            const pos = getPos(e);
-            
+            const p = getPos(e);
             ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
-            ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, 25, 0, Math.PI * 2);
             ctx.fill();
-
-            // Frequency of checking progress
-            checkProgress();
+            check();
         }
 
-        function checkProgress() {
-            const imageData = ctx.getImageData(0, 0, width, height);
-            const pixels = imageData.data;
-            let clearPixels = 0;
-
-            for (let i = 3; i < pixels.length; i += 40) {
-                if (pixels[i] === 0) clearPixels++;
+        function check() {
+            const data = ctx.getImageData(0, 0, size, size).data;
+            let clear = 0;
+            for (let i = 3; i < data.length; i += 80) {
+                if (data[i] === 0) clear++;
             }
-
-            const percentage = (clearPixels / (pixels.length / 40)) * 100;
-
-            // Threshold set to 40%
-            if (percentage >= 40) {
-                claimReward();
+            // 40% होने पर दावा करें
+            if ((clear / (data.length / 80)) * 100 > 40) {
+                complete();
             }
         }
 
-        function claimReward() {
+        function complete() {
             if(isScratchedComplete) return;
             isScratchedComplete = true;
             isDrawing = false;
+            ctx.clearRect(0, 0, size, size);
 
-            // 1. UPDATE WALLET IMMEDIATELY
+            // तुरंत वॉलेट अपडेट
             totalWallet += currentPoints;
             walletEl.innerText = totalWallet;
+            
+            // वॉलेट एनीमेशन
+            walletBox.classList.add('bump');
+            setTimeout(() => walletBox.classList.remove('bump'), 400);
 
-            // 2. VISUAL FEEDBACK
-            walletUI.classList.add('wallet-update');
-            setTimeout(() => walletUI.classList.remove('wallet-update'), 400);
-
-            // 3. REVEAL ALL
-            ctx.clearRect(0, 0, width, height);
-
-            // 4. START COOLDOWN
-            setTimeout(startCooldown, 800);
-        }
-
-        function startCooldown() {
-            timerScreen.style.display = 'flex';
-            let seconds = 15;
-            countdownEl.innerText = seconds;
-
-            const timer = setInterval(() => {
-                seconds--;
-                countdownEl.innerText = seconds;
-                if(seconds <= 0) {
-                    clearInterval(timer);
-                    timerScreen.style.display = 'none';
-                    init();
-                }
-            }, 1000);
+            // 15 सेकंड का टाइमर
+            setTimeout(() => {
+                timerScreen.style.display = 'flex';
+                let sec = 15;
+                countdownEl.innerText = sec;
+                const itv = setInterval(() => {
+                    sec--;
+                    countdownEl.innerText = sec;
+                    if(sec <= 0) {
+                        clearInterval(itv);
+                        timerScreen.style.display = 'none';
+                        init();
+                    }
+                }, 1000);
+            }, 500);
         }
 
         canvas.addEventListener('mousedown', scratch);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); scratch(e); }, {passive: false});
-        window.addEventListener('mousemove', draw);
-        window.addEventListener('touchmove', (e) => { draw(e); }, {passive: false});
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); scratch(e); });
+        window.addEventListener('mousemove', move);
+        window.addEventListener('touchmove', (e) => { move(e); });
         window.addEventListener('mouseup', () => isDrawing = false);
         window.addEventListener('touchend', () => isDrawing = false);
 
