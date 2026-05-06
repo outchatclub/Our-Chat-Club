@@ -27,7 +27,6 @@
             touch-action: none;
         }
 
-        /* Top Wallet UI */
         .wallet-container {
             background: var(--glass);
             padding: 10px 25px;
@@ -38,10 +37,15 @@
             align-items: center;
             gap: 10px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.2s ease;
         }
 
-        .wallet-bump { transform: scale(1.1); }
+        /* Animation for when points are added */
+        .wallet-update {
+            transform: scale(1.15);
+            border-color: var(--accent);
+            background: rgba(0, 242, 255, 0.1);
+        }
 
         #wallet-amount {
             font-weight: 800;
@@ -49,7 +53,6 @@
             color: var(--accent);
         }
 
-        /* Card Container */
         .card-frame {
             position: relative;
             width: 320px;
@@ -92,10 +95,8 @@
             top: 0; left: 0;
             z-index: 2;
             touch-action: none;
-            image-rendering: auto;
         }
 
-        /* Cooldown Overlay */
         .cooldown-overlay {
             position: absolute;
             top: 0; left: 0;
@@ -121,13 +122,6 @@
             font-weight: bold;
             margin-bottom: 15px;
             box-shadow: 0 0 25px rgba(123, 47, 247, 0.4);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(123, 47, 247, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0); }
         }
 
         .status-msg { margin-top: 25px; height: 20px; }
@@ -135,7 +129,7 @@
 </head>
 <body>
 
-    <div class="wallet-container" id="wallet-box">
+    <div class="wallet-container" id="wallet-ui">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f2ff" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
         <span id="wallet-amount">0</span>
     </div>
@@ -162,17 +156,18 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const walletEl = document.getElementById('wallet-amount');
-        const walletBox = document.getElementById('wallet-box');
+        const walletUI = document.getElementById('wallet-ui');
         const pointsEl = document.getElementById('points-value');
         const timerScreen = document.getElementById('timer-screen');
         const countdownEl = document.getElementById('countdown');
         
-        let width = 300;
-        let height = 300;
-        let isDrawing = false;
+        // GLOBAL STATE - Ensures points persist between cards
+        let totalWallet = 0; 
         let currentPoints = 0;
-        let totalWallet = 0;
+        let isDrawing = false;
         let isScratchedComplete = false;
+        const width = 300;
+        const height = 300;
 
         function init() {
             isScratchedComplete = false;
@@ -183,28 +178,23 @@
             currentPoints = Math.floor(Math.random() * (50 - 5 + 1)) + 5;
             pointsEl.innerText = currentPoints;
 
-            // Smooth Gradient Cover
+            // Draw Card Cover
             const gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, '#8e44ff'); 
-            gradient.addColorStop(1, '#3461ff'); 
-            
+            gradient.addColorStop(0, '#7b2ff7'); 
+            gradient.addColorStop(1, '#2b58f0'); 
             ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.roundRect(0, 0, width, height, 20);
-            ctx.fill();
+            ctx.fillRect(0, 0, width, height);
 
-            // Professional Noise/Pattern
-            ctx.globalCompositeOperation = 'source-over';
-            for(let i=0; i<400; i++) {
-                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`;
+            // Subtle Pattern
+            ctx.fillStyle = "rgba(255,255,255,0.1)";
+            for(let i=0; i<100; i++) {
                 ctx.beginPath();
-                ctx.arc(Math.random()*width, Math.random()*height, Math.random()*1.2, 0, Math.PI*2);
+                ctx.arc(Math.random()*width, Math.random()*height, Math.random()*2, 0, Math.PI*2);
                 ctx.fill();
             }
 
-            // Branding
-            ctx.font = "900 45px system-ui";
-            ctx.fillStyle = "rgba(255,255,255,0.15)";
+            ctx.font = "bold 40px sans-serif";
+            ctx.fillStyle = "rgba(255,255,255,0.2)";
             ctx.textAlign = "center";
             ctx.fillText("OCC", width/2, height/2 + 15);
         }
@@ -214,72 +204,68 @@
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return {
-                x: (clientX - rect.left) * (canvas.width / rect.width),
-                y: (clientY - rect.top) * (canvas.height / rect.height)
+                x: clientX - rect.left,
+                y: clientY - rect.top
             };
         }
 
-        function handleStart(e) {
+        function scratch(e) {
             if(isScratchedComplete) return;
             isDrawing = true;
-            handleMove(e);
+            draw(e);
         }
 
-        function handleMove(e) {
+        function draw(e) {
             if(!isDrawing || isScratchedComplete) return;
-            
             const pos = getPos(e);
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.lineWidth = 45;
-            ctx.lineJoin = "round";
-            ctx.lineCap = "round";
             
-            // Draw path for smoother experience
+            ctx.globalCompositeOperation = 'destination-out';
             ctx.beginPath();
             ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
             ctx.fill();
 
-            requestAnimationFrame(checkProgress);
+            // Frequency of checking progress
+            checkProgress();
         }
 
         function checkProgress() {
-            if(isScratchedComplete) return;
-
             const imageData = ctx.getImageData(0, 0, width, height);
             const pixels = imageData.data;
             let clearPixels = 0;
 
-            // Optimization: Skip pixels for performance
-            for (let i = 3; i < pixels.length; i += 128) {
+            for (let i = 3; i < pixels.length; i += 40) {
                 if (pixels[i] === 0) clearPixels++;
             }
 
-            const percentage = (clearPixels / (pixels.length / 128)) * 100;
+            const percentage = (clearPixels / (pixels.length / 40)) * 100;
 
+            // Threshold set to 40%
             if (percentage >= 40) {
-                finishScratch();
+                claimReward();
             }
         }
 
-        function finishScratch() {
+        function claimReward() {
             if(isScratchedComplete) return;
             isScratchedComplete = true;
             isDrawing = false;
-            
-            // Instant Wallet Update
+
+            // 1. UPDATE WALLET IMMEDIATELY
             totalWallet += currentPoints;
             walletEl.innerText = totalWallet;
-            
-            // Visual Feedback
-            walletBox.classList.add('wallet-bump');
-            setTimeout(() => walletBox.classList.remove('wallet-bump'), 300);
-            
-            ctx.clearRect(0, 0, width, height); 
-            
-            setTimeout(showCooldown, 600);
+
+            // 2. VISUAL FEEDBACK
+            walletUI.classList.add('wallet-update');
+            setTimeout(() => walletUI.classList.remove('wallet-update'), 400);
+
+            // 3. REVEAL ALL
+            ctx.clearRect(0, 0, width, height);
+
+            // 4. START COOLDOWN
+            setTimeout(startCooldown, 800);
         }
 
-        function showCooldown() {
+        function startCooldown() {
             timerScreen.style.display = 'flex';
             let seconds = 15;
             countdownEl.innerText = seconds;
@@ -295,13 +281,10 @@
             }, 1000);
         }
 
-        // Event Listeners
-        canvas.addEventListener('mousedown', handleStart);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e); }, {passive: false});
-        
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('touchmove', (e) => { handleMove(e); }, {passive: false});
-        
+        canvas.addEventListener('mousedown', scratch);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); scratch(e); }, {passive: false});
+        window.addEventListener('mousemove', draw);
+        window.addEventListener('touchmove', (e) => { draw(e); }, {passive: false});
         window.addEventListener('mouseup', () => isDrawing = false);
         window.addEventListener('touchend', () => isDrawing = false);
 
