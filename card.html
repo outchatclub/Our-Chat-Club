@@ -29,7 +29,6 @@
             touch-action: none;
         }
 
-        /* Wallet Section */
         .wallet-container {
             background: var(--glass);
             padding: 12px 30px;
@@ -48,7 +47,6 @@
             color: var(--accent);
         }
 
-        /* Card Section */
         .card-frame {
             position: relative;
             width: 320px;
@@ -88,9 +86,9 @@
             top: 0; left: 0;
             z-index: 2;
             border-radius: 20px;
+            cursor: crosshair;
         }
 
-        /* Cooldown Screen */
         .cooldown-overlay {
             position: absolute;
             top: 0; left: 0;
@@ -121,7 +119,7 @@
 
     <div class="wallet-container">
         <span style="font-size: 1.2rem;">💰</span>
-        <span id="wallet-amount">0</span>
+        <span id="wallet-amount">Loading...</span>
     </div>
 
     <div class="card-frame">
@@ -140,7 +138,26 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script>
+        // --- FIREBASE CONFIGURATION ---
+        // Replace these with your actual Firebase project credentials
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const walletDisplay = document.getElementById('wallet-amount');
@@ -148,21 +165,39 @@
         const cooldownScreen = document.getElementById('cooldown-screen');
         const timerDisplay = document.getElementById('timer');
 
-        let walletTotal = 0; // গ্লোবাল ওয়ালেট
+        let walletTotal = 0;
         let currentPoints = 0;
         let isDrawing = false;
         let isClaimed = false;
+        let currentUser = null;
+
+        // 1. Listen for Auth State and Sync Wallet
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                // Fetch real-time updates from Firestore
+                db.collection('users').doc(user.uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        walletTotal = doc.data().wallet || 0;
+                        walletDisplay.innerText = walletTotal;
+                    } else {
+                        // Create user doc if it doesn't exist
+                        db.collection('users').doc(user.uid).set({ wallet: 0 }, { merge: true });
+                        walletDisplay.innerText = "0";
+                    }
+                });
+            } else {
+                walletDisplay.innerText = "Login Required";
+            }
+        });
 
         function initCard() {
             isClaimed = false;
             canvas.width = 300;
             canvas.height = 300;
-
-            // ৫ থেকে ৫০ এর মধ্যে পয়েন্ট
             currentPoints = Math.floor(Math.random() * 46) + 5;
             pointsDisplay.innerText = currentPoints;
 
-            // কভার ডিজাইন
             const grad = ctx.createLinearGradient(0, 0, 300, 300);
             grad.addColorStop(0, '#7b2ff7');
             grad.addColorStop(1, '#2b58f0');
@@ -183,7 +218,7 @@
         }
 
         function scrub(e) {
-            if (isClaimed) return;
+            if (isClaimed || !currentUser) return;
             isDrawing = true;
             paint(e);
         }
@@ -204,38 +239,45 @@
             for (let i = 3; i < data.length; i += 100) {
                 if (data[i] === 0) clear++;
             }
-
-            // ৪০% এর বেশি স্ক্র্যাচ হলে ক্লেইম হবে
             if ((clear / (data.length / 100)) * 100 > 40) {
                 claimNow();
             }
         }
 
-        function claimNow() {
-            if (isClaimed) return;
+        async function claimNow() {
+            if (isClaimed || !currentUser) return;
             isClaimed = true;
             isDrawing = false;
             ctx.clearRect(0, 0, 300, 300);
 
-            // ওয়ালেটে অ্যাড করার মূল লজিক
-            walletTotal += currentPoints;
-            walletDisplay.innerText = walletTotal;
+            try {
+                // Update Firestore using Atomic Increment to prevent errors
+                const userRef = db.collection('users').doc(currentUser.uid);
+                await userRef.update({
+                    wallet: firebase.firestore.FieldValue.increment(currentPoints)
+                });
 
-            // ১৫ সেকেন্ডের টাইমডাউন
-            setTimeout(() => {
-                cooldownScreen.style.display = 'flex';
-                let left = 15;
-                timerDisplay.innerText = left;
-                const clock = setInterval(() => {
-                    left--;
+                // UI Feedback and Cooldown
+                setTimeout(() => {
+                    cooldownScreen.style.display = 'flex';
+                    let left = 15;
                     timerDisplay.innerText = left;
-                    if (left <= 0) {
-                        clearInterval(clock);
-                        cooldownScreen.style.display = 'none';
-                        initCard();
-                    }
-                }, 1000);
-            }, 800);
+                    const clock = setInterval(() => {
+                        left--;
+                        timerDisplay.innerText = left;
+                        if (left <= 0) {
+                            clearInterval(clock);
+                            cooldownScreen.style.display = 'none';
+                            initCard();
+                        }
+                    }, 1000);
+                }, 800);
+
+            } catch (error) {
+                console.error("Error updating wallet: ", error);
+                alert("Failed to save points. Please check your connection.");
+                isClaimed = false; // Allow retry if save failed
+            }
         }
 
         canvas.addEventListener('mousedown', scrub);
