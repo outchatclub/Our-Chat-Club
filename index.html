@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>OCC - Official</title>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1340372907809425" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -17,15 +16,6 @@
         #sidebar { transition: transform 0.3s ease-in-out; }
         .sidebar-open { transform: translateX(0) !important; }
         .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
-        
-        @keyframes pulse-soft {
-            0% { box-shadow: 0 0 0 0 rgba(67, 56, 202, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(67, 56, 202, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(67, 56, 202, 0); }
-        }
-        .animate-pulse-indigo {
-            animation: pulse-soft 2s infinite;
-        }
     </style>
 </head>
 <body class="text-slate-900">
@@ -42,9 +32,6 @@
             <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all"><span>📸</span> Instagram</a>
             <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all"><span>🆘</span> Get Help</a>
         </nav>
-        <div class="mt-auto pt-8 border-t border-slate-100">
-            <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest text-center">OCC Platform v2.0</p>
-        </div>
     </div>
 
     <div id="ann-bar" class="hidden brand-bg-indigo p-3 text-center text-white text-[11px] font-bold uppercase tracking-widest sticky top-0 z-50">
@@ -72,7 +59,7 @@
     </div>
 
     <div id="main-dashboard" class="hidden max-w-md mx-auto p-6 pb-24">
-        <div class="flex justify-between items-center mb-8 mt-2">
+        <div class="flex justify-between items-center mb-10 mt-2">
             <button onclick="toggleMenu()" class="btn-press bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-indigo-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
@@ -80,41 +67,26 @@
             <button id="logout-btn" class="text-xs font-black text-red-500">LOGOUT</button>
         </div>
 
-        <section class="mb-10">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="gtranslate_wrapper flex-shrink-0"></div>
-                <button onclick="location.href='donateus.html'" class="btn-press h-[44px] flex-1 brand-bg-indigo text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-md">
-                    Donate Us
-                </button>
-            </div>
+        <button onclick="location.href='donateus.html'" class="btn-press w-full mb-10 py-4 brand-bg-indigo text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg">
+            Donate Us
+        </button>
 
-            <script>window.gtranslateSettings = {"default_language":"en","native_language_names":true,"detect_browser_language":true,"wrapper_selector":".gtranslate_wrapper","switcher_horizontal_position":"inline"}</script>
-            <script src="https://cdn.gtranslate.net/widgets/latest/float.js" defer></script>
-            
-            <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 text-center">Feed</h3>
-            
-            <button onclick="location.href='publicnews.html'" class="btn-press w-full mb-6 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-2xl shadow-lg animate-pulse-indigo">
-                <span class="text-[14px] font-black text-white uppercase tracking-wider">Public News</span>
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="location.href='minigame.html'" class="btn-press bg-white border border-slate-100 p-6 rounded-[2.5rem] shadow-sm flex flex-col items-center gap-4">
+                <div class="brand-bg-indigo w-16 h-16 rounded-3xl flex items-center justify-center text-3xl shadow-inner">🎮</div>
+                <span class="font-black text-slate-800 text-sm uppercase tracking-tighter">Mini Game</span>
             </button>
 
-            <div id="news-feed" class="space-y-4"></div>
-            <button onclick="location.href='news.html'" class="btn-press w-full mt-6 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-black text-slate-400 uppercase tracking-widest">Full Feed</button>
-        </section>
-
-        <section class="mb-12 text-center">
-            <button onclick="location.href='minigame.html'" class="btn-press w-full bg-white border p-6 rounded-[2.5rem] flex items-center justify-between shadow-sm">
-                <div class="flex items-center gap-5">
-                    <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl shadow-inner">🎮</div>
-                    <span class="font-black text-slate-800 text-lg">MINI GAMES</span>
-                </div>
-                <span class="text-indigo-600 font-bold text-xl">➜</span>
+            <button onclick="location.href='card.html'" class="btn-press bg-white border border-slate-100 p-6 rounded-[2.5rem] shadow-sm flex flex-col items-center gap-4">
+                <div class="bg-amber-400 w-16 h-16 rounded-3xl flex items-center justify-center text-3xl shadow-inner">✨</div>
+                <span class="font-black text-slate-800 text-sm uppercase tracking-tighter">Scratch Card</span>
             </button>
-        </section>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, query, collection, orderBy, limit, serverTimestamp, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -128,24 +100,14 @@
         onAuthStateChanged(auth, user => {
             document.getElementById("auth-section").classList.toggle("hidden", !!user);
             document.getElementById("main-dashboard").classList.toggle("hidden", !user);
-            if(user) loadData();
+            if(user) loadGlobalSettings();
         });
 
         document.getElementById("do-login").onclick = () => signInWithEmailAndPassword(auth, document.getElementById("login-email").value, document.getElementById("login-pass").value).catch(e => alert(e.message));
         
-        document.getElementById("do-signup").onclick = async () => {
-            const name = document.getElementById("reg-name").value;
-            const email = document.getElementById("reg-email").value;
-            try {
-                const res = await createUserWithEmailAndPassword(auth, email, document.getElementById("reg-pass").value);
-                await updateProfile(res.user, { displayName: name });
-                await setDoc(doc(db, "users", res.user.uid), { name, email, createdAt: serverTimestamp() });
-            } catch(e) { alert(e.message); }
-        };
-
         document.getElementById("logout-btn").onclick = () => signOut(auth);
 
-        function loadData() {
+        function loadGlobalSettings() {
             onSnapshot(doc(db, "settings", "announcement"), s => {
                 const d = s.data();
                 const bar = document.getElementById("ann-bar");
@@ -154,40 +116,7 @@
                     bar.classList.remove("hidden");
                 } else bar.classList.add("hidden");
             });
-
-            const newsQ = query(collection(db, "news"), orderBy("createdAt", "desc"), limit(3));
-            onSnapshot(newsQ, snap => {
-                const feed = document.getElementById("news-feed");
-                feed.innerHTML = "";
-                snap.forEach(sDoc => {
-                    const d = sDoc.data();
-                    const isLiked = d.likes?.includes(auth.currentUser?.uid);
-                    
-                    let postDate = "Just now";
-                    if (d.createdAt) {
-                        const dateObj = d.createdAt.toDate();
-                        postDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + " • " + dateObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    }
-
-                    feed.innerHTML += `
-                        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex-1">
-                                    <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">${postDate}</p>
-                                    <h4 class="font-black text-slate-800 text-lg leading-tight mb-1">${d.title}</h4>
-                                    <p class="text-slate-500 text-[11px] leading-relaxed">${(d.content || "").substring(0, 70)}...</p>
-                                </div>
-                                <img src="${d.imageUrl || 'news.png'}" class="w-16 h-16 rounded-2xl object-cover ml-4 shadow-sm border border-slate-50">
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <button onclick="window.toggleLike('${sDoc.id}', ${isLiked})" class="text-[11px] font-black ${isLiked ? 'text-red-500' : 'text-slate-400'}">${isLiked ? '❤️' : '🤍'} ${d.likes?.length || 0}</button>
-                                <a href="news.html" class="text-indigo-600 font-black text-[11px] uppercase tracking-tighter">Read More ➜</a>
-                            </div>
-                        </div>`;
-                });
-            });
         }
-        window.toggleLike = (id, currentlyLiked) => updateDoc(doc(db, "news", id), { likes: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid) });
     </script>
 </body>
 </html>
