@@ -17,19 +17,16 @@
         .sidebar-open { transform: translateX(0) !important; }
         .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
         
-        .wallet-float {
-            position: fixed;
-            top: 65px; 
-            right: 20px;
+        /* Branded wallet styling */
+        .wallet-pill {
             background: white;
-            padding: 8px 16px;
+            padding: 4px 12px;
             border-radius: 50px;
             border: 2px solid #4338ca;
             display: flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(67, 56, 202, 0.15);
-            z-index: 40;
+            gap: 6px;
+            box-shadow: 0 2px 8px rgba(67, 56, 202, 0.1);
         }
     </style>
 </head>
@@ -46,18 +43,11 @@
             <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all"><span>📺</span> YouTube</a>
             <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all"><span>📸</span> Instagram</a>
             <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all"><span>🎧</span> Get Help</a>
-            
-            <button id="logout-btn-sidebar" class="flex items-center gap-4 p-4 rounded-2xl bg-red-50 font-black text-red-500 hover:bg-red-100 transition-all mt-10"><span>🚪</span> Logout</button>
         </nav>
     </div>
 
     <div id="ann-bar" class="hidden brand-bg-indigo p-3 text-center text-white text-[11px] font-bold uppercase tracking-widest sticky top-0 z-50">
         <span id="ann-text-display"></span>
-    </div>
-
-    <div id="index-wallet" class="hidden wallet-float">
-        <span style="font-size: 1.2rem;">💰</span>
-        <span id="wallet-amount-index" class="font-black brand-indigo text-lg">...</span>
     </div>
 
     <div id="auth-section" class="hidden max-w-md mx-auto p-8 pt-20">
@@ -85,8 +75,16 @@
             <button onclick="toggleMenu()" class="btn-press bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-indigo-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
+            
             <h1 class="text-3xl font-black brand-indigo tracking-tighter leading-none">OCC</h1>
-            <button id="logout-btn-top" class="text-[10px] font-black text-red-500 uppercase tracking-widest">Logout</button>
+            
+            <div class="flex items-center gap-3">
+                <div id="index-wallet" class="wallet-pill hidden">
+                    <span class="text-sm">💰</span>
+                    <span id="wallet-amount-index" class="font-black brand-indigo text-sm">...</span>
+                </div>
+                <button id="logout-btn-top" class="text-[10px] font-black text-red-500 uppercase tracking-widest">Logout</button>
+            </div>
         </div>
 
         <button onclick="location.href='donateus.html'" class="btn-press w-full mb-8 py-4 brand-bg-indigo text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg">
@@ -128,9 +126,12 @@
         onAuthStateChanged(auth, user => {
             document.getElementById("auth-section").classList.toggle("hidden", !!user);
             document.getElementById("main-dashboard").classList.toggle("hidden", !user);
-            document.getElementById("index-wallet").classList.toggle("hidden", !user);
             
             if(user) {
+                // Show Wallet
+                document.getElementById("index-wallet").classList.remove("hidden");
+                
+                // Real-time Wallet Listener
                 onSnapshot(doc(db, "users", user.uid), s => {
                     if(s.exists()) document.getElementById("wallet-amount-index").innerText = s.data().wallet || 0;
                 });
@@ -162,14 +163,7 @@
             } catch(e) { alert(e.message); }
         };
 
-        // Top Logout Button Logic
         document.getElementById("logout-btn-top").onclick = () => signOut(auth);
-
-        // Sidebar Logout Button Trigger
-        document.getElementById("logout-btn-sidebar").onclick = () => {
-            signOut(auth);
-            toggleMenu(); 
-        };
     </script>
 </body>
 </html>
