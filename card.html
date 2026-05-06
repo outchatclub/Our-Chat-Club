@@ -23,6 +23,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
+            overflow: hidden;
             touch-action: none;
         }
 
@@ -37,7 +38,10 @@
             align-items: center;
             gap: 10px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
+        .wallet-bump { transform: scale(1.1); }
 
         #wallet-amount {
             font-weight: 800;
@@ -45,7 +49,7 @@
             color: var(--accent);
         }
 
-        /* Card Frame */
+        /* Card Container */
         .card-frame {
             position: relative;
             width: 320px;
@@ -66,7 +70,6 @@
             background: #fff;
         }
 
-        /* Reward Layer (Underneath) */
         .reward-layer {
             position: absolute;
             top: 0; left: 0;
@@ -76,19 +79,20 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            background: radial-gradient(circle, #ffffff 0%, #f0f0f0 100%);
+            background: radial-gradient(circle, #ffffff 0%, #e8e8e8 100%);
             color: #1a1a1a;
+            z-index: 1;
         }
 
-        .reward-layer h3 { margin: 0; font-size: 0.9rem; opacity: 0.6; text-transform: uppercase; }
-        .reward-layer .points { font-size: 4rem; font-weight: 900; color: var(--secondary); line-height: 1; margin: 10px 0; }
+        .reward-layer h3 { margin: 0; font-size: 0.9rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px; }
+        .reward-layer .points { font-size: 4.5rem; font-weight: 900; color: var(--secondary); line-height: 1; margin: 5px 0; }
 
-        /* Scratch Canvas */
         #canvas {
             position: absolute;
             top: 0; left: 0;
             z-index: 2;
-            cursor: crosshair;
+            touch-action: none;
+            image-rendering: auto;
         }
 
         /* Cooldown Overlay */
@@ -96,14 +100,14 @@
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(10, 11, 16, 0.95);
+            background: rgba(10, 11, 16, 0.98);
             z-index: 10;
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             border-radius: 30px;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
         }
 
         .timer-ring {
@@ -116,20 +120,22 @@
             font-size: 2rem;
             font-weight: bold;
             margin-bottom: 15px;
-            box-shadow: 0 0 20px var(--primary);
+            box-shadow: 0 0 25px rgba(123, 47, 247, 0.4);
+            animation: pulse 2s infinite;
         }
 
-        .status-msg {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            opacity: 0.5;
-            letter-spacing: 1px;
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(123, 47, 247, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(123, 47, 247, 0); }
         }
+
+        .status-msg { margin-top: 25px; height: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="wallet-container">
+    <div class="wallet-container" id="wallet-box">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00f2ff" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
         <span id="wallet-amount">0</span>
     </div>
@@ -139,23 +145,24 @@
             <div class="reward-layer">
                 <h3>You Unlocked</h3>
                 <div class="points" id="points-value">0</div>
-                <p style="margin:0; font-weight:bold; color:#777">OCC POINTS</p>
+                <p style="margin:0; font-weight:800; color:#888; font-size: 0.8rem;">OCC POINTS</p>
             </div>
             <canvas id="canvas"></canvas>
         </div>
 
         <div class="cooldown-overlay" id="timer-screen">
             <div class="timer-ring" id="countdown">15</div>
-            <p style="margin:0; font-weight:600">Syncing with Club...</p>
+            <p style="margin:0; font-weight:600; color: #fff; opacity: 0.8;">Syncing with Club...</p>
         </div>
     </div>
 
-    <p class="status-msg"></p>
+    <div class="status-msg"></div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const walletEl = document.getElementById('wallet-amount');
+        const walletBox = document.getElementById('wallet-box');
         const pointsEl = document.getElementById('points-value');
         const timerScreen = document.getElementById('timer-screen');
         const countdownEl = document.getElementById('countdown');
@@ -172,44 +179,47 @@
             canvas.width = width;
             canvas.height = height;
             
-            // Random points between 5 and 50
+            // Random points 5-50
             currentPoints = Math.floor(Math.random() * (50 - 5 + 1)) + 5;
             pointsEl.innerText = currentPoints;
 
-            // Gradient cover
+            // Smooth Gradient Cover
             const gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, '#7b2ff7'); 
-            gradient.addColorStop(1, '#2b58f0'); 
+            gradient.addColorStop(0, '#8e44ff'); 
+            gradient.addColorStop(1, '#3461ff'); 
             
             ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
+            ctx.beginPath();
+            ctx.roundRect(0, 0, width, height, 20);
+            ctx.fill();
 
-            // Subtle pattern
-            ctx.fillStyle = "rgba(255,255,255,0.05)";
-            for(let i=0; i<300; i++) {
+            // Professional Noise/Pattern
+            ctx.globalCompositeOperation = 'source-over';
+            for(let i=0; i<400; i++) {
+                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`;
                 ctx.beginPath();
-                ctx.arc(Math.random()*width, Math.random()*height, Math.random()*1.5, 0, Math.PI*2);
+                ctx.arc(Math.random()*width, Math.random()*height, Math.random()*1.2, 0, Math.PI*2);
                 ctx.fill();
             }
 
-            // Branding text
-            ctx.font = "bold 40px Arial";
-            ctx.fillStyle = "rgba(255,255,255,0.2)";
+            // Branding
+            ctx.font = "900 45px system-ui";
+            ctx.fillStyle = "rgba(255,255,255,0.15)";
             ctx.textAlign = "center";
             ctx.fillText("OCC", width/2, height/2 + 15);
         }
 
-        function getMousePos(e) {
+        function getPos(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
             };
         }
 
-        function scratch(e) {
+        function handleStart(e) {
             if(isScratchedComplete) return;
             isDrawing = true;
             handleMove(e);
@@ -218,44 +228,55 @@
         function handleMove(e) {
             if(!isDrawing || isScratchedComplete) return;
             
-            const pos = getMousePos(e);
+            const pos = getPos(e);
             ctx.globalCompositeOperation = 'destination-out';
+            ctx.lineWidth = 45;
+            ctx.lineJoin = "round";
+            ctx.lineCap = "round";
+            
+            // Draw path for smoother experience
             ctx.beginPath();
             ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
             ctx.fill();
 
-            checkProgress();
+            requestAnimationFrame(checkProgress);
         }
 
         function checkProgress() {
+            if(isScratchedComplete) return;
+
             const imageData = ctx.getImageData(0, 0, width, height);
             const pixels = imageData.data;
             let clearPixels = 0;
 
-            // Check every 80th pixel for performance
-            for (let i = 3; i < pixels.length; i += 80) {
+            // Optimization: Skip pixels for performance
+            for (let i = 3; i < pixels.length; i += 128) {
                 if (pixels[i] === 0) clearPixels++;
             }
 
-            const percentage = (clearPixels / (pixels.length / 80)) * 100;
+            const percentage = (clearPixels / (pixels.length / 128)) * 100;
 
-            // Claim points instantly at 40%
             if (percentage >= 40) {
                 finishScratch();
             }
         }
 
         function finishScratch() {
+            if(isScratchedComplete) return;
             isScratchedComplete = true;
             isDrawing = false;
-            ctx.clearRect(0, 0, width, height); 
             
-            // Update Wallet Instantly
+            // Instant Wallet Update
             totalWallet += currentPoints;
             walletEl.innerText = totalWallet;
             
-            // Trigger 15s Cooldown
-            setTimeout(showCooldown, 500);
+            // Visual Feedback
+            walletBox.classList.add('wallet-bump');
+            setTimeout(() => walletBox.classList.remove('wallet-bump'), 300);
+            
+            ctx.clearRect(0, 0, width, height); 
+            
+            setTimeout(showCooldown, 600);
         }
 
         function showCooldown() {
@@ -274,8 +295,9 @@
             }, 1000);
         }
 
-        canvas.addEventListener('mousedown', scratch);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); scratch(e); }, {passive: false});
+        // Event Listeners
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleStart(e); }, {passive: false});
         
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('touchmove', (e) => { handleMove(e); }, {passive: false});
