@@ -24,6 +24,24 @@
             touch-action: none;
         }
 
+        /* Back Button Style */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 12px;
+            border-radius: 16px;
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .wallet-container {
             background: rgba(255, 255, 255, 0.1);
             padding: 12px 30px;
@@ -115,6 +133,12 @@
 </head>
 <body>
 
+    <button onclick="location.href='index.html'" class="back-btn">
+        <svg style="width:24px; height:24px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </button>
+
     <div class="wallet-container">
         💰 <span id="wallet-amount">...</span>
     </div>
@@ -171,7 +195,8 @@
             if (user) {
                 currentUser = user;
                 db.collection('users').doc(user.uid).onSnapshot(doc => {
-                    document.getElementById('wallet-amount').innerText = doc.data()?.wallet || 0;
+                    const data = doc.data();
+                    document.getElementById('wallet-amount').innerText = data ? (data.wallet || 0) : 0;
                 });
             } else { window.location.href = 'index.html'; }
         });
@@ -216,8 +241,8 @@
         function scratch(e) {
             if (!isDrawing || isClaimed) return;
             const rect = canvas.getBoundingClientRect();
-            const x = (e.pageX || e.touches[0].pageX) - rect.left;
-            const y = (e.pageY || e.touches[0].pageY) - rect.top;
+            const x = (e.pageX || (e.touches && e.touches[0].pageX)) - rect.left;
+            const y = (e.pageY || (e.touches && e.touches[0].pageY)) - rect.top;
 
             ctx.lineWidth = 40;
             ctx.lineCap = 'round';
@@ -233,6 +258,7 @@
         }
 
         async function claim() {
+            if (isClaimed) return;
             isClaimed = true;
             canvas.style.pointerEvents = 'none';
             ctx.clearRect(0, 0, 300, 300);
