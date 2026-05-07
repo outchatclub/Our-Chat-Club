@@ -8,14 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .tab-btn { color: #94a3b8; transition: all 0.3s; }
+        .tab-btn { color: #94a3b8; transition: all 0.3s; white-space: nowrap; }
         .tab-btn.active { background: #4338ca; color: white; box-shadow: 0 4px 14px rgba(67, 56, 202, 0.4); }
         .card-dark { background: #1e293b; border: 1px solid #334155; }
         .input-dark { background: #0f172a; border: 1px solid #334155; color: white; outline: none; }
         .input-dark:focus { border-color: #6366f1; }
         .hidden { display: none !important; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -51,15 +49,14 @@
             <button onclick="switchTab('payouts')" class="tab-btn active px-6 py-3 rounded-xl font-bold transition-all" id="btn-payouts">Payout Requests</button>
             <button onclick="switchTab('history')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-history">Payout History</button>
             <button onclick="switchTab('users')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-users">Registered Users</button>
+            <button onclick="switchTab('redeem')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-redeem">Redeem Codes</button>
         </nav>
 
         <section id="sec-payouts" class="tab-content space-y-4">
-            <h2 class="text-xl font-black mb-4 text-slate-400">Active Requests</h2>
             <div id="pending-list" class="grid gap-4"></div>
         </section>
 
         <section id="sec-history" class="tab-content hidden space-y-4">
-            <h2 class="text-xl font-black mb-4 text-slate-400">Processed History</h2>
             <div id="history-list" class="grid gap-4"></div>
         </section>
 
@@ -68,6 +65,26 @@
                 <table class="w-full text-left">
                     <thead><tr class="border-b border-slate-700 text-slate-400"><th class="py-4">User</th><th>Email</th><th>Wallet</th><th>Actions</th></tr></thead>
                     <tbody id="user-table-body" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="sec-redeem" class="tab-content hidden space-y-6">
+            <div class="card-dark p-6 rounded-3xl">
+                <h2 class="text-xl font-black mb-4">Create New Redeem Code</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" id="new-code" placeholder="CODE123" class="input-dark p-4 rounded-2xl font-bold uppercase">
+                    <input type="number" id="code-coins" placeholder="Coins (Max 5 Lakh)" class="input-dark p-4 rounded-2xl">
+                    <button id="create-code-btn" class="bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black transition-all">Generate Code</button>
+                </div>
+            </div>
+            <div class="card-dark rounded-3xl p-6 overflow-x-auto">
+                <h2 class="text-xl font-black mb-4 text-slate-400 tracking-tight">Code History & Status</h2>
+                <table class="w-full text-left">
+                    <thead><tr class="border-b border-slate-700 text-slate-400">
+                        <th class="py-4">Code</th><th>Coins</th><th>Status</th><th>Used By</th>
+                    </tr></thead>
+                    <tbody id="redeem-table-body" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
         </section>
@@ -97,38 +114,24 @@
 
         let activePayoutId = null;
 
-        // AUTH MONITORING: Automatically show/hide login overlay
         onAuthStateChanged(auth, user => {
             const overlay = document.getElementById("admin-login-overlay");
             const content = document.getElementById("admin-content");
-
             if (user && user.email === "admin@gmail.com") {
-                overlay.classList.add("hidden");
-                content.classList.remove("hidden");
-                loadData();
+                overlay.classList.add("hidden"); content.classList.remove("hidden"); loadData();
             } else {
-                overlay.classList.remove("hidden");
-                content.classList.add("hidden");
+                overlay.classList.remove("hidden"); content.classList.add("hidden");
             }
         });
 
-        // DO LOGIN Logic
         document.getElementById("do-admin-login").onclick = async () => {
             const email = document.getElementById("admin-email").value;
             const pass = document.getElementById("admin-password").value;
             if (email !== "admin@gmail.com") return alert("Only admin email allowed!");
-
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (e) { alert("Login Failed: " + e.message); }
+            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Login Failed: " + e.message); }
         };
 
-        // LOGOUT Logic
-        document.getElementById("admin-logout-btn").onclick = () => {
-            if(confirm("Sign out from Admin Console?")) {
-                signOut(auth);
-            }
-        };
+        document.getElementById("admin-logout-btn").onclick = () => { if(confirm("Sign out?")) signOut(auth); };
 
         window.switchTab = (tab) => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
@@ -137,16 +140,23 @@
             document.getElementById(`btn-${tab}`).classList.add('active');
         };
 
-        document.getElementById("set-ann").onclick = async () => {
-            const text = document.getElementById("ann-text").value;
-            const hours = document.getElementById("ann-hours").value;
-            if(!text || !hours) return alert("Fill all fields");
+        // NEW: Create Redeem Code Logic
+        document.getElementById("create-code-btn").onclick = async () => {
+            const code = document.getElementById("new-code").value.trim().toUpperCase();
+            const coins = parseInt(document.getElementById("code-coins").value);
+            if(!code || !coins) return alert("Fill all fields");
+            if(coins > 500000) return alert("Max limit is 5,00,000 coins");
+
             try {
-                await setDoc(doc(db, "settings", "announcement"), {
-                    text: text,
-                    expiry: Date.now() + (hours * 3600000)
+                await setDoc(doc(db, "redeem_codes", code), {
+                    coins: coins,
+                    status: "active",
+                    createdAt: Date.now(),
+                    usedBy: ""
                 });
-                alert("Announcement Pushed!");
+                alert("Redeem Code Created!");
+                document.getElementById("new-code").value = "";
+                document.getElementById("code-coins").value = "";
             } catch(e) { alert(e.message); }
         };
 
@@ -154,46 +164,31 @@
             onSnapshot(query(collection(db, "payouts"), where("status", "==", "pending"), orderBy("createdAt", "desc")), s => {
                 document.getElementById("pending-list").innerHTML = s.docs.map(d => {
                     const item = d.data();
-                    return `
-                        <div class="card-dark p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-l-indigo-500">
-                            <div>
-                                <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest">User: ${item.userName}</p>
-                                <h3 class="text-lg font-black">${item.rewardTitle}</h3>
-                                <p class="text-sm text-slate-400">${item.userEmail} | Wallet: 💰${item.currentWallet}</p>
-                            </div>
-                            <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-black">Process</button>
-                        </div>
-                    `;
-                }).join('');
-            });
-
-            onSnapshot(query(collection(db, "payouts"), where("status", "!=", "pending"), orderBy("processedAt", "desc")), s => {
-                document.getElementById("history-list").innerHTML = s.docs.map(d => {
-                    const item = d.data();
-                    const colorClass = item.status === 'accepted' ? 'text-emerald-400' : 'text-red-400';
-                    return `
-                        <div class="card-dark p-4 rounded-2xl border border-slate-700 flex justify-between items-center bg-opacity-50">
-                            <div>
-                                <p class="font-black ${colorClass}">${item.userName} - ${item.rewardTitle}</p>
-                                <p class="text-xs text-slate-400 mt-1">${item.adminMessage}</p>
-                            </div>
-                            <span class="font-black uppercase text-xs px-3 py-1 rounded-full bg-black/20">${item.status}</span>
-                        </div>
-                    `;
+                    return `<div class="card-dark p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-l-indigo-500">
+                        <div><p class="text-xs font-bold text-indigo-400 uppercase">User: ${item.userName}</p><h3 class="text-lg font-black">${item.rewardTitle}</h3></div>
+                        <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-black">Process</button>
+                    </div>`;
                 }).join('');
             });
 
             onSnapshot(collection(db, "users"), s => {
                 document.getElementById("user-table-body").innerHTML = s.docs.map(d => {
                     const u = d.data();
-                    return `
-                        <tr class="hover:bg-slate-800/50 transition-colors">
-                            <td class="py-4 font-bold text-indigo-300">${u.name}</td>
-                            <td class="text-slate-400 text-sm">${u.email}</td>
-                            <td class="font-black text-white">💰${u.wallet || 0}</td>
-                            <td><button onclick="deleteUser('${d.id}')" class="text-red-500 hover:text-red-400 text-xs font-black uppercase">Ban User</button></td>
-                        </tr>
-                    `;
+                    return `<tr><td class="py-4 font-bold text-indigo-300">${u.name}</td><td class="text-slate-400 text-sm">${u.email}</td><td class="font-black">💰${u.wallet || 0}</td><td><button onclick="deleteUser('${d.id}')" class="text-red-500 text-xs font-black uppercase">Ban</button></td></tr>`;
+                }).join('');
+            });
+
+            // NEW: Load Redeem Codes History
+            onSnapshot(query(collection(db, "redeem_codes"), orderBy("createdAt", "desc")), s => {
+                document.getElementById("redeem-table-body").innerHTML = s.docs.map(d => {
+                    const c = d.data();
+                    const statusColor = c.status === 'active' ? 'text-emerald-400' : 'text-red-400';
+                    return `<tr class="border-b border-slate-800">
+                        <td class="py-4 font-black">${d.id}</td>
+                        <td class="font-bold text-indigo-400">${c.coins.toLocaleString()}</td>
+                        <td class="font-black uppercase text-xs ${statusColor}">${c.status}</td>
+                        <td class="text-slate-500 text-xs">${c.usedBy || '---'}</td>
+                    </tr>`;
                 }).join('');
             });
         }
