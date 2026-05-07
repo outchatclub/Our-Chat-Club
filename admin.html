@@ -13,12 +13,26 @@
         .card-dark { background: #1e293b; border: 1px solid #334155; }
         .input-dark { background: #0f172a; border: 1px solid #334155; color: white; outline: none; }
         .input-dark:focus { border-color: #6366f1; }
+        .hidden { display: none !important; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-5xl mx-auto">
+    <div id="admin-login-overlay" class="fixed inset-0 bg-slate-950 z-[100] flex items-center justify-center p-4 hidden">
+        <div class="card-dark p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-2xl">
+            <h2 class="text-3xl font-black text-indigo-500 mb-2">ADMIN LOGIN</h2>
+            <p class="text-slate-400 text-sm mb-8">Access restricted to authorized admin only.</p>
+            <div class="space-y-4">
+                <input type="email" id="admin-email" placeholder="Admin Email" class="input-dark w-full p-4 rounded-2xl">
+                <input type="password" id="admin-password" placeholder="Password" class="input-dark w-full p-4 rounded-2xl">
+                <button id="do-admin-login" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black transition-all">Log In</button>
+            </div>
+            <button onclick="location.href='index.html'" class="mt-6 text-slate-500 font-bold text-sm">Back to Home</button>
+        </div>
+    </div>
+
+    <div id="admin-content" class="max-w-5xl mx-auto hidden">
         <header class="flex justify-between items-center mb-10">
             <h1 class="text-3xl font-black text-indigo-500 tracking-tighter">ADMIN CONSOLE</h1>
             <button id="admin-logout-btn" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-xl font-bold transition-all text-white">Logout</button>
@@ -64,8 +78,8 @@
             <h3 class="text-xl font-black mb-4 text-indigo-400" id="modal-title">Process Payout</h3>
             <textarea id="admin-note" class="input-dark w-full p-4 rounded-2xl mb-4 h-32" placeholder="Enter redeem code or reason..."></textarea>
             <div class="flex gap-2">
-                <button onclick="confirmPayout('accepted')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold transition-all">Accept</button>
-                <button onclick="confirmPayout('rejected')" class="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold transition-all">Reject</button>
+                <button onclick="confirmPayout('accepted')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold">Accept</button>
+                <button onclick="confirmPayout('rejected')" class="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold">Reject</button>
             </div>
             <button onclick="closeModal()" class="w-full mt-4 text-slate-500 font-bold">Cancel</button>
         </div>
@@ -74,7 +88,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
@@ -83,22 +97,36 @@
 
         let activePayoutId = null;
 
-        // AUTH PROTECTION: Restrict to Admin Email
+        // AUTH MONITORING: Automatically show/hide login overlay
         onAuthStateChanged(auth, user => {
-            if (!user || user.email !== "admin@gmail.com") {
-                alert("Security Alert: Unauthorized Access Restricted.");
-                window.location.href = 'index.html';
-            } else {
+            const overlay = document.getElementById("admin-login-overlay");
+            const content = document.getElementById("admin-content");
+
+            if (user && user.email === "admin@gmail.com") {
+                overlay.classList.add("hidden");
+                content.classList.remove("hidden");
                 loadData();
+            } else {
+                overlay.classList.remove("hidden");
+                content.classList.add("hidden");
             }
         });
 
-        // SECURE LOGOUT: Clears Admin Session
+        // DO LOGIN Logic
+        document.getElementById("do-admin-login").onclick = async () => {
+            const email = document.getElementById("admin-email").value;
+            const pass = document.getElementById("admin-password").value;
+            if (email !== "admin@gmail.com") return alert("Only admin email allowed!");
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (e) { alert("Login Failed: " + e.message); }
+        };
+
+        // LOGOUT Logic
         document.getElementById("admin-logout-btn").onclick = () => {
-            if(confirm("Sign out of Admin Console?")) {
-                signOut(auth).then(() => {
-                    window.location.href = 'index.html';
-                });
+            if(confirm("Sign out from Admin Console?")) {
+                signOut(auth);
             }
         };
 
@@ -109,7 +137,6 @@
             document.getElementById(`btn-${tab}`).classList.add('active');
         };
 
-        // Announcement Logic
         document.getElementById("set-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
             const hours = document.getElementById("ann-hours").value;
@@ -124,7 +151,6 @@
         };
 
         function loadData() {
-            // Pending Requests
             onSnapshot(query(collection(db, "payouts"), where("status", "==", "pending"), orderBy("createdAt", "desc")), s => {
                 document.getElementById("pending-list").innerHTML = s.docs.map(d => {
                     const item = d.data();
@@ -135,13 +161,12 @@
                                 <h3 class="text-lg font-black">${item.rewardTitle}</h3>
                                 <p class="text-sm text-slate-400">${item.userEmail} | Wallet: 💰${item.currentWallet}</p>
                             </div>
-                            <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-black transition-all">Process</button>
+                            <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-black">Process</button>
                         </div>
                     `;
                 }).join('');
             });
 
-            // History
             onSnapshot(query(collection(db, "payouts"), where("status", "!=", "pending"), orderBy("processedAt", "desc")), s => {
                 document.getElementById("history-list").innerHTML = s.docs.map(d => {
                     const item = d.data();
@@ -158,7 +183,6 @@
                 }).join('');
             });
 
-            // Registered Users
             onSnapshot(collection(db, "users"), s => {
                 document.getElementById("user-table-body").innerHTML = s.docs.map(d => {
                     const u = d.data();
@@ -174,34 +198,17 @@
             });
         }
 
-        window.openPayoutModal = (id) => {
-            activePayoutId = id;
-            document.getElementById("payout-modal").classList.remove("hidden");
-        };
-
-        window.closeModal = () => {
-            document.getElementById("payout-modal").classList.add("hidden");
-            document.getElementById("admin-note").value = "";
-        };
-
+        window.openPayoutModal = (id) => { activePayoutId = id; document.getElementById("payout-modal").classList.remove("hidden"); };
+        window.closeModal = () => { document.getElementById("payout-modal").classList.add("hidden"); document.getElementById("admin-note").value = ""; };
         window.confirmPayout = async (status) => {
             const note = document.getElementById("admin-note").value;
             if (!note) return alert("Code/Message required.");
             try {
-                await updateDoc(doc(db, "payouts", activePayoutId), {
-                    status: status,
-                    adminMessage: note,
-                    processedAt: Date.now()
-                });
+                await updateDoc(doc(db, "payouts", activePayoutId), { status: status, adminMessage: note, processedAt: Date.now() });
                 closeModal();
             } catch (e) { alert(e.message); }
         };
-
-        window.deleteUser = (id) => {
-            if(confirm("Confirm Ban? User will be removed.")) {
-                deleteDoc(doc(db, "users", id));
-            }
-        };
+        window.deleteUser = (id) => { if(confirm("Confirm Ban?")) deleteDoc(doc(db, "users", id)); };
     </script>
 </body>
 </html>
