@@ -20,6 +20,7 @@
         .overlay-active { opacity: 1 !important; pointer-events: auto !important; }
         .wallet-pill { background: white; padding: 6px 12px; border-radius: 50px; border: 2px solid #4338ca; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(67, 56, 202, 0.1); }
         .logout-top-fixed { position: absolute; top: -20px; right: 5px; font-size: 9px; font-weight: 900; color: #ef4444; text-transform: uppercase; letter-spacing: 0.05em; }
+        .nav-icon { width: 24px; height: 24px; object-fit: contain; }
     </style>
 </head>
 <body class="text-slate-900">
@@ -31,10 +32,17 @@
         </div>
         <nav class="flex flex-col gap-4">
             <button onclick="location.reload()" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-all"><span>🏠</span> Home</button>
-            <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all"><span>🎥</span> YouTube</a>
-            <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all"><span>📸</span> Instagram</a>
+            <a href="https://www.youtube.com/@ourchatclub" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-red-50 hover:text-red-600 transition-all">
+                <img src="youtube.jpg" class="nav-icon" alt="YT"> YouTube
+            </a>
+            <a href="https://www.instagram.com/ourchatclub.in?igsh=Z3U2ajg1Z3VndHA1" target="_blank" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-pink-50 hover:text-pink-600 transition-all">
+                <img src="instagram.jpg" class="nav-icon" alt="IG"> Instagram
+            </a>
             <a href="refer.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 transition-all"><span>🤝</span> Refer & Earn</a>
-            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all"><span>🎧</span> Get Help</a>
+            <a href="rewards.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-amber-50 hover:text-amber-600 transition-all"><span>🎁</span> Rewards</a>
+            <a href="support.html" class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 font-black text-slate-700 hover:bg-sky-50 hover:text-sky-600 transition-all">
+                <img src="gethelp.jpg" class="nav-icon" alt="Help"> Get Help
+            </a>
         </nav>
     </div>
 
@@ -88,10 +96,19 @@
                 <span class="font-black text-slate-800 text-[11px] uppercase tracking-tighter">Scratch Card</span>
             </button>
         </div>
-        <button onclick="location.href='refer.html'" class="btn-press w-full bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex items-center justify-between px-6">
+        
+        <button onclick="location.href='refer.html'" class="btn-press w-full bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex items-center justify-between px-6 mb-4">
             <div class="flex items-center gap-4">
                 <div class="bg-emerald-500 w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg shadow-sm">🤝</div>
                 <span class="font-black text-slate-800 text-[11px] uppercase tracking-widest">Refer & Earn</span>
+            </div>
+            <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <button onclick="location.href='rewards.html'" class="btn-press w-full bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex items-center justify-between px-6">
+            <div class="flex items-center gap-4">
+                <div class="bg-amber-500 w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg shadow-sm">🎁</div>
+                <span class="font-black text-slate-800 text-[11px] uppercase tracking-widest">Rewards</span>
             </div>
             <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
         </button>
@@ -107,7 +124,6 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // ১২ ডিজিটের ইউনিক কোড জেনারেটর
         function generateReferralCode() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let code = '';
@@ -165,7 +181,6 @@
                 const newCode = generateReferralCode();
 
                 if(refInput) {
-                    // র্যান্ডম কোড দিয়ে ইউজারকে খোঁজা হচ্ছে
                     const q = query(collection(db, "users"), where("referralCode", "==", refInput));
                     const qs = await getDocs(q);
                     
