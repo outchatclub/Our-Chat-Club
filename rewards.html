@@ -1,1 +1,138 @@
-Hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCC - Rewards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .brand-indigo { color: #4338ca; }
+        .brand-bg-indigo { background-color: #4338ca; }
+        .btn-press:active { transform: scale(0.96); }
+        .reward-card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .reward-card:hover { border-color: #4338ca; box-shadow: 0 10px 15px -3px rgba(67, 56, 202, 0.1); }
+    </style>
+</head>
+<body class="text-slate-900 pb-20">
+    <div class="max-w-md mx-auto p-6">
+        <div class="flex justify-between items-center mb-8">
+            <button onclick="location.href='index.html'" class="p-3 bg-white rounded-2xl border border-slate-100 shadow-sm text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <h1 class="text-2xl font-black brand-indigo">REWARDS</h1>
+            <div class="bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+                <span class="font-black brand-indigo" id="user-wallet">...</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 mb-10" id="reward-list">
+            </div>
+
+        <div class="mt-10">
+            <h2 class="text-xl font-black mb-4">Payout History</h2>
+            <div id="payout-history" class="space-y-3 text-sm">
+                <p class="text-slate-400 italic">No requests yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, addDoc, collection, query, where, orderBy, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const rewards = [
+            { id: 'gp50', title: 'Google Play Rs.50', cost: 50000, img: 'gplay.jpg', type: 'Google Play' },
+            { id: 'gp100', title: 'Google Play Rs.100', cost: 100000, img: 'gplay.jpg', type: 'Google Play' },
+            { id: 'gp150', title: 'Google Play Rs.150', cost: 150000, img: 'gplay.jpg', type: 'Google Play' },
+            { id: 'gp200', title: 'Google Play Rs.200', cost: 200000, img: 'gplay.jpg', type: 'Google Play' },
+            { id: 'am50', title: 'Amazon Rs.50', cost: 50000, img: 'agift.jpg', type: 'Amazon' },
+            { id: 'am100', title: 'Amazon Rs.100', cost: 100000, img: 'agift.jpg', type: 'Amazon' },
+            { id: 'am150', title: 'Amazon Rs.150', cost: 150000, img: 'agift.jpg', type: 'Amazon' },
+            { id: 'am200', title: 'Amazon Rs.200', cost: 200000, img: 'agift.jpg', type: 'Amazon' },
+        ];
+
+        let userData = null;
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                onSnapshot(doc(db, "users", user.uid), s => {
+                    userData = s.data();
+                    document.getElementById("user-wallet").innerText = `💰 ${userData.wallet || 0}`;
+                    renderRewards();
+                });
+                loadHistory(user.uid);
+            } else { location.href = 'index.html'; }
+        });
+
+        function renderRewards() {
+            const list = document.getElementById("reward-list");
+            list.innerHTML = rewards.map(r => `
+                <div class="reward-card p-4 flex items-center gap-4">
+                    <img src="${r.img}" class="w-16 h-16 rounded-xl object-cover">
+                    <div class="flex-1">
+                        <h3 class="font-black text-sm">${r.title}</h3>
+                        <p class="text-indigo-600 font-bold text-xs">${r.cost.toLocaleString()} Coins</p>
+                    </div>
+                    <button onclick="requestPayout('${r.id}')" class="btn-press brand-bg-indigo text-white px-4 py-2 rounded-xl font-black text-xs">Redeem</button>
+                </div>
+            `).join('');
+        }
+
+        window.requestPayout = async (rewardId) => {
+            const reward = rewards.find(r => r.id === rewardId);
+            if (userData.wallet < reward.cost) return alert("Insufficient coins!");
+            
+            if (confirm(`Redeem ${reward.title} for ${reward.cost} coins?`)) {
+                try {
+                    await addDoc(collection(db, "payouts"), {
+                        uid: auth.currentUser.uid,
+                        userName: userData.name,
+                        userEmail: userData.email,
+                        currentWallet: userData.wallet,
+                        rewardTitle: reward.title,
+                        cost: reward.cost,
+                        status: 'pending',
+                        createdAt: Date.now(),
+                        adminMessage: ''
+                    });
+                    
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                        wallet: increment(-reward.cost)
+                    });
+                    alert("Request submitted successfully!");
+                } catch (e) { alert(e.message); }
+            }
+        };
+
+        function loadHistory(uid) {
+            const q = query(collection(db, "payouts"), where("uid", "==", uid), orderBy("createdAt", "desc"));
+            onSnapshot(q, s => {
+                const container = document.getElementById("payout-history");
+                if (s.empty) return;
+                container.innerHTML = s.docs.map(d => {
+                    const data = d.data();
+                    const statusColor = data.status === 'pending' ? 'text-amber-500' : (data.status === 'accepted' ? 'text-emerald-500' : 'text-red-500');
+                    return `
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-bold">${data.rewardTitle}</span>
+                                <span class="font-black uppercase text-[10px] ${statusColor}">${data.status}</span>
+                            </div>
+                            ${data.adminMessage ? `<p class="bg-slate-50 p-2 rounded-lg text-xs mt-2"><strong>Msg:</strong> ${data.adminMessage}</p>` : ''}
+                            <p class="text-[10px] text-slate-400 mt-2">${new Date(data.createdAt).toLocaleString()}</p>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+    </script>
+</body>
+</html>
