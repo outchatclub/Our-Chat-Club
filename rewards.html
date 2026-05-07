@@ -13,7 +13,6 @@
         .btn-press:active { transform: scale(0.96); }
         .reward-card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
         .reward-card:hover { border-color: #4338ca; box-shadow: 0 10px 15px -3px rgba(67, 56, 202, 0.1); }
-        /* Forces text to appear uppercase while typing */
         #gift-code-input { text-transform: uppercase; }
     </style>
 </head>
@@ -100,27 +99,16 @@
         document.getElementById("btn-redeem-code").onclick = async () => {
             const code = document.getElementById("gift-code-input").value.trim().toUpperCase();
             if(!code) return alert("Please enter a code");
-
             try {
                 const codeRef = doc(db, "redeem_codes", code);
                 const codeSnap = await getDoc(codeRef);
-
                 if (!codeSnap.exists()) return alert("Invalid Code!");
                 const codeData = codeSnap.data();
-
                 if (codeData.status === "used") return alert("This code has already been used!");
 
-                await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                    wallet: increment(codeData.coins)
-                });
-
-                await updateDoc(codeRef, {
-                    status: "used",
-                    usedBy: auth.currentUser.email,
-                    usedAt: Date.now()
-                });
-
-                alert(`Success! ${codeData.coins} coins added to your wallet.`);
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { wallet: increment(codeData.coins) });
+                await updateDoc(codeRef, { status: "used", usedBy: auth.currentUser.email, usedAt: Date.now() });
+                alert(`Success! ${codeData.coins} coins added.`);
                 document.getElementById("gift-code-input").value = "";
             } catch (e) { alert("Error: " + e.message); }
         };
@@ -131,10 +119,9 @@
             
             if (confirm(`Redeem ${reward.title} for ${reward.cost} coins?`)) {
                 try {
-                    // FIX: Using fallbacks (||) to prevent "undefined" error in Firebase
                     await addDoc(collection(db, "payouts"), {
                         uid: auth.currentUser.uid,
-                        userName: userData.name || "Unknown User",
+                        userName: userData.name || "User",
                         userEmail: userData.email || auth.currentUser.email || "No Email",
                         currentWallet: userData.wallet || 0,
                         rewardTitle: reward.title,
@@ -143,15 +130,9 @@
                         createdAt: Date.now(),
                         adminMessage: ''
                     });
-                    
-                    await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                        wallet: increment(-reward.cost)
-                    });
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), { wallet: increment(-reward.cost) });
                     alert("Request submitted successfully!");
-                } catch (e) { 
-                    console.error("Payout error:", e);
-                    alert("Error submitting request: " + e.message); 
-                }
+                } catch (e) { alert("Error: " + e.message); }
             }
         };
 
