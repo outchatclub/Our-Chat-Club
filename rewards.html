@@ -13,6 +13,8 @@
         .btn-press:active { transform: scale(0.96); }
         .reward-card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
         .reward-card:hover { border-color: #4338ca; box-shadow: 0 10px 15px -3px rgba(67, 56, 202, 0.1); }
+        /* Forces text to appear uppercase while typing */
+        #gift-code-input { text-transform: uppercase; }
     </style>
 </head>
 <body class="text-slate-900 pb-20">
@@ -29,9 +31,9 @@
 
         <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm mb-8">
             <h2 class="text-sm font-black mb-3 text-slate-500 uppercase tracking-wider">Have a Redeem Code?</h2>
-            <div class="flex gap-2">
-                <input type="text" id="gift-code-input" placeholder="Enter Code Here" class="flex-1 bg-slate-50 border border-slate-100 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-400">
-                <button id="btn-redeem-code" class="btn-press brand-bg-indigo text-white px-5 py-3 rounded-xl font-black text-xs">Claim</button>
+            <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 focus-within:border-indigo-400 transition-all">
+                <input type="text" id="gift-code-input" placeholder="Enter Code Here" class="flex-1 bg-transparent p-2.5 rounded-xl text-sm font-bold outline-none" oninput="this.value = this.value.toUpperCase()">
+                <button id="btn-redeem-code" class="btn-press brand-bg-indigo text-white px-6 py-3 rounded-xl font-black text-xs shadow-md">Claim</button>
             </div>
         </div>
 
@@ -95,7 +97,7 @@
 
         // NEW: Redeem Code Logic
         document.getElementById("btn-redeem-code").onclick = async () => {
-            const code = document.getElementById("gift-code-input").value.trim();
+            const code = document.getElementById("gift-code-input").value.trim().toUpperCase();
             if(!code) return alert("Please enter a code");
 
             try {
