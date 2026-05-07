@@ -24,7 +24,7 @@
             </button>
             <h1 class="text-2xl font-black brand-indigo">REWARDS</h1>
             <div class="bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
-                <span class="font-black brand-indigo" id="user-wallet">💰 ...</span>
+                <span class="font-black brand-indigo" id="user-wallet">...</span>
             </div>
         </div>
 
@@ -72,11 +72,9 @@
         onAuthStateChanged(auth, user => {
             if (user) {
                 onSnapshot(doc(db, "users", user.uid), s => {
-                    if (s.exists()) {
-                        userData = s.data();
-                        document.getElementById("user-wallet").innerText = `💰 ${userData.wallet || 0}`;
-                        renderRewards();
-                    }
+                    userData = s.data();
+                    document.getElementById("user-wallet").innerText = `💰 ${userData.wallet || 0}`;
+                    renderRewards();
                 });
                 loadHistory(user.uid);
             } else { location.href = 'index.html'; }
@@ -132,7 +130,7 @@
                     });
                     await updateDoc(doc(db, "users", auth.currentUser.uid), { wallet: increment(-reward.cost) });
                     alert("Request submitted successfully!");
-                } catch (e) { alert("Error: " + e.message); }
+                } catch (e) { alert(e.message); }
             }
         };
 
