@@ -2,203 +2,170 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCC Admin Panel - Dark Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OCC - Rewards</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .tab-btn { color: #94a3b8; transition: all 0.3s; white-space: nowrap; }
-        .tab-btn.active { background: #4338ca; color: white; box-shadow: 0 4px 14px rgba(67, 56, 202, 0.4); }
-        .card-dark { background: #1e293b; border: 1px solid #334155; }
-        .input-dark { background: #0f172a; border: 1px solid #334155; color: white; outline: none; }
-        .input-dark:focus { border-color: #6366f1; }
-        .hidden { display: none !important; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .brand-indigo { color: #4338ca; }
+        .brand-bg-indigo { background-color: #4338ca; }
+        .btn-press:active { transform: scale(0.96); }
+        .reward-card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; transition: all 0.2s; }
+        .reward-card:hover { border-color: #4338ca; box-shadow: 0 10px 15px -3px rgba(67, 56, 202, 0.1); }
+        #gift-code-input { text-transform: uppercase; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div id="admin-login-overlay" class="fixed inset-0 bg-slate-950 z-[100] flex items-center justify-center p-4">
-        <div class="card-dark p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-2xl">
-            <h2 class="text-3xl font-black text-indigo-500 mb-2">ADMIN LOGIN</h2>
-            <div class="space-y-4">
-                <input type="email" id="admin-email" placeholder="Admin Email" class="input-dark w-full p-4 rounded-2xl">
-                <input type="password" id="admin-password" placeholder="Password" class="input-dark w-full p-4 rounded-2xl">
-                <button id="do-admin-login" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-black transition-all">Log In</button>
+<body class="text-slate-900 pb-20">
+    <div class="max-w-md mx-auto p-6">
+        <div class="flex justify-between items-center mb-8">
+            <button onclick="location.href='index.html'" class="p-3 bg-white rounded-2xl border border-slate-100 shadow-sm text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <h1 class="text-2xl font-black brand-indigo">REWARDS</h1>
+            <div class="bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+                <span class="font-black brand-indigo" id="user-wallet">...</span>
             </div>
         </div>
-    </div>
 
-    <div id="admin-content" class="max-w-5xl mx-auto hidden">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-black text-indigo-500 tracking-tighter">ADMIN CONSOLE</h1>
-            <button id="admin-logout-btn" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-xl font-bold transition-all text-white">Logout</button>
-        </header>
-
-        <section class="card-dark p-6 rounded-3xl mb-8">
-            <h2 class="text-lg font-black mb-4 flex items-center gap-2">📢 Global Announcement</h2>
-            <div class="flex flex-col md:flex-row gap-4">
-                <input type="text" id="ann-text" placeholder="Announcement message..." class="input-dark flex-1 p-4 rounded-2xl">
-                <input type="number" id="ann-hours" placeholder="Hours" class="input-dark w-24 p-4 rounded-2xl">
-                <button id="set-ann" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-4 rounded-2xl font-black transition-all">Push</button>
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm mb-8">
+            <h2 class="text-sm font-black mb-3 text-slate-500 uppercase tracking-wider">Have a Redeem Code?</h2>
+            <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 focus-within:border-indigo-400 transition-all">
+                <input type="text" id="gift-code-input" placeholder="Enter Code Here" class="flex-1 bg-transparent p-2.5 rounded-xl text-sm font-bold outline-none" oninput="this.value = this.value.toUpperCase()">
+                <button id="btn-redeem-code" class="btn-press brand-bg-indigo text-white px-6 py-3 rounded-xl font-black text-xs shadow-md">Claim</button>
             </div>
-        </section>
+        </div>
 
-        <nav class="flex gap-2 mb-8 overflow-x-auto pb-2">
-            <button onclick="switchTab('payouts')" class="tab-btn active px-6 py-3 rounded-xl font-bold transition-all" id="btn-payouts">Payout Requests</button>
-            <button onclick="switchTab('history')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-history">Payout History</button>
-            <button onclick="switchTab('users')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-users">Registered Users</button>
-            <button onclick="switchTab('redeem')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-redeem">Redeem Codes</button>
-        </nav>
+        <div class="grid grid-cols-1 gap-4 mb-10" id="reward-list"></div>
 
-        <section id="sec-payouts" class="tab-content space-y-4">
-            <div id="pending-list" class="grid gap-4"></div>
-        </section>
-
-        <section id="sec-history" class="tab-content hidden space-y-4">
-            <div id="history-list" class="grid gap-4"></div>
-        </section>
-
-        <section id="sec-users" class="tab-content hidden">
-            <div class="card-dark rounded-3xl p-6 overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead><tr class="border-b border-slate-700 text-slate-400"><th class="py-4">User</th><th>Email</th><th>Wallet</th><th>Actions</th></tr></thead>
-                    <tbody id="user-table-body" class="divide-y divide-slate-700"></tbody>
-                </table>
+        <div class="mt-10">
+            <h2 class="text-xl font-black mb-4">Payout History</h2>
+            <div id="payout-history" class="space-y-3 text-sm">
+                <p class="text-slate-400 italic">No requests yet...</p>
             </div>
-        </section>
-
-        <section id="sec-redeem" class="tab-content hidden space-y-6">
-            <div class="card-dark p-6 rounded-3xl">
-                <h2 class="text-xl font-black mb-4">Create New Redeem Code</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input type="text" id="new-code" placeholder="CODE123" class="input-dark p-4 rounded-2xl font-bold uppercase">
-                    <input type="number" id="code-coins" placeholder="Coins" class="input-dark p-4 rounded-2xl">
-                    <button id="create-code-btn" class="bg-emerald-600 hover:bg-emerald-500 py-4 rounded-2xl font-black transition-all">Generate Code</button>
-                </div>
-            </div>
-            <div class="card-dark rounded-3xl p-6 overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead><tr class="border-b border-slate-700 text-slate-400"><th class="py-4">Code</th><th>Coins</th><th>Status</th><th>Used By</th></tr></thead>
-                    <tbody id="redeem-table-body" class="divide-y divide-slate-700"></tbody>
-                </table>
-            </div>
-        </section>
-    </div>
-
-    <div id="payout-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="card-dark rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl">
-            <h3 class="text-xl font-black mb-4 text-indigo-400">Process Payout</h3>
-            <textarea id="admin-note" class="input-dark w-full p-4 rounded-2xl mb-4 h-32" placeholder="Enter redeem code or reason..."></textarea>
-            <div class="flex gap-2">
-                <button onclick="confirmPayout('accepted')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold">Accept</button>
-                <button onclick="confirmPayout('rejected')" class="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold">Reject</button>
-            </div>
-            <button onclick="closeModal()" class="w-full mt-4 text-slate-500 font-bold">Cancel</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, addDoc, collection, query, where, orderBy, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let activePayoutId = null;
+        const rewards = [
+            { id: 'gp50', title: 'Google Play Rs.50', cost: 50000, img: 'gplay.jpg' },
+            { id: 'gp100', title: 'Google Play Rs.100', cost: 100000, img: 'gplay.jpg' },
+            { id: 'gp150', title: 'Google Play Rs.150', cost: 150000, img: 'gplay.jpg' },
+            { id: 'gp200', title: 'Google Play Rs.200', cost: 200000, img: 'gplay.jpg' },
+            { id: 'am50', title: 'Amazon Rs.50', cost: 50000, img: 'agift.jpg' },
+            { id: 'am100', title: 'Amazon Rs.100', cost: 100000, img: 'agift.jpg' },
+            { id: 'am150', title: 'Amazon Rs.150', cost: 150000, img: 'agift.jpg' },
+            { id: 'am200', title: 'Amazon Rs.200', cost: 200000, img: 'agift.jpg' },
+        ];
+
+        let userData = null;
 
         onAuthStateChanged(auth, user => {
-            const overlay = document.getElementById("admin-login-overlay");
-            const content = document.getElementById("admin-content");
-            if (user && user.email === "admin@gmail.com") {
-                overlay.classList.add("hidden"); content.classList.remove("hidden"); loadData();
-            } else { overlay.classList.remove("hidden"); content.classList.add("hidden"); }
+            if (user) {
+                onSnapshot(doc(db, "users", user.uid), s => {
+                    userData = s.data();
+                    document.getElementById("user-wallet").innerText = `💰 ${userData.wallet || 0}`;
+                    renderRewards();
+                });
+                loadHistory(user.uid);
+            } else { location.href = 'index.html'; }
         });
 
-        document.getElementById("do-admin-login").onclick = async () => {
-            const email = document.getElementById("admin-email").value;
-            const pass = document.getElementById("admin-password").value;
-            try { await signInWithEmailAndPassword(auth, email, pass); } catch (e) { alert("Login Failed: " + e.message); }
+        function renderRewards() {
+            const list = document.getElementById("reward-list");
+            list.innerHTML = rewards.map(r => `
+                <div class="reward-card p-4 flex items-center gap-4">
+                    <img src="${r.img}" class="w-16 h-16 rounded-xl object-cover">
+                    <div class="flex-1">
+                        <h3 class="font-black text-sm">${r.title}</h3>
+                        <p class="text-indigo-600 font-bold text-xs">${r.cost.toLocaleString()} Coins</p>
+                    </div>
+                    <button onclick="requestPayout('${r.id}')" class="btn-press brand-bg-indigo text-white px-4 py-2 rounded-xl font-black text-xs">Redeem</button>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById("btn-redeem-code").onclick = async () => {
+            const code = document.getElementById("gift-code-input").value.trim().toUpperCase();
+            if(!code) return alert("Please enter a code");
+            try {
+                const codeRef = doc(db, "redeem_codes", code);
+                const codeSnap = await getDoc(codeRef);
+                if (!codeSnap.exists()) return alert("Invalid Code!");
+                const codeData = codeSnap.data();
+                if (codeData.status === "used") return alert("Already used!");
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { wallet: increment(codeData.coins) });
+                await updateDoc(codeRef, { status: "used", usedBy: auth.currentUser.email, usedAt: Date.now() });
+                alert(`Success! ${codeData.coins} coins added.`);
+                document.getElementById("gift-code-input").value = "";
+            } catch (e) { alert("Error: " + e.message); }
         };
 
-        document.getElementById("admin-logout-btn").onclick = () => signOut(auth);
-
-        window.switchTab = (tab) => {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`sec-${tab}`).classList.remove('hidden');
-            document.getElementById(`btn-${tab}`).classList.add('active');
+        window.requestPayout = async (rewardId) => {
+            const reward = rewards.find(r => r.id === rewardId);
+            if (userData.wallet < reward.cost) return alert("Insufficient coins!");
+            if (confirm(`Redeem ${reward.title}?`)) {
+                try {
+                    await addDoc(collection(db, "payouts"), {
+                        uid: auth.currentUser.uid,
+                        userName: userData.name || "User",
+                        userEmail: userData.email,
+                        currentWallet: userData.wallet,
+                        rewardTitle: reward.title,
+                        cost: reward.cost,
+                        status: 'pending',
+                        createdAt: Date.now(),
+                        adminMessage: ''
+                    });
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), { wallet: increment(-reward.cost) });
+                    alert("Request submitted successfully!");
+                } catch (e) { alert(e.message); }
+            }
         };
 
-        function loadData() {
-            // Payout Requests (Pending)
-            onSnapshot(query(collection(db, "payouts"), where("status", "==", "pending"), orderBy("createdAt", "desc")), s => {
-                document.getElementById("pending-list").innerHTML = s.docs.map(d => {
-                    const item = d.data();
-                    return `<div class="card-dark p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-l-indigo-500">
-                        <div><p class="text-xs font-bold text-indigo-400 uppercase">User: ${item.userName}</p><h3 class="text-lg font-black">${item.rewardTitle}</h3></div>
-                        <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-black">Process</button>
-                    </div>`;
-                }).join('');
-            });
+        function loadHistory(uid) {
+            // Simple query to bypass index issues
+            onSnapshot(collection(db, "payouts"), s => {
+                const container = document.getElementById("payout-history");
+                const userHistory = s.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(item => item.uid === uid)
+                    .sort((a, b) => b.createdAt - a.createdAt);
 
-            // History
-            onSnapshot(query(collection(db, "payouts"), where("status", "!=", "pending"), orderBy("createdAt", "desc")), s => {
-                document.getElementById("history-list").innerHTML = s.docs.map(d => {
-                    const item = d.data();
-                    const color = item.status === 'accepted' ? 'text-emerald-500' : 'text-red-500';
-                    return `<div class="card-dark p-4 rounded-2xl flex justify-between items-center">
-                        <div><p class="font-bold">${item.userName}</p><p class="text-xs text-slate-400">${item.rewardTitle}</p></div>
-                        <p class="font-black uppercase text-xs ${color}">${item.status}</p>
-                    </div>`;
-                }).join('');
-            });
+                if (userHistory.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 italic">No requests yet...</p>';
+                    return;
+                }
 
-            // Users
-            onSnapshot(collection(db, "users"), s => {
-                document.getElementById("user-table-body").innerHTML = s.docs.map(d => {
-                    const u = d.data();
-                    return `<tr><td class="py-4 font-bold text-indigo-300">${u.name}</td><td>${u.email}</td><td class="font-black">💰${u.wallet || 0}</td><td><button onclick="deleteUser('${d.id}')" class="text-red-500 font-black text-xs uppercase">Ban</button></td></tr>`;
-                }).join('');
-            });
-
-            // Codes
-            onSnapshot(query(collection(db, "redeem_codes"), orderBy("createdAt", "desc")), s => {
-                document.getElementById("redeem-table-body").innerHTML = s.docs.map(d => {
-                    const c = d.data();
-                    const color = c.status === 'active' ? 'text-emerald-400' : 'text-red-400';
-                    return `<tr class="border-b border-slate-800"><td class="py-4 font-black">${d.id}</td><td class="font-bold text-indigo-400">${c.coins}</td><td class="font-black uppercase text-xs ${color}">${c.status}</td><td class="text-slate-500 text-xs">${c.usedBy || '---'}</td></tr>`;
+                container.innerHTML = userHistory.map(data => {
+                    const statusColor = data.status === 'pending' ? 'text-amber-500' : (data.status === 'accepted' ? 'text-emerald-500' : 'text-red-500');
+                    return `
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-bold">${data.rewardTitle}</span>
+                                <span class="font-black uppercase text-[10px] ${statusColor}">${data.status}</span>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl text-xs mt-2 border border-slate-100">
+                                <p class="text-slate-500 mb-1"><strong>Status Update:</strong></p>
+                                <p class="${data.adminMessage ? 'text-indigo-600 font-bold' : 'text-slate-400 italic'}">
+                                    ${data.adminMessage || 'Processing your request...'}
+                                </p>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2">${new Date(data.createdAt).toLocaleString()}</p>
+                        </div>
+                    `;
                 }).join('');
             });
         }
-
-        document.getElementById("set-ann").onclick = async () => {
-            const text = document.getElementById("ann-text").value;
-            const hours = document.getElementById("ann-hours").value || 24;
-            if(!text) return alert("Enter message");
-            await setDoc(doc(db, "settings", "announcement"), { text, expiresAt: Date.now() + (hours * 3600000) });
-            alert("Announcement Set!");
-        };
-
-        document.getElementById("create-code-btn").onclick = async () => {
-            const code = document.getElementById("new-code").value.trim().toUpperCase();
-            const coins = parseInt(document.getElementById("code-coins").value);
-            if(!code || !coins) return alert("Fill all fields");
-            await setDoc(doc(db, "redeem_codes", code), { coins, status: "active", createdAt: Date.now() });
-            alert("Code Created!");
-        };
-
-        window.openPayoutModal = (id) => { activePayoutId = id; document.getElementById("payout-modal").classList.remove("hidden"); };
-        window.closeModal = () => { document.getElementById("payout-modal").classList.add("hidden"); document.getElementById("admin-note").value = ""; };
-        window.confirmPayout = async (status) => {
-            const note = document.getElementById("admin-note").value;
-            if (!note) return alert("Note required.");
-            await updateDoc(doc(db, "payouts", activePayoutId), { status, adminMessage: note, processedAt: Date.now() });
-            closeModal();
-        };
-        window.deleteUser = (id) => { if(confirm("Confirm Ban?")) deleteDoc(doc(db, "users", id)); };
     </script>
 </body>
 </html>
