@@ -24,7 +24,7 @@
             </button>
             <h1 class="text-2xl font-black brand-indigo">REWARDS</h1>
             <div class="bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
-                <span class="font-black brand-indigo" id="user-wallet">...</span>
+                <span class="font-black brand-indigo" id="user-wallet">💰 ...</span>
             </div>
         </div>
 
@@ -72,7 +72,7 @@
         onAuthStateChanged(auth, user => {
             if (user) {
                 onSnapshot(doc(db, "users", user.uid), s => {
-                    userData = s.data();
+                    userData = s.data() || {};
                     document.getElementById("user-wallet").innerText = `💰 ${userData.wallet || 0}`;
                     renderRewards();
                 });
@@ -103,8 +103,13 @@
                 if (!codeSnap.exists()) return alert("Invalid Code!");
                 const codeData = codeSnap.data();
                 if (codeData.status === "used") return alert("Already used!");
+                
                 await updateDoc(doc(db, "users", auth.currentUser.uid), { wallet: increment(codeData.coins) });
-                await updateDoc(codeRef, { status: "used", usedBy: auth.currentUser.email, usedAt: Date.now() });
+                await updateDoc(codeRef, { 
+                    status: "used", 
+                    usedBy: auth.currentUser.email, 
+                    usedAt: Date.now() 
+                });
                 alert(`Success! ${codeData.coins} coins added.`);
                 document.getElementById("gift-code-input").value = "";
             } catch (e) { alert("Error: " + e.message); }
@@ -112,23 +117,31 @@
 
         window.requestPayout = async (rewardId) => {
             const reward = rewards.find(r => r.id === rewardId);
-            if (userData.wallet < reward.cost) return alert("Insufficient coins!");
+            if (!userData || (userData.wallet || 0) < reward.cost) return alert("Insufficient coins!");
+            
             if (confirm(`Redeem ${reward.title}?`)) {
                 try {
+                    // FIXED: Ensuring no field is undefined
                     await addDoc(collection(db, "payouts"), {
                         uid: auth.currentUser.uid,
-                        userName: userData.name,
-                        userEmail: userData.email,
-                        currentWallet: userData.wallet,
-                        rewardTitle: reward.title,
-                        cost: reward.cost,
+                        userName: userData.name || "Unknown User",
+                        userEmail: userData.email || auth.currentUser.email,
+                        currentWallet: userData.wallet || 0,
+                        rewardTitle: reward.title || "Unknown Reward",
+                        cost: reward.cost || 0,
                         status: 'pending',
                         createdAt: Date.now(),
                         adminMessage: ''
                     });
-                    await updateDoc(doc(db, "users", auth.currentUser.uid), { wallet: increment(-reward.cost) });
-                    alert("Request submitted!");
-                } catch (e) { alert(e.message); }
+                    
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+                        wallet: increment(-reward.cost) 
+                    });
+                    alert("Request submitted successfully!");
+                } catch (e) { 
+                    console.error(e);
+                    alert("Submission Error: " + e.message); 
+                }
             }
         };
 
@@ -151,6 +164,8 @@
                         </div>
                     `;
                 }).join('');
+            }, (err) => {
+                console.log("Waiting for index or error: ", err);
             });
         }
     </script>
