@@ -6,14 +6,28 @@
     <title>OCC Bounce</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { touch-action: none; overflow: hidden; }
+        body { touch-action: none; overflow: hidden; font-family: 'Inter', sans-serif; }
         canvas { background: white; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); width: 100%; max-width: 380px; }
         .brand-gradient { background: linear-gradient(135deg,#7c3aed,#2563eb); }
+        .wallet-pill { background: white; padding: 6px 12px; border-radius: 50px; border: 2px solid #4338ca; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(67, 56, 202, 0.1); }
+        .brand-indigo { color: #4338ca; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1340372907809425"
      crossorigin="anonymous"></script>
 </head>
 <body class="brand-gradient flex flex-col items-center justify-center min-h-screen p-4">
+    
+    <div class="fixed top-6 left-6 right-6 flex justify-between items-center z-50">
+        <button onclick="location.href='index.html'" class="bg-white/20 hover:bg-white/30 text-white p-3 rounded-2xl backdrop-blur-md transition-all">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        
+        <div class="wallet-pill">
+            <span class="text-sm">💰</span>
+            <span id="game-wallet-amount" class="font-black brand-indigo text-sm">...</span>
+        </div>
+    </div>
+
     <div class="text-white text-center mb-6">
         <h1 class="text-4xl font-black tracking-tighter">OCC BOUNCE</h1>
         <div class="text-5xl font-bold mt-2 opacity-90" id="score">0</div>
@@ -28,7 +42,29 @@
     
     <a href="index.html" class="mt-8 text-white/60 font-bold uppercase tracking-widest text-xs py-3 px-6 border border-white/20 rounded-full">Exit Game</a>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUser = user;
+                onSnapshot(doc(db, "users", user.uid), s => {
+                    if(s.exists()) document.getElementById("game-wallet-amount").innerText = s.data().wallet || 0;
+                });
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let score = 0;
@@ -42,7 +78,7 @@
             obstacles = [];
         }
 
-        function startGame() {
+        window.startGame = function() {
             init();
             gameActive = true;
             document.getElementById('start-overlay').classList.add('hidden');
@@ -50,9 +86,19 @@
         }
 
         function createObstacle() {
-            const gap = 180; // Easier gap
+            const gap = 180; 
             const pos = Math.random() * (canvas.height - gap - 150) + 75;
-            obstacles.push({ x: canvas.width, y: pos, gap: gap, width: 65 });
+            obstacles.push({ x: canvas.width, y: pos, gap: gap, width: 65, passed: false });
+        }
+
+        async function addReward() {
+            if(currentUser) {
+                try {
+                    await updateDoc(doc(db, "users", currentUser.uid), {
+                        wallet: increment(5)
+                    });
+                } catch(e) { console.error("Reward error:", e); }
+            }
         }
 
         function update() {
@@ -64,11 +110,18 @@
             if (obstacles.length === 0 || obstacles[obstacles.length - 1].x < canvas.width - 220) createObstacle();
 
             obstacles.forEach((obs, i) => {
-                obs.x -= 2.8; // Slower speed for mobile
-                if (obs.x + obs.width < 0) {
-                    obstacles.splice(i, 1);
+                obs.x -= 2.8; 
+                
+                // Check if obstacle is passed
+                if (!obs.passed && ball.x > obs.x + obs.width) {
+                    obs.passed = true;
                     score++;
                     document.getElementById('score').innerText = score;
+                    addReward(); // Award 5 points instantly
+                }
+
+                if (obs.x + obs.width < 0) {
+                    obstacles.splice(i, 1);
                 }
 
                 if (ball.x + ball.radius > obs.x && ball.x - ball.radius < obs.x + obs.width) {
@@ -80,17 +133,14 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw Ball
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
             ctx.fillStyle = "#4f46e5";
             ctx.fill();
             ctx.closePath();
 
-            // Draw Obstacles
             ctx.fillStyle = "#f1f5f9";
             obstacles.forEach(obs => {
-                ctx.roundRect ? ctx.beginPath() : null;
                 ctx.fillRect(obs.x, 0, obs.width, obs.y);
                 ctx.fillRect(obs.x, obs.y + obs.gap, obs.width, canvas.height);
             });
@@ -111,9 +161,12 @@
 
         window.onmousedown = (e) => { if(gameActive) ball.velocity = ball.jump; };
         window.ontouchstart = (e) => { 
-            e.preventDefault();
-            if(gameActive) ball.velocity = ball.jump; 
+            if(gameActive) {
+                e.preventDefault();
+                ball.velocity = ball.jump; 
+            }
         };
+
         init(); draw();
     </script>
 </body>
