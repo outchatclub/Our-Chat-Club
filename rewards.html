@@ -27,8 +27,15 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 mb-10" id="reward-list">
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm mb-8">
+            <h2 class="text-sm font-black mb-3 text-slate-500 uppercase tracking-wider">Have a Redeem Code?</h2>
+            <div class="flex gap-2">
+                <input type="text" id="gift-code-input" placeholder="Enter Code Here" class="flex-1 bg-slate-50 border border-slate-100 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-400">
+                <button id="btn-redeem-code" class="btn-press brand-bg-indigo text-white px-5 py-3 rounded-xl font-black text-xs">Claim</button>
             </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 mb-10" id="reward-list"></div>
 
         <div class="mt-10">
             <h2 class="text-xl font-black mb-4">Payout History</h2>
@@ -40,7 +47,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, addDoc, collection, query, where, orderBy, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, addDoc, collection, query, where, orderBy, updateDoc, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -49,14 +56,14 @@
         const auth = getAuth(app);
 
         const rewards = [
-            { id: 'gp50', title: 'Google Play Rs.50', cost: 50000, img: 'gplay.jpg', type: 'Google Play' },
-            { id: 'gp100', title: 'Google Play Rs.100', cost: 100000, img: 'gplay.jpg', type: 'Google Play' },
-            { id: 'gp150', title: 'Google Play Rs.150', cost: 150000, img: 'gplay.jpg', type: 'Google Play' },
-            { id: 'gp200', title: 'Google Play Rs.200', cost: 200000, img: 'gplay.jpg', type: 'Google Play' },
-            { id: 'am50', title: 'Amazon Rs.50', cost: 50000, img: 'agift.jpg', type: 'Amazon' },
-            { id: 'am100', title: 'Amazon Rs.100', cost: 100000, img: 'agift.jpg', type: 'Amazon' },
-            { id: 'am150', title: 'Amazon Rs.150', cost: 150000, img: 'agift.jpg', type: 'Amazon' },
-            { id: 'am200', title: 'Amazon Rs.200', cost: 200000, img: 'agift.jpg', type: 'Amazon' },
+            { id: 'gp50', title: 'Google Play Rs.50', cost: 50000, img: 'gplay.jpg' },
+            { id: 'gp100', title: 'Google Play Rs.100', cost: 100000, img: 'gplay.jpg' },
+            { id: 'gp150', title: 'Google Play Rs.150', cost: 150000, img: 'gplay.jpg' },
+            { id: 'gp200', title: 'Google Play Rs.200', cost: 200000, img: 'gplay.jpg' },
+            { id: 'am50', title: 'Amazon Rs.50', cost: 50000, img: 'agift.jpg' },
+            { id: 'am100', title: 'Amazon Rs.100', cost: 100000, img: 'agift.jpg' },
+            { id: 'am150', title: 'Amazon Rs.150', cost: 150000, img: 'agift.jpg' },
+            { id: 'am200', title: 'Amazon Rs.200', cost: 200000, img: 'agift.jpg' },
         ];
 
         let userData = null;
@@ -85,6 +92,37 @@
                 </div>
             `).join('');
         }
+
+        // NEW: Redeem Code Logic
+        document.getElementById("btn-redeem-code").onclick = async () => {
+            const code = document.getElementById("gift-code-input").value.trim();
+            if(!code) return alert("Please enter a code");
+
+            try {
+                const codeRef = doc(db, "redeem_codes", code);
+                const codeSnap = await getDoc(codeRef);
+
+                if (!codeSnap.exists()) return alert("Invalid Code!");
+                const codeData = codeSnap.data();
+
+                if (codeData.status === "used") return alert("This code has already been used!");
+
+                // Apply rewards
+                await updateDoc(doc(db, "users", auth.currentUser.uid), {
+                    wallet: increment(codeData.coins)
+                });
+
+                // Mark code as used
+                await updateDoc(codeRef, {
+                    status: "used",
+                    usedBy: auth.currentUser.email,
+                    usedAt: Date.now()
+                });
+
+                alert(`Success! ${codeData.coins} coins added to your wallet.`);
+                document.getElementById("gift-code-input").value = "";
+            } catch (e) { alert("Error: " + e.message); }
+        };
 
         window.requestPayout = async (rewardId) => {
             const reward = rewards.find(r => r.id === rewardId);
