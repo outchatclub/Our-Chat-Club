@@ -3,61 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCC Admin Panel</title>
+    <title>OCC Admin Panel - Dark Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #f1f5f9; font-family: 'Inter', sans-serif; }
-        .tab-btn.active { background: #4338ca; color: white; }
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .tab-btn { color: #94a3b8; transition: all 0.3s; }
+        .tab-btn.active { background: #4338ca; color: white; box-shadow: 0 4px 14px rgba(67, 56, 202, 0.4); }
+        .card-dark { background: #1e293b; border: 1px solid #334155; }
+        .input-dark { background: #0f172a; border: 1px solid #334155; color: white; outline: none; }
+        .input-dark:focus { border-color: #6366f1; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
     <div class="max-w-5xl mx-auto">
         <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-black text-indigo-700">Admin Console</h1>
-            <button onclick="location.href='index.html'" class="bg-white px-6 py-2 rounded-xl shadow-sm font-bold">Exit</button>
+            <h1 class="text-3xl font-black text-indigo-500 tracking-tighter">ADMIN CONSOLE</h1>
+            <button onclick="location.href='index.html'" class="bg-slate-800 hover:bg-slate-700 px-6 py-2 rounded-xl font-bold transition-all">Exit</button>
         </header>
 
+        <section class="card-dark p-6 rounded-3xl mb-8">
+            <h2 class="text-lg font-black mb-4 flex items-center gap-2">📢 Global Announcement</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="ann-text" placeholder="Announcement message..." class="input-dark flex-1 p-4 rounded-2xl">
+                <input type="number" id="ann-hours" placeholder="Hours" class="input-dark w-24 p-4 rounded-2xl">
+                <button id="set-ann" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-4 rounded-2xl font-black transition-all">Push</button>
+            </div>
+        </section>
+
         <nav class="flex gap-2 mb-8 overflow-x-auto pb-2">
-            <button onclick="switchTab('payouts')" class="tab-btn active px-6 py-3 rounded-xl font-bold bg-white shadow-sm transition-all" id="btn-payouts">Payout Requests</button>
-            <button onclick="switchTab('history')" class="tab-btn px-6 py-3 rounded-xl font-bold bg-white shadow-sm transition-all" id="btn-history">Payout History</button>
-            <button onclick="switchTab('users')" class="tab-btn px-6 py-3 rounded-xl font-bold bg-white shadow-sm transition-all" id="btn-users">Registered Users</button>
+            <button onclick="switchTab('payouts')" class="tab-btn active px-6 py-3 rounded-xl font-bold transition-all" id="btn-payouts">Payout Requests</button>
+            <button onclick="switchTab('history')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-history">Payout History</button>
+            <button onclick="switchTab('users')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-users">Registered Users</button>
         </nav>
 
         <section id="sec-payouts" class="tab-content space-y-4">
-            <h2 class="text-xl font-black mb-4">Active Requests</h2>
+            <h2 class="text-xl font-black mb-4 text-slate-400">Active Requests</h2>
             <div id="pending-list" class="grid gap-4"></div>
         </section>
 
         <section id="sec-history" class="tab-content hidden space-y-4">
-            <h2 class="text-xl font-black mb-4">Processed History</h2>
+            <h2 class="text-xl font-black mb-4 text-slate-400">Processed History</h2>
             <div id="history-list" class="grid gap-4"></div>
         </section>
 
         <section id="sec-users" class="tab-content hidden">
-            <div class="bg-white rounded-3xl p-6 shadow-sm overflow-x-auto">
+            <div class="card-dark rounded-3xl p-6 overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead><tr class="border-b"><th class="py-4">User</th><th>Email</th><th>Wallet</th><th>Actions</th></tr></thead>
-                    <tbody id="user-table-body"></tbody>
+                    <thead><tr class="border-b border-slate-700 text-slate-400"><th class="py-4">User</th><th>Email</th><th>Wallet</th><th>Actions</th></tr></thead>
+                    <tbody id="user-table-body" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
         </section>
     </div>
 
-    <div id="payout-modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl p-8 max-w-sm w-full">
-            <h3 class="text-xl font-black mb-4" id="modal-title">Process Payout</h3>
-            <textarea id="admin-note" class="w-full border p-4 rounded-2xl mb-4 h-32" placeholder="Enter redeem code or reason for rejection..."></textarea>
+    <div id="payout-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="card-dark rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl">
+            <h3 class="text-xl font-black mb-4 text-indigo-400" id="modal-title">Process Payout</h3>
+            <textarea id="admin-note" class="input-dark w-full p-4 rounded-2xl mb-4 h-32" placeholder="Enter redeem code or reason..."></textarea>
             <div class="flex gap-2">
-                <button onclick="confirmPayout('accepted')" class="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-bold">Accept</button>
-                <button onclick="confirmPayout('rejected')" class="flex-1 bg-red-500 text-white py-3 rounded-xl font-bold">Reject</button>
+                <button onclick="confirmPayout('accepted')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-3 rounded-xl font-bold transition-all">Accept</button>
+                <button onclick="confirmPayout('rejected')" class="flex-1 bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold transition-all">Reject</button>
             </div>
-            <button onclick="closeModal()" class="w-full mt-2 text-slate-400 font-bold">Cancel</button>
+            <button onclick="closeModal()" class="w-full mt-4 text-slate-500 font-bold">Cancel</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -67,9 +83,10 @@
 
         let activePayoutId = null;
 
+        // Security Feature: Admin-only access
         onAuthStateChanged(auth, user => {
             if (!user || user.email !== "admin@gmail.com") {
-                alert("Access Denied");
+                alert("Security Alert: Unauthorized Access Restricted.");
                 location.href = 'index.html';
             } else {
                 loadData();
@@ -83,51 +100,65 @@
             document.getElementById(`btn-${tab}`).classList.add('active');
         };
 
+        // Announcement Logic (Restored)
+        document.getElementById("set-ann").onclick = async () => {
+            const text = document.getElementById("ann-text").value;
+            const hours = document.getElementById("ann-hours").value;
+            if(!text || !hours) return alert("Fill all fields");
+            try {
+                await setDoc(doc(db, "settings", "announcement"), {
+                    text: text,
+                    expiry: Date.now() + (hours * 3600000)
+                });
+                alert("Announcement Pushed Successfully!");
+            } catch(e) { alert(e.message); }
+        };
+
         function loadData() {
-            // Pending Payouts
+            // Pending Requests
             onSnapshot(query(collection(db, "payouts"), where("status", "==", "pending"), orderBy("createdAt", "desc")), s => {
                 document.getElementById("pending-list").innerHTML = s.docs.map(d => {
                     const item = d.data();
                     return `
-                        <div class="bg-white p-6 rounded-3xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="card-dark p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-l-indigo-500">
                             <div>
-                                <p class="text-xs font-bold text-indigo-600 uppercase">Request from ${item.userName}</p>
+                                <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest">User: ${item.userName}</p>
                                 <h3 class="text-lg font-black">${item.rewardTitle}</h3>
-                                <p class="text-sm text-slate-500">${item.userEmail} | Current: 💰${item.currentWallet}</p>
+                                <p class="text-sm text-slate-400">${item.userEmail} | Wallet: 💰${item.currentWallet}</p>
                             </div>
-                            <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold">Process</button>
+                            <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-3 rounded-xl font-black transition-all">Process</button>
                         </div>
                     `;
                 }).join('');
             });
 
-            // Payout History
-            onSnapshot(query(collection(db, "payouts"), where("status", "!=", "pending"), orderBy("status")), s => {
+            // History
+            onSnapshot(query(collection(db, "payouts"), where("status", "!=", "pending"), orderBy("processedAt", "desc")), s => {
                 document.getElementById("history-list").innerHTML = s.docs.map(d => {
                     const item = d.data();
-                    const color = item.status === 'accepted' ? 'bg-emerald-50' : 'bg-red-50';
+                    const colorClass = item.status === 'accepted' ? 'text-emerald-400 border-emerald-900/50' : 'text-red-400 border-red-900/50';
                     return `
-                        <div class="${color} p-4 rounded-2xl border flex justify-between items-center">
+                        <div class="card-dark p-4 rounded-2xl border ${colorClass} flex justify-between items-center bg-opacity-50">
                             <div>
-                                <p class="font-bold">${item.userName} - ${item.rewardTitle}</p>
-                                <p class="text-xs">${item.adminMessage}</p>
+                                <p class="font-black">${item.userName} - ${item.rewardTitle}</p>
+                                <p class="text-xs text-slate-400 mt-1">${item.adminMessage}</p>
                             </div>
-                            <span class="font-black uppercase text-xs">${item.status}</span>
+                            <span class="font-black uppercase text-xs px-3 py-1 rounded-full bg-black/20">${item.status}</span>
                         </div>
                     `;
                 }).join('');
             });
 
-            // Users List
+            // Registered Users List
             onSnapshot(collection(db, "users"), s => {
                 document.getElementById("user-table-body").innerHTML = s.docs.map(d => {
                     const u = d.data();
                     return `
-                        <tr class="border-b">
-                            <td class="py-4 font-bold">${u.name}</td>
-                            <td>${u.email}</td>
-                            <td class="font-black text-indigo-600">${u.wallet || 0}</td>
-                            <td><button onclick="deleteUser('${d.id}')" class="text-red-500 text-xs font-bold">Delete</button></td>
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="py-4 font-bold text-indigo-300">${u.name}</td>
+                            <td class="text-slate-400 text-sm">${u.email}</td>
+                            <td class="font-black text-white">💰${u.wallet || 0}</td>
+                            <td><button onclick="deleteUser('${d.id}')" class="text-red-500 hover:text-red-400 text-xs font-black uppercase">Ban User</button></td>
                         </tr>
                     `;
                 }).join('');
@@ -146,8 +177,7 @@
 
         window.confirmPayout = async (status) => {
             const note = document.getElementById("admin-note").value;
-            if (!note) return alert("Please enter a message or code.");
-            
+            if (!note) return alert("You must provide a code or a rejection reason.");
             try {
                 await updateDoc(doc(db, "payouts", activePayoutId), {
                     status: status,
@@ -159,7 +189,9 @@
         };
 
         window.deleteUser = (id) => {
-            if(confirm("Permanently delete this user?")) deleteDoc(doc(db, "users", id));
+            if(confirm("Are you sure you want to BAN and delete this user? This cannot be undone.")) {
+                deleteDoc(doc(db, "users", id));
+            }
         };
     </script>
 </body>
