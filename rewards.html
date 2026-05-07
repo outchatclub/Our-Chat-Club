@@ -25,7 +25,7 @@
             </button>
             <h1 class="text-2xl font-black brand-indigo">REWARDS</h1>
             <div class="bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
-                <span class="font-black brand-indigo" id="user-wallet">...</span>
+                <span class="font-black brand-indigo" id="user-wallet">💰 ...</span>
             </div>
         </div>
 
@@ -73,9 +73,11 @@
         onAuthStateChanged(auth, user => {
             if (user) {
                 onSnapshot(doc(db, "users", user.uid), s => {
-                    userData = s.data();
-                    document.getElementById("user-wallet").innerText = `💰 ${userData.wallet || 0}`;
-                    renderRewards();
+                    if (s.exists()) {
+                        userData = s.data();
+                        document.getElementById("user-wallet").innerText = `💰 ${userData.wallet || 0}`;
+                        renderRewards();
+                    }
                 });
                 loadHistory(user.uid);
             } else { location.href = 'index.html'; }
@@ -95,7 +97,6 @@
             `).join('');
         }
 
-        // NEW: Redeem Code Logic
         document.getElementById("btn-redeem-code").onclick = async () => {
             const code = document.getElementById("gift-code-input").value.trim().toUpperCase();
             if(!code) return alert("Please enter a code");
@@ -109,12 +110,10 @@
 
                 if (codeData.status === "used") return alert("This code has already been used!");
 
-                // Apply rewards
                 await updateDoc(doc(db, "users", auth.currentUser.uid), {
                     wallet: increment(codeData.coins)
                 });
 
-                // Mark code as used
                 await updateDoc(codeRef, {
                     status: "used",
                     usedBy: auth.currentUser.email,
@@ -128,15 +127,16 @@
 
         window.requestPayout = async (rewardId) => {
             const reward = rewards.find(r => r.id === rewardId);
-            if (userData.wallet < reward.cost) return alert("Insufficient coins!");
+            if (!userData || userData.wallet < reward.cost) return alert("Insufficient coins!");
             
             if (confirm(`Redeem ${reward.title} for ${reward.cost} coins?`)) {
                 try {
+                    // FIX: Using fallbacks (||) to prevent "undefined" error in Firebase
                     await addDoc(collection(db, "payouts"), {
                         uid: auth.currentUser.uid,
-                        userName: userData.name,
-                        userEmail: userData.email,
-                        currentWallet: userData.wallet,
+                        userName: userData.name || "Unknown User",
+                        userEmail: userData.email || auth.currentUser.email || "No Email",
+                        currentWallet: userData.wallet || 0,
                         rewardTitle: reward.title,
                         cost: reward.cost,
                         status: 'pending',
@@ -148,7 +148,10 @@
                         wallet: increment(-reward.cost)
                     });
                     alert("Request submitted successfully!");
-                } catch (e) { alert(e.message); }
+                } catch (e) { 
+                    console.error("Payout error:", e);
+                    alert("Error submitting request: " + e.message); 
+                }
             }
         };
 
