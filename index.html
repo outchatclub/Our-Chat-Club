@@ -155,7 +155,8 @@
                 onSnapshot(doc(db, "settings", "announcement"), s => {
                     const d = s.data();
                     const bar = document.getElementById("ann-bar");
-                    if(d && d.expiry > Date.now()) {
+                    // FIXED: Changed d.expiry to d.expiresAt to match Admin Panel
+                    if(d && d.expiresAt > Date.now()) {
                         document.getElementById("ann-text-display").innerText = d.text;
                         bar.classList.remove("hidden");
                     } else bar.classList.add("hidden");
