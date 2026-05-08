@@ -120,7 +120,7 @@
                     await addDoc(collection(db, "payouts"), {
                         uid: auth.currentUser.uid,
                         userName: userData.name || "User",
-                        userEmail: userData.email,
+                        userEmail: auth.currentUser.email || "No Email",
                         currentWallet: userData.wallet,
                         rewardTitle: reward.title,
                         cost: reward.cost,
@@ -135,7 +135,6 @@
         };
 
         function loadHistory(uid) {
-            // Simple query to bypass index issues
             onSnapshot(collection(db, "payouts"), s => {
                 const container = document.getElementById("payout-history");
                 const userHistory = s.docs
