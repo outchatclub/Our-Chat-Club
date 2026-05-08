@@ -133,19 +133,21 @@
         };
 
         function loadHistory(uid) {
-            // FIX: Query using "uid" to match security rules
+            // FIX: Use query with where clause to filter data by current user's UID
             const q = query(collection(db, "payouts"), where("uid", "==", uid));
             
-            onSnapshot(q, s => {
+            onSnapshot(q, (snapshot) => {
                 const container = document.getElementById("payout-history");
-                const userHistory = s.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .sort((a, b) => b.createdAt - a.createdAt);
-
-                if (userHistory.length === 0) {
+                
+                if (snapshot.empty) {
                     container.innerHTML = '<p class="text-slate-400 italic">No requests yet...</p>';
                     return;
                 }
+
+                // Sort and map the data manually since composite indexes might not be set yet
+                const userHistory = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a, b) => b.createdAt - a.createdAt);
 
                 container.innerHTML = userHistory.map(data => {
                     const statusColor = data.status === 'pending' ? 'text-amber-500' : (data.status === 'accepted' ? 'text-emerald-500' : 'text-red-500');
@@ -156,7 +158,7 @@
                                 <span class="font-black uppercase text-[10px] ${statusColor}">${data.status}</span>
                             </div>
                             <div class="bg-slate-50 p-3 rounded-xl text-xs mt-2 border border-slate-100">
-                                <p class="text-slate-500 mb-1"><strong>Status:</strong></p>
+                                <p class="text-slate-500 mb-1"><strong>Update:</strong></p>
                                 <p class="${data.adminMessage ? 'text-indigo-600 font-bold' : 'text-slate-400 italic'}">
                                     ${data.adminMessage || 'Processing your request...'}
                                 </p>
