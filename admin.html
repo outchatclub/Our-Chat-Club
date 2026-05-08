@@ -99,7 +99,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, where, orderBy, doc, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, where, getDoc, doc, updateDoc, deleteDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
         const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
@@ -108,6 +108,7 @@
         const auth = getAuth(app);
 
         let activePayoutId = null;
+        let allUsers = {}; // ক্যাশড ইউজার ডেটা
 
         onAuthStateChanged(auth, user => {
             const overlay = document.getElementById("admin-login-overlay");
@@ -132,37 +133,33 @@
             document.getElementById(`btn-${tab}`).classList.add('active');
         };
 
-        function loadData() {
-            // FIX: Simple query to bypass index issues for now
-            onSnapshot(collection(db, "payouts"), s => {
-                const pendingList = [];
-                const historyList = [];
+        async function loadData() {
+            // ১. ইউজার কালেকশন ট্র্যাক করা (ইমেল, ওয়ালেট এবং রিকোয়েস্ট কাউন্টের জন্য)
+            onSnapshot(collection(db, "users"), async (userSnap) => {
+                const userTable = [];
+                const payoutSnap = await getDocs(collection(db, "payouts"));
                 
-                s.docs.forEach(d => {
-                    const item = d.data();
-                    if(item.status === 'pending') {
-                        pendingList.push(`<div class="card-dark p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-l-indigo-500">
-                            <div><p class="text-xs font-bold text-indigo-400 uppercase">User: ${item.userName}</p><h3 class="text-lg font-black">${item.rewardTitle}</h3></div>
-                            <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-black">Process</button>
-                        </div>`);
-                    } else {
-                        const color = item.status === 'accepted' ? 'text-emerald-500' : 'text-red-500';
-                        historyList.push(`<div class="card-dark p-4 rounded-2xl flex justify-between items-center">
-                            <div><p class="font-bold">${item.userName}</p><p class="text-xs text-slate-400">${item.rewardTitle}</p></div>
-                            <p class="font-black uppercase text-xs ${color}">${item.status}</p>
-                        </div>`);
-                    }
+                // রিকোয়েস্ট কাউন্ট করার জন্য ম্যাপ
+                const countMap = {};
+                payoutSnap.forEach(p => {
+                    const uid = p.data().uid;
+                    countMap[uid] = (countMap[uid] || 0) + 1;
                 });
 
-                document.getElementById("pending-list").innerHTML = pendingList.length ? pendingList.join('') : '<p class="text-slate-500 italic">No pending requests...</p>';
-                document.getElementById("history-list").innerHTML = historyList.length ? historyList.join('') : '<p class="text-slate-500 italic">No history...</p>';
+                userSnap.docs.forEach(d => {
+                    const u = d.data();
+                    allUsers[d.id] = { ...u, totalRequests: countMap[d.id] || 0 };
+                    userTable.push(`<tr><td class="py-4 font-bold text-indigo-300">${u.name}</td><td>${u.email}</td><td class="font-black">💰${u.wallet || 0}</td><td><button onclick="deleteUser('${d.id}')" class="text-red-500 font-black text-xs uppercase">Ban</button></td></tr>`);
+                });
+                document.getElementById("user-table-body").innerHTML = userTable.join('');
+
+                // ২. পে-আউট লিস্ট রিফ্রেশ করা (ইউজার ডেটাসহ)
+                renderPayouts();
             });
 
-            onSnapshot(collection(db, "users"), s => {
-                document.getElementById("user-table-body").innerHTML = s.docs.map(d => {
-                    const u = d.data();
-                    return `<tr><td class="py-4 font-bold text-indigo-300">${u.name}</td><td>${u.email}</td><td class="font-black">💰${u.wallet || 0}</td><td><button onclick="deleteUser('${d.id}')" class="text-red-500 font-black text-xs uppercase">Ban</button></td></tr>`;
-                }).join('');
+            // পে-আউট কালেকশন রিয়েলটাইম ট্র্যাক করা
+            onSnapshot(collection(db, "payouts"), s => {
+                renderPayouts(s.docs);
             });
 
             onSnapshot(collection(db, "redeem_codes"), s => {
@@ -172,6 +169,41 @@
                     return `<tr class="border-b border-slate-800"><td class="py-4 font-black">${d.id}</td><td class="font-bold text-indigo-400">${c.coins}</td><td class="font-black uppercase text-xs ${color}">${c.status}</td><td class="text-slate-500 text-xs">${c.usedBy || '---'}</td></tr>`;
                 }).join('');
             });
+        }
+
+        async function renderPayouts(docs = null) {
+            const snap = docs || (await getDocs(collection(db, "payouts"))).docs;
+            const pendingList = [];
+            const historyList = [];
+            
+            snap.forEach(d => {
+                const item = d.data();
+                const uInfo = allUsers[item.uid] || { email: "Loading...", wallet: 0, totalRequests: 0 };
+                
+                if(item.status === 'pending') {
+                    pendingList.push(`<div class="card-dark p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-l-indigo-500">
+                        <div class="flex-1">
+                            <p class="text-xs font-bold text-indigo-400 uppercase">User: ${item.userName}</p>
+                            <h3 class="text-lg font-black">${item.rewardTitle}</h3>
+                            <div class="mt-2 text-xs text-slate-400 space-y-1">
+                                <p>📧 Email: ${uInfo.email}</p>
+                                <p>💰 Wallet: ${uInfo.wallet}</p>
+                                <p>📊 Total Payout Requests: ${uInfo.totalRequests}</p>
+                            </div>
+                        </div>
+                        <button onclick="openPayoutModal('${d.id}')" class="bg-indigo-600 text-white px-8 py-3 rounded-xl font-black">Process</button>
+                    </div>`);
+                } else {
+                    const color = item.status === 'accepted' ? 'text-emerald-500' : 'text-red-500';
+                    historyList.push(`<div class="card-dark p-4 rounded-2xl flex justify-between items-center">
+                        <div><p class="font-bold">${item.userName}</p><p class="text-xs text-slate-400">${item.rewardTitle}</p></div>
+                        <p class="font-black uppercase text-xs ${color}">${item.status}</p>
+                    </div>`);
+                }
+            });
+
+            document.getElementById("pending-list").innerHTML = pendingList.length ? pendingList.join('') : '<p class="text-slate-500 italic">No pending requests...</p>';
+            document.getElementById("history-list").innerHTML = historyList.length ? historyList.join('') : '<p class="text-slate-500 italic">No history...</p>';
         }
 
         document.getElementById("set-ann").onclick = async () => {
