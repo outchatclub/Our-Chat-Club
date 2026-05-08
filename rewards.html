@@ -15,8 +15,6 @@
         .reward-card:hover { border-color: #4338ca; box-shadow: 0 10px 15px -3px rgba(67, 56, 202, 0.1); }
         #gift-code-input { text-transform: uppercase; }
     </style>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1340372907809425"
-     crossorigin="anonymous"></script>
 </head>
 <body class="text-slate-900 pb-20">
     <div class="max-w-md mx-auto p-6">
@@ -120,8 +118,6 @@
                     await addDoc(collection(db, "payouts"), {
                         uid: auth.currentUser.uid,
                         userName: userData.name || "User",
-                        userEmail: auth.currentUser.email || "No Email",
-                        currentWallet: userData.wallet,
                         rewardTitle: reward.title,
                         cost: reward.cost,
                         status: 'pending',
@@ -135,11 +131,13 @@
         };
 
         function loadHistory(uid) {
-            onSnapshot(collection(db, "payouts"), s => {
+            // FIX: Query using "uid" to match security rules
+            const q = query(collection(db, "payouts"), where("uid", "==", uid));
+            
+            onSnapshot(q, s => {
                 const container = document.getElementById("payout-history");
                 const userHistory = s.docs
                     .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .filter(item => item.uid === uid)
                     .sort((a, b) => b.createdAt - a.createdAt);
 
                 if (userHistory.length === 0) {
@@ -150,13 +148,13 @@
                 container.innerHTML = userHistory.map(data => {
                     const statusColor = data.status === 'pending' ? 'text-amber-500' : (data.status === 'accepted' ? 'text-emerald-500' : 'text-red-500');
                     return `
-                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-3">
                             <div class="flex justify-between items-start mb-2">
                                 <span class="font-bold">${data.rewardTitle}</span>
                                 <span class="font-black uppercase text-[10px] ${statusColor}">${data.status}</span>
                             </div>
                             <div class="bg-slate-50 p-3 rounded-xl text-xs mt-2 border border-slate-100">
-                                <p class="text-slate-500 mb-1"><strong>Status Update:</strong></p>
+                                <p class="text-slate-500 mb-1"><strong>Status:</strong></p>
                                 <p class="${data.adminMessage ? 'text-indigo-600 font-bold' : 'text-slate-400 italic'}">
                                     ${data.adminMessage || 'Processing your request...'}
                                 </p>
