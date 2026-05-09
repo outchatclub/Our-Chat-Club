@@ -87,7 +87,7 @@
                 </div>
             </div>
         </div>
-        <button onclick="location.href='donateus.html'" class="btn-press w-full mb-8 py-4 brand-bg-indigo text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg">Donate Us</button>
+
         <div class="grid grid-cols-2 gap-4 mb-4">
             <button onclick="location.href='minigame.html'" class="btn-press bg-white border border-slate-100 p-5 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center gap-3">
                 <div class="brand-bg-indigo w-14 h-14 rounded-3xl flex items-center justify-center text-2xl shadow-inner">🎮</div>
@@ -107,13 +107,18 @@
             <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
         </button>
 
-        <button onclick="location.href='rewards.html'" class="btn-press w-full bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex items-center justify-between px-6">
+        <button onclick="location.href='rewards.html'" class="btn-press w-full bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex items-center justify-between px-6 mb-8">
             <div class="flex items-center gap-4">
                 <div class="bg-amber-500 w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg shadow-sm">🎁</div>
                 <span class="font-black text-slate-800 text-[11px] uppercase tracking-widest">Rewards</span>
             </div>
             <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
         </button>
+
+        <div class="flex justify-between items-center px-2">
+            <a href="privacy.html" class="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">Privacy Policy</a>
+            <a href="terms.html" class="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">Terms & Conditions</a>
+        </div>
     </div>
 
     <script type="module">
@@ -155,7 +160,6 @@
                 onSnapshot(doc(db, "settings", "announcement"), s => {
                     const d = s.data();
                     const bar = document.getElementById("ann-bar");
-                    // FIXED: Changed d.expiry to d.expiresAt to match Admin Panel
                     if(d && d.expiresAt > Date.now()) {
                         document.getElementById("ann-text-display").innerText = d.text;
                         bar.classList.remove("hidden");
