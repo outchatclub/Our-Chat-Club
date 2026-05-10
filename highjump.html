@@ -7,107 +7,52 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-        .btn-press:active { transform: scale(0.96); }
-        
-        #game-area {
-            height: 65vh;
-            background: linear-gradient(to top, #3b82f6, #60a5fa);
-            position: relative;
-            overflow: hidden;
-            transition: background 1s ease;
-        }
-
-        #player {
-            width: 60px;
-            height: 60px;
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 3.5rem;
-            z-index: 50;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
-        }
-
-        .jump-anim { animation: jump-physics 0.6s cubic-bezier(0.15, 0.85, 0.35, 1); }
-
-        @keyframes jump-physics {
-            0% { bottom: 20px; transform: translateX(-50%) scale(1, 0.8); }
-            30% { bottom: 75%; transform: translateX(-50%) scale(0.9, 1.1); }
-            100% { bottom: 20px; transform: translateX(-50%) scale(1, 1); }
-        }
-
-        .upgrade-panel {
-            height: 35vh;
-            background: #0f172a;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding: 24px;
-            border-radius: 32px 32px 0 0;
-        }
-
-        .coin-popup {
-            position: absolute;
-            left: 50%;
-            bottom: 50%;
-            transform: translateX(-50%);
-            color: #fbbf24;
-            font-weight: 900;
-            animation: float-fade 0.6s ease-out forwards;
-            pointer-events: none;
-        }
-
-        @keyframes float-fade {
-            0% { transform: translate(-50%, 0); opacity: 1; }
-            100% { transform: translate(-50%, -80px); opacity: 0; }
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; overflow: hidden; touch-action: none; }
+        #game-container { position: relative; width: 100%; height: 70vh; background: linear-gradient(to top, #3b82f6, #60a5fa); overflow: hidden; }
+        .platform { position: absolute; height: 15px; background: rgba(255, 255, 255, 0.9); border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 70px; }
+        #player { position: absolute; width: 40px; height: 40px; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; z-index: 100; transition: transform 0.1s linear; }
+        .hud-glass { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); }
+        .upgrade-dock { height: 30vh; background: #0f172a; padding: 20px; border-top: 2px solid #1e293b; }
     </style>
 </head>
 <body>
 
-    <div class="fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-50">
-        <button onclick="location.href='index.html'" class="bg-slate-900/60 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
-        </button>
-        <div class="bg-indigo-600/20 backdrop-blur-md border border-indigo-500/30 px-5 py-2 rounded-2xl flex items-center gap-2">
-            <span class="text-amber-400">💰</span>
-            <span id="wallet-display" class="font-black text-sm">...</span>
-        </div>
-    </div>
-
-    <div id="game-area" onclick="handleJump()">
-        <div class="absolute top-24 left-0 right-0 text-center">
-            <div class="bg-black/20 backdrop-blur-sm inline-block px-4 py-1 rounded-full mb-2">
-                <span id="milestone" class="text-[10px] font-black uppercase tracking-widest text-blue-200">Troposphere</span>
+    <div id="game-container">
+        <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-[110]">
+            <button onclick="location.href='index.html'" class="hud-glass p-3 rounded-2xl">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div class="text-center">
+                <p id="height-txt" class="text-4xl font-black italic">0m</p>
+                <p id="status-txt" class="text-[9px] font-black uppercase tracking-widest text-blue-200">Climbing...</p>
             </div>
-            <h1 id="height-txt" class="text-6xl font-black italic tracking-tighter">0m</h1>
+            <div class="hud-glass px-4 py-2 rounded-2xl flex items-center gap-2">
+                <span class="text-amber-400">💰</span>
+                <span id="wallet-display" class="font-black">...</span>
+            </div>
         </div>
 
         <div id="player">🧍‍♂️</div>
+        <div id="platforms-layer"></div>
+        
+        <div class="absolute inset-0 flex">
+            <div class="w-1/2 h-full" onpointerdown="moveLeft(true)" onpointerup="moveLeft(false)"></div>
+            <div class="w-1/2 h-full" onpointerdown="moveRight(true)" onpointerup="moveRight(false)"></div>
+        </div>
     </div>
 
-    <div class="upgrade-panel">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-black">Rocket Shoes</h2>
-            <span id="lvl-badge" class="bg-indigo-500 text-[10px] font-black px-3 py-1 rounded-lg">LVL 1</span>
+    <div class="upgrade-dock">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-black">Rocket Boots</h2>
+            <span id="lvl-tag" class="text-xs bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full font-black">LVL 1</span>
         </div>
-
-        <button id="upgrade-btn" class="btn-press w-full bg-indigo-500 p-5 rounded-[2rem] shadow-2xl flex items-center justify-between group">
+        <button id="upgrade-btn" class="w-full bg-indigo-600 p-5 rounded-3xl flex items-center justify-between shadow-xl">
             <div class="text-left">
-                <p class="text-[10px] font-bold text-indigo-100 uppercase">Upgrade Jump</p>
+                <p class="text-[10px] font-bold opacity-60 uppercase">Power Up</p>
                 <p id="cost-txt" class="text-xl font-black">💰 500</p>
             </div>
-            <div class="bg-white/20 p-3 rounded-2xl">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
-            </div>
+            <span class="text-2xl">⚡</span>
         </button>
-
-        <div class="mt-8">
-            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                <div id="prog-bar" class="h-full bg-indigo-400 transition-all duration-500" style="width: 0%"></div>
-            </div>
-            <p class="text-center text-[9px] font-bold text-slate-500 uppercase mt-2 tracking-widest">Target: 10,000m (Orbit)</p>
-        </div>
     </div>
 
     <script type="module">
@@ -120,75 +65,108 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let uid = null;
-        let jumping = false;
-        let stats = { wallet: 0, jumpLvl: 1 };
+        let uid, stats = { wallet: 0, jumpLvl: 1 };
+        const player = document.getElementById('player');
+        const platLayer = document.getElementById('platforms-layer');
+        const gameBox = document.getElementById('game-container');
+
+        // Physics Variables
+        let posX = window.innerWidth / 2 - 20, posY = 100;
+        let velY = 0, velX = 0;
+        let platforms = [];
+        let score = 0;
+        let gravity = 0.25;
 
         onAuthStateChanged(auth, user => {
-            if (!user) { location.href = 'index.html'; return; }
+            if (!user) return location.href = 'index.html';
             uid = user.uid;
             onSnapshot(doc(db, "users", uid), s => {
                 if(s.exists()){
                     stats = s.data();
                     stats.jumpLvl = stats.jumpLvl || 1;
-                    updateScreen();
+                    document.getElementById('wallet-display').innerText = stats.wallet;
+                    document.getElementById('cost-txt').innerText = `💰 ${stats.jumpLvl * 500}`;
+                    document.getElementById('lvl-tag').innerText = `LVL ${stats.jumpLvl}`;
                 }
             });
+            initGame();
         });
 
-        function updateScreen() {
-            document.getElementById('wallet-display').innerText = stats.wallet || 0;
-            document.getElementById('cost-txt').innerText = `💰 ${stats.jumpLvl * 500}`;
-            document.getElementById('lvl-badge').innerText = `LVL ${stats.jumpLvl}`;
-            const perc = ((stats.jumpLvl * 10) / 10000) * 100;
-            document.getElementById('prog-bar').style.width = `${Math.min(perc, 100)}%`;
+        function initGame() {
+            platforms = [];
+            platLayer.innerHTML = '';
+            // Initial platforms
+            for(let i=0; i<6; i++) spawnPlatform(i * 100 + 50);
+            gameLoop();
         }
 
-        window.handleJump = async () => {
-            if (jumping) return;
-            jumping = true;
-
-            const height = stats.jumpLvl * 5;
-            document.getElementById('height-txt').innerText = `${height}m`;
-
-            // Background / Milestone logic
-            const area = document.getElementById('game-area');
-            const mile = document.getElementById('milestone');
-            if(height < 500) { area.style.background = "#3b82f6"; mile.innerText = "Troposphere"; }
-            else if(height < 2000) { area.style.background = "#1e40af"; mile.innerText = "Stratosphere"; }
-            else { area.style.background = "#020617"; mile.innerText = "Mesosphere"; }
-
-            // Animation
-            const p = document.getElementById('player');
-            p.classList.add('jump-anim');
-            
-            const earn = Math.floor(Math.random() * 4) + 1;
-            showCoin(earn);
-
-            setTimeout(async () => {
-                p.classList.remove('jump-anim');
-                jumping = false;
-                await updateDoc(doc(db, "users", uid), { wallet: increment(earn) });
-            }, 600);
-        };
-
-        function showCoin(v) {
+        function spawnPlatform(y) {
+            const x = Math.random() * (window.innerWidth - 80);
             const div = document.createElement('div');
-            div.className = 'coin-popup';
-            div.innerText = `+${v} 💰`;
-            document.getElementById('game-area').appendChild(div);
-            setTimeout(() => div.remove(), 600);
+            div.className = 'platform';
+            div.style.left = x + 'px';
+            div.style.bottom = y + 'px';
+            platLayer.appendChild(div);
+            platforms.push({ el: div, x, y });
         }
+
+        function gameLoop() {
+            velY -= gravity;
+            posY += velY;
+            posX += velX;
+
+            // Screen Wrap
+            if(posX < -40) posX = window.innerWidth;
+            if(posX > window.innerWidth) posX = -40;
+
+            // Collision Detection (Falling down)
+            if(velY < 0) {
+                platforms.forEach(p => {
+                    if(posX + 30 > p.x && posX < p.x + 70 && posY > p.y && posY < p.y + 15) {
+                        velY = 8 + (stats.jumpLvl * 0.2); // Jump power scales with level
+                        if(p.y > score) {
+                            score = Math.floor(p.y / 10);
+                            document.getElementById('height-txt').innerText = score + 'm';
+                        }
+                    }
+                });
+            }
+
+            // Camera movement
+            if(posY > 250) {
+                let diff = posY - 250;
+                posY = 250;
+                platforms.forEach(p => {
+                    p.y -= diff;
+                    p.el.style.bottom = p.y + 'px';
+                    if(p.y < -20) {
+                        p.y = 600;
+                        p.x = Math.random() * (window.innerWidth - 80);
+                        p.el.style.left = p.x + 'px';
+                        // Reward for climbing
+                        updateDoc(doc(db, "users", uid), { wallet: increment(1) });
+                    }
+                });
+            }
+
+            // Game Over
+            if(posY < -50) {
+                posY = 100; velY = 10; score = 0;
+                document.getElementById('height-txt').innerText = '0m';
+            }
+
+            player.style.bottom = posY + 'px';
+            player.style.left = posX + 'px';
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.moveLeft = (on) => velX = on ? -5 : 0;
+        window.moveRight = (on) => velX = on ? 5 : 0;
 
         document.getElementById('upgrade-btn').onclick = async () => {
             const cost = stats.jumpLvl * 500;
             if(stats.wallet >= cost) {
-                await updateDoc(doc(db, "users", uid), {
-                    wallet: increment(-cost),
-                    jumpLvl: increment(1)
-                });
-            } else {
-                alert("More coins needed!");
+                await updateDoc(doc(db, "users", uid), { wallet: increment(-cost), jumpLvl: increment(1) });
             }
         };
     </script>
