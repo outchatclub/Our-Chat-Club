@@ -7,61 +7,68 @@
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         
+        /* Start Overlay - Critical for Browser Permission */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; text-align: center;
+        }
+        #play-btn {
+            padding: 20px 60px; font-size: 24px; font-weight: bold;
+            background: #567d46; color: white; border: none; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(86, 125, 70, 0.5);
+            margin-top: 20px;
+        }
+
         /* UI Layers */
         #ui-container {
             position: absolute; width: 100%; height: 100%;
-            pointer-events: none; z-index: 10;
+            pointer-events: none; z-index: 10; display: none; /* Hidden until play */
         }
 
-        /* Top Left Back Button */
         #back-btn {
             position: absolute; top: 20px; left: 20px;
-            width: 50px; height: 50px;
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
+            width: 45px; height: 45px; background: rgba(0, 0, 0, 0.5);
+            border: 2px solid white; border-radius: 10px;
             display: flex; align-items: center; justify-content: center;
-            pointer-events: auto; cursor: pointer;
-            text-decoration: none; color: white; font-size: 24px;
+            pointer-events: auto; text-decoration: none; color: white; font-size: 20px;
         }
 
         #crosshair {
             position: absolute; top: 50%; left: 50%;
-            width: 12px; height: 12px;
-            border: 2px solid rgba(255,255,255,0.8);
-            transform: translate(-50%, -50%);
+            width: 10px; height: 10px; border: 2px solid white;
+            transform: translate(-50%, -50%); opacity: 0.8;
         }
 
-        /* Joystick */
         #joystick-wrapper {
-            position: absolute; bottom: 40px; left: 40px;
-            width: 120px; height: 120px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+            position: absolute; bottom: 30px; left: 30px;
+            width: 100px; height: 100px; background: rgba(255,255,255,0.1);
+            border-radius: 50%; border: 1px solid rgba(255,255,255,0.3);
             pointer-events: auto;
         }
         #joystick-knob {
-            position: absolute; top: 35px; left: 35px;
-            width: 50px; height: 50px;
-            background: white; border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            position: absolute; top: 30px; left: 30px;
+            width: 40px; height: 40px; background: white; border-radius: 50%;
         }
 
-        /* Jump Button */
         #jump-btn {
-            position: absolute; bottom: 60px; right: 40px;
-            width: 80px; height: 80px;
-            background: rgba(255,255,255,0.2);
+            position: absolute; bottom: 40px; right: 40px;
+            width: 70px; height: 70px; background: rgba(255,255,255,0.2);
             border: 2px solid white; border-radius: 50%;
-            color: white; font-weight: bold; font-size: 14px;
+            color: white; font-weight: bold;
             display: flex; align-items: center; justify-content: center;
-            pointer-events: auto; backdrop-filter: blur(5px);
+            pointer-events: auto;
         }
-
-        #back-btn:active, #jump-btn:active { background: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body>
+
+    <div id="overlay">
+        <h1>CRAFT SIMULATOR</h1>
+        <p>Optimized for Mobile Landscape</p>
+        <button id="play-btn">START GAME</button>
+    </div>
 
     <div id="ui-container">
         <a href="index.html" id="back-btn">⬅</a>
@@ -77,140 +84,130 @@
     <script type="module">
         import * as THREE from 'three';
 
-        // --- Automation Logic (Fullscreen & Rotation) ---
-        const startInteraction = () => {
-            // Request Fullscreen
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => console.log(e));
-            }
-            // Request Landscape
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(e => console.log("Orientation lock not supported or failed"));
-            }
-        };
+        const overlay = document.getElementById('overlay');
+        const ui = document.getElementById('ui-container');
+        const playBtn = document.getElementById('play-btn');
 
-        // Trigger automation on first touch
-        window.addEventListener('touchstart', startInteraction, { once: true });
+        // --- THE "AUTO" SYSTEM ---
+        playBtn.addEventListener('click', async () => {
+            // 1. Force Fullscreen
+            try {
+                if (document.documentElement.requestFullscreen) {
+                    await document.documentElement.requestFullscreen();
+                }
+            } catch (err) { console.warn("Fullscreen blocked", err); }
 
-        // --- Core 3D Engine ---
+            // 2. Force Landscape
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    await screen.orientation.lock('landscape');
+                }
+            } catch (err) { console.warn("Orientation lock failed", err); }
+
+            // Hide overlay, show game UI
+            overlay.style.display = 'none';
+            ui.style.display = 'block';
+            
+            // Re-sync renderer size after rotation
+            setTimeout(onWindowResize, 200);
+        });
+
+        // --- Game Setup ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 15, 60);
+        scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        // Lighting
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.8));
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.5));
         const sun = new THREE.DirectionalLight(0xffffff, 1.0);
         sun.position.set(10, 20, 10);
         scene.add(sun);
 
-        // Ground
         const floor = new THREE.Mesh(
-            new THREE.PlaneGeometry(200, 200),
+            new THREE.PlaneGeometry(500, 500),
             new THREE.MeshLambertMaterial({ color: 0x567d46 })
         );
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // Grid for 3D feeling
-        const grid = new THREE.GridHelper(200, 80, 0x446633, 0x446633);
-        grid.position.y = 0.01;
+        const grid = new THREE.GridHelper(500, 100, 0x446633, 0x446633);
         scene.add(grid);
 
-        // --- Controls State ---
-        const move = { forward: 0, right: 0 };
-        const velocity = new THREE.Vector3();
-        let lookPhi = 0, lookTheta = 0;
+        // Movement Logic
+        const move = { f: 0, r: 0 };
+        const vel = new THREE.Vector3();
+        let lookP = 0, lookT = 0;
 
-        // Joystick Input
+        // Joystick
         const knob = document.getElementById('joystick-knob');
-        const wrapper = document.getElementById('joystick-wrapper');
-        
-        const updateJoystick = (e) => {
+        const wrap = document.getElementById('joystick-wrapper');
+        const handleJoy = (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            const rect = wrapper.getBoundingClientRect();
-            const dx = touch.clientX - (rect.left + rect.width / 2);
-            const dy = touch.clientY - (rect.top + rect.height / 2);
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
-            const angle = Math.atan2(dy, dx);
-            
-            knob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-            move.right = (Math.cos(angle)*dist) / 50;
-            move.forward = -(Math.sin(angle)*dist) / 50;
+            const t = e.touches[0];
+            const r = wrap.getBoundingClientRect();
+            const dx = t.clientX - (r.left + r.width/2);
+            const dy = t.clientY - (r.top + r.height/2);
+            const d = Math.min(Math.sqrt(dx*dx+dy*dy), 40);
+            const a = Math.atan2(dy, dx);
+            knob.style.transform = `translate(${Math.cos(a)*d}px, ${Math.sin(a)*d}px)`;
+            move.r = (Math.cos(a)*d)/40; move.f = -(Math.sin(a)*d)/40;
         };
-
-        wrapper.addEventListener('touchstart', updateJoystick);
-        wrapper.addEventListener('touchmove', updateJoystick);
-        wrapper.addEventListener('touchend', () => {
-            knob.style.transform = `translate(0,0)`;
-            move.forward = 0; move.right = 0;
+        wrap.addEventListener('touchmove', handleJoy);
+        wrap.addEventListener('touchend', () => {
+            knob.style.transform = 'none'; move.f = 0; move.r = 0;
         });
 
-        // Camera Look (Right side of screen)
-        let lastX, lastY;
+        // Touch Look
+        let lX, lY;
         window.addEventListener('touchstart', (e) => {
-            if (e.touches[0].clientX > window.innerWidth / 2) {
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
+            if(e.touches[0].clientX > window.innerWidth/2) {
+                lX = e.touches[0].clientX; lY = e.touches[0].clientY;
             }
         });
-
         window.addEventListener('touchmove', (e) => {
-            if (e.touches[0].clientX > window.innerWidth / 2) {
-                const dx = e.touches[0].clientX - lastX;
-                const dy = e.touches[0].clientY - lastY;
-                lookTheta -= dx * 0.006;
-                lookPhi = Math.max(-1.5, Math.min(1.5, lookPhi - dy * 0.006));
-                lastX = e.touches[0].clientX;
-                lastY = e.touches[0].clientY;
+            if(e.touches[0].clientX > window.innerWidth/2) {
+                lookT -= (e.touches[0].clientX - lX) * 0.005;
+                lookP = Math.max(-1.5, Math.min(1.5, lookP - (e.touches[0].clientY - lY) * 0.005));
+                lX = e.touches[0].clientX; lY = e.touches[0].clientY;
             }
         });
 
-        document.getElementById('jump-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (camera.position.y <= 1.75) velocity.y = 8;
+        document.getElementById('jump-btn').addEventListener('touchstart', () => {
+            if(camera.position.y <= 1.7) vel.y = 7;
         });
 
-        // --- Render Loop ---
         camera.position.set(0, 1.7, 5);
 
         function animate() {
             requestAnimationFrame(animate);
-
             camera.rotation.order = 'YXZ';
-            camera.rotation.set(lookPhi, lookTheta, 0);
+            camera.rotation.set(lookP, lookT, 0);
 
-            const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-            const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-            forward.y = 0; right.y = 0;
-            forward.normalize(); right.normalize();
+            const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+            const rgt = new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);
+            fwd.y = 0; rgt.y = 0;
+            
+            vel.y -= 20 * 0.016;
+            camera.position.addScaledVector(fwd.normalize(), move.f * 0.15);
+            camera.position.addScaledVector(rgt.normalize(), move.r * 0.15);
+            camera.position.y += vel.y * 0.016;
 
-            velocity.y -= 22 * 0.016; // Gravity
-            camera.position.addScaledVector(forward, move.forward * 0.18);
-            camera.position.addScaledVector(right, move.right * 0.18);
-            camera.position.y += velocity.y * 0.016;
-
-            if (camera.position.y < 1.7) {
-                camera.position.y = 1.7;
-                velocity.y = 0;
-            }
-
+            if(camera.position.y < 1.7) { camera.position.y = 1.7; vel.y = 0; }
             renderer.render(scene, camera);
         }
-
         animate();
 
-        window.addEventListener('resize', () => {
+        function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        }
+        window.addEventListener('resize', onWindowResize);
     </script>
 </body>
 </html>
