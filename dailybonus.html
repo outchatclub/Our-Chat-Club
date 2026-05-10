@@ -1,1 +1,127 @@
-Hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daily Bonus - OCC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        .brand-indigo { color: #4338ca; }
+        .brand-bg-indigo { background-color: #4338ca; }
+        .btn-press:active { transform: scale(0.96); }
+        .bonus-card { background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); }
+        .disabled-btn { background-color: #e2e8f0 !important; color: #94a3b8 !important; cursor: not-allowed; transform: none !important; }
+    </style>
+</head>
+<body class="text-slate-900">
+    <div class="max-w-md mx-auto p-6">
+        <div class="flex items-center gap-4 mb-8">
+            <button onclick="location.href='index.html'" class="btn-press bg-white p-3 rounded-2xl shadow-sm border border-slate-100 text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <h1 class="text-2xl font-black brand-indigo tracking-tighter">Daily Bonus</h1>
+        </div>
+
+        <div class="bonus-card p-8 rounded-[2.5rem] shadow-2xl text-center text-white mb-8">
+            <div class="bg-white/20 w-20 h-20 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">📅</div>
+            <h2 class="text-3xl font-black mb-2">Claim Today</h2>
+            <p class="text-indigo-100 text-sm font-medium opacity-90 mb-6">Come back every day at 12 AM IST to collect your coins!</p>
+            
+            <div class="bg-white/10 rounded-2xl p-4 mb-8 border border-white/10">
+                <span class="block text-[10px] uppercase tracking-widest font-black text-indigo-200 mb-1">Current Reward</span>
+                <span class="text-4xl font-black">200 <span class="text-xl">💰</span></span>
+            </div>
+
+            <button id="claim-btn" class="btn-press w-full bg-white text-indigo-600 py-4 rounded-2xl font-black shadow-xl transition-all">
+                Collect Bonus
+            </button>
+        </div>
+
+        <div class="bg-white border border-slate-100 p-6 rounded-[2rem] shadow-sm text-center">
+            <p class="text-slate-400 text-[11px] font-black uppercase tracking-widest mb-3">Next Reset In</p>
+            <div id="countdown" class="text-2xl font-black brand-indigo tracking-widest">00:00:00</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const claimBtn = document.getElementById('claim-btn');
+        const countdownEl = document.getElementById('countdown');
+
+        function getISTDateString() {
+            // Returns YYYY-MM-DD in IST
+            return new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            }).format(new Date()).split('/').reverse().join('-');
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            // Calculate 12 AM IST tomorrow
+            const tomorrow = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            // Convert IST 12 AM back to local timestamp
+            const diff = tomorrow - new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+            
+            if (diff <= 0) {
+                location.reload();
+                return;
+            }
+
+            const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            countdownEl.innerText = `${h}:${m}:${s}`;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { location.href = 'index.html'; return; }
+
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            const today = getISTDateString();
+
+            if (userSnap.exists() && userSnap.data().lastDailyBonus === today) {
+                claimBtn.innerText = "Already Collected";
+                claimBtn.classList.add('disabled-btn');
+                claimBtn.disabled = true;
+            }
+
+            claimBtn.onclick = async () => {
+                try {
+                    claimBtn.innerText = "Processing...";
+                    claimBtn.disabled = true;
+
+                    await updateDoc(userRef, {
+                        wallet: increment(200),
+                        lastDailyBonus: today
+                    });
+
+                    alert("Successfully collected 200 coins!");
+                    location.reload();
+                } catch (e) {
+                    alert("Error: " + e.message);
+                    claimBtn.innerText = "Collect Bonus";
+                    claimBtn.disabled = false;
+                }
+            };
+        });
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>
