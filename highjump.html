@@ -3,95 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cloud Climber - OCC</title>
+    <title>High Jump - OCC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-        .btn-press:active { transform: scale(0.95); }
+        .btn-press:active { transform: scale(0.96); }
         
-        #game-viewport {
-            height: 70vh;
-            background: linear-gradient(to top, #38bdf8, #60a5fa);
+        #game-area {
+            height: 65vh;
+            background: linear-gradient(to top, #3b82f6, #60a5fa);
             position: relative;
             overflow: hidden;
-            transition: background 2s ease;
-        }
-
-        .platform {
-            position: absolute;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(255,255,255,0.3);
-            transition: top 0.3s linear;
+            transition: background 1s ease;
         }
 
         #player {
-            width: 45px;
-            height: 45px;
+            width: 60px;
+            height: 60px;
             position: absolute;
-            bottom: 20%;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 2.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 3.5rem;
             z-index: 50;
-            transition: bottom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), left 0.2s ease;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
         }
 
-        .hud-pill {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
+        .jump-anim { animation: jump-physics 0.6s cubic-bezier(0.15, 0.85, 0.35, 1); }
+
+        @keyframes jump-physics {
+            0% { bottom: 20px; transform: translateX(-50%) scale(1, 0.8); }
+            30% { bottom: 75%; transform: translateX(-50%) scale(0.9, 1.1); }
+            100% { bottom: 20px; transform: translateX(-50%) scale(1, 1); }
         }
 
-        .upgrade-dock {
-            height: 30vh;
+        .upgrade-panel {
+            height: 35vh;
             background: #0f172a;
-            border-top: 2px solid #1e293b;
-            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 24px;
+            border-radius: 32px 32px 0 0;
+        }
+
+        .coin-popup {
+            position: absolute;
+            left: 50%;
+            bottom: 50%;
+            transform: translateX(-50%);
+            color: #fbbf24;
+            font-weight: 900;
+            animation: float-fade 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes float-fade {
+            0% { transform: translate(-50%, 0); opacity: 1; }
+            100% { transform: translate(-50%, -80px); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-[100]">
-        <button onclick="location.href='index.html'" class="hud-pill p-3 rounded-2xl">
+    <div class="fixed top-0 left-0 right-0 p-4 flex justify-between items-center z-50">
+        <button onclick="location.href='index.html'" class="bg-slate-900/60 backdrop-blur-md p-3 rounded-2xl border border-white/10">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
         </button>
-        <div class="hud-pill px-4 py-2 rounded-2xl flex flex-col items-center">
-            <span class="text-[9px] font-black text-blue-400 uppercase">Altitude</span>
-            <span id="alt-display" class="text-xl font-black italic">0m</span>
-        </div>
-        <div class="hud-pill px-4 py-2 rounded-2xl flex items-center gap-2">
+        <div class="bg-indigo-600/20 backdrop-blur-md border border-indigo-500/30 px-5 py-2 rounded-2xl flex items-center gap-2">
             <span class="text-amber-400">💰</span>
-            <span id="wallet-display" class="font-black">...</span>
+            <span id="wallet-display" class="font-black text-sm">...</span>
         </div>
     </div>
 
-    <div id="game-viewport" onclick="gameTap(event)">
-        <div id="player">🏃‍♂️</div>
-        <div id="platform-layer"></div>
-    </div>
-
-    <div class="upgrade-dock">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-black tracking-tight">Boost Shoes</h2>
-            <span id="lvl-text" class="text-xs font-black text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full">LVL 1</span>
-        </div>
-
-        <button id="upgrade-btn" class="btn-press w-full bg-indigo-600 text-white p-4 rounded-2xl shadow-lg flex items-center justify-between">
-            <div class="text-left">
-                <p class="text-[10px] font-bold opacity-70 uppercase">Upgrade Power</p>
-                <p id="upgrade-cost" class="text-lg font-black">💰 500</p>
+    <div id="game-area" onclick="handleJump()">
+        <div class="absolute top-24 left-0 right-0 text-center">
+            <div class="bg-black/20 backdrop-blur-sm inline-block px-4 py-1 rounded-full mb-2">
+                <span id="milestone" class="text-[10px] font-black uppercase tracking-widest text-blue-200">Troposphere</span>
             </div>
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <h1 id="height-txt" class="text-6xl font-black italic tracking-tighter">0m</h1>
+        </div>
+
+        <div id="player">🧍‍♂️</div>
+    </div>
+
+    <div class="upgrade-panel">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-black">Rocket Shoes</h2>
+            <span id="lvl-badge" class="bg-indigo-500 text-[10px] font-black px-3 py-1 rounded-lg">LVL 1</span>
+        </div>
+
+        <button id="upgrade-btn" class="btn-press w-full bg-indigo-500 p-5 rounded-[2rem] shadow-2xl flex items-center justify-between group">
+            <div class="text-left">
+                <p class="text-[10px] font-bold text-indigo-100 uppercase">Upgrade Jump</p>
+                <p id="cost-txt" class="text-xl font-black">💰 500</p>
+            </div>
+            <div class="bg-white/20 p-3 rounded-2xl">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </div>
         </button>
-        
-        <p class="text-center text-[9px] text-slate-500 font-bold uppercase mt-4 tracking-widest">Reach 10,000m to win</p>
+
+        <div class="mt-8">
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div id="prog-bar" class="h-full bg-indigo-400 transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p class="text-center text-[9px] font-bold text-slate-500 uppercase mt-2 tracking-widest">Target: 10,000m (Orbit)</p>
+        </div>
     </div>
 
     <script type="module">
@@ -104,66 +120,75 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        let userUid = null;
-        let isMoving = false;
-        let currentAlt = 0;
-        let userData = { wallet: 0, jumpLvl: 1 };
+        let uid = null;
+        let jumping = false;
+        let stats = { wallet: 0, jumpLvl: 1 };
 
         onAuthStateChanged(auth, user => {
             if (!user) { location.href = 'index.html'; return; }
-            userUid = user.uid;
-            onSnapshot(doc(db, "users", user.uid), s => {
+            uid = user.uid;
+            onSnapshot(doc(db, "users", uid), s => {
                 if(s.exists()){
-                    userData = s.data();
-                    userData.jumpLvl = userData.jumpLvl || 1;
-                    syncUI();
+                    stats = s.data();
+                    stats.jumpLvl = stats.jumpLvl || 1;
+                    updateScreen();
                 }
             });
         });
 
-        function syncUI() {
-            document.getElementById('wallet-display').innerText = userData.wallet || 0;
-            document.getElementById('lvl-text').innerText = `LVL ${userData.jumpLvl}`;
-            document.getElementById('upgrade-cost').innerText = `💰 ${userData.jumpLvl * 500}`;
+        function updateScreen() {
+            document.getElementById('wallet-display').innerText = stats.wallet || 0;
+            document.getElementById('cost-txt').innerText = `💰 ${stats.jumpLvl * 500}`;
+            document.getElementById('lvl-badge').innerText = `LVL ${stats.jumpLvl}`;
+            const perc = ((stats.jumpLvl * 10) / 10000) * 100;
+            document.getElementById('prog-bar').style.width = `${Math.min(perc, 100)}%`;
         }
 
-        window.gameTap = async (e) => {
-            if (isMoving) return;
-            isMoving = true;
+        window.handleJump = async () => {
+            if (jumping) return;
+            jumping = true;
 
-            const jumpHeight = userData.jumpLvl * 5;
-            currentAlt += jumpHeight;
-            
-            // Visual Jump
+            const height = stats.jumpLvl * 5;
+            document.getElementById('height-txt').innerText = `${height}m`;
+
+            // Background / Milestone logic
+            const area = document.getElementById('game-area');
+            const mile = document.getElementById('milestone');
+            if(height < 500) { area.style.background = "#3b82f6"; mile.innerText = "Troposphere"; }
+            else if(height < 2000) { area.style.background = "#1e40af"; mile.innerText = "Stratosphere"; }
+            else { area.style.background = "#020617"; mile.innerText = "Mesosphere"; }
+
+            // Animation
             const p = document.getElementById('player');
-            const view = document.getElementById('game-viewport');
+            p.classList.add('jump-anim');
             
-            p.style.bottom = "60%";
-            document.getElementById('alt-display').innerText = `${currentAlt}m`;
-
-            // Atmosphere Logic
-            if(currentAlt > 5000) view.style.background = "#020617";
-            else if(currentAlt > 2000) view.style.background = "#1e3a8a";
-            else if(currentAlt > 500) view.style.background = "#2563eb";
-
-            const reward = Math.floor(Math.random() * 3) + 1;
+            const earn = Math.floor(Math.random() * 4) + 1;
+            showCoin(earn);
 
             setTimeout(async () => {
-                p.style.bottom = "20%";
-                isMoving = false;
-                await updateDoc(doc(db, "users", userUid), { wallet: increment(reward) });
+                p.classList.remove('jump-anim');
+                jumping = false;
+                await updateDoc(doc(db, "users", uid), { wallet: increment(earn) });
             }, 600);
         };
 
+        function showCoin(v) {
+            const div = document.createElement('div');
+            div.className = 'coin-popup';
+            div.innerText = `+${v} 💰`;
+            document.getElementById('game-area').appendChild(div);
+            setTimeout(() => div.remove(), 600);
+        }
+
         document.getElementById('upgrade-btn').onclick = async () => {
-            const cost = userData.jumpLvl * 500;
-            if(userData.wallet >= cost) {
-                await updateDoc(doc(db, "users", userUid), {
+            const cost = stats.jumpLvl * 500;
+            if(stats.wallet >= cost) {
+                await updateDoc(doc(db, "users", uid), {
                     wallet: increment(-cost),
                     jumpLvl: increment(1)
                 });
             } else {
-                alert("Collect more coins!");
+                alert("More coins needed!");
             }
         };
     </script>
