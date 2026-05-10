@@ -14,6 +14,7 @@
         .input-dark { background: #0f172a; border: 1px solid #334155; color: white; outline: none; }
         .input-dark:focus { border-color: #6366f1; }
         .hidden { display: none !important; }
+        .scroll-area { max-height: 500px; overflow-y: auto; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -43,8 +44,9 @@
             </div>
         </section>
 
-        <nav class="flex gap-2 mb-8 overflow-x-auto pb-2">
+        <nav class="flex gap-2 mb-8 overflow-x-auto pb-2 no-scrollbar">
             <button onclick="switchTab('payouts')" class="tab-btn active px-6 py-3 rounded-xl font-bold transition-all" id="btn-payouts">Payout Requests</button>
+            <button onclick="switchTab('tickets')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-tickets">Support Tickets</button>
             <button onclick="switchTab('history')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-history">Payout History</button>
             <button onclick="switchTab('users')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-users">Registered Users</button>
             <button onclick="switchTab('redeem')" class="tab-btn px-6 py-3 rounded-xl font-bold transition-all" id="btn-redeem">Redeem Codes</button>
@@ -52,6 +54,15 @@
 
         <section id="sec-payouts" class="tab-content space-y-4">
             <div id="pending-list" class="grid gap-4"></div>
+        </section>
+
+        <section id="sec-tickets" class="tab-content hidden">
+            <div class="card-dark p-6 rounded-3xl">
+                <h2 class="text-xl font-black mb-4 text-indigo-400 uppercase tracking-widest">Active Tickets</h2>
+                <div id="ticket-list" class="space-y-4 scroll-area">
+                    <p class="text-slate-500 italic">Loading tickets...</p>
+                </div>
+            </div>
         </section>
 
         <section id="sec-history" class="tab-content hidden space-y-4">
@@ -108,7 +119,7 @@
         const auth = getAuth(app);
 
         let activePayoutId = null;
-        let allUsers = {}; // ক্যাশড ইউজার ডেটা
+        let allUsers = {}; 
 
         onAuthStateChanged(auth, user => {
             const overlay = document.getElementById("admin-login-overlay");
@@ -134,12 +145,9 @@
         };
 
         async function loadData() {
-            // ১. ইউজার কালেকশন ট্র্যাক করা (ইমেল, ওয়ালেট এবং রিকোয়েস্ট কাউন্টের জন্য)
             onSnapshot(collection(db, "users"), async (userSnap) => {
                 const userTable = [];
                 const payoutSnap = await getDocs(collection(db, "payouts"));
-                
-                // রিকোয়েস্ট কাউন্ট করার জন্য ম্যাপ
                 const countMap = {};
                 payoutSnap.forEach(p => {
                     const uid = p.data().uid;
@@ -152,12 +160,9 @@
                     userTable.push(`<tr><td class="py-4 font-bold text-indigo-300">${u.name}</td><td>${u.email}</td><td class="font-black">💰${u.wallet || 0}</td><td><button onclick="deleteUser('${d.id}')" class="text-red-500 font-black text-xs uppercase">Ban</button></td></tr>`);
                 });
                 document.getElementById("user-table-body").innerHTML = userTable.join('');
-
-                // ২. পে-আউট লিস্ট রিফ্রেশ করা (ইউজার ডেটাসহ)
                 renderPayouts();
             });
 
-            // পে-আউট কালেকশন রিয়েলটাইম ট্র্যাক করা
             onSnapshot(collection(db, "payouts"), s => {
                 renderPayouts(s.docs);
             });
@@ -168,6 +173,50 @@
                     const color = c.status === 'active' ? 'text-emerald-400' : 'text-red-400';
                     return `<tr class="border-b border-slate-800"><td class="py-4 font-black">${d.id}</td><td class="font-bold text-indigo-400">${c.coins}</td><td class="font-black uppercase text-xs ${color}">${c.status}</td><td class="text-slate-500 text-xs">${c.usedBy || '---'}</td></tr>`;
                 }).join('');
+            });
+
+            // --- TICKET MONITORING (NEW SECTION) ---
+            onSnapshot(collection(db, "support_tickets"), snap => {
+                const list = document.getElementById("ticket-list");
+                list.innerHTML = "";
+                let hasActive = false;
+                snap.forEach(d => {
+                    const data = d.data();
+                    if(data.status === "closed") return;
+                    hasActive = true;
+                    
+                    // Auto-close logic from staff.html
+                    const limit = 48 * 60 * 60 * 1000;
+                    if(Date.now() - data.lastUpdated > limit && !data.adminReply) {
+                        updateDoc(doc(db, "support_tickets", d.id), { status: "closed" });
+                        return;
+                    }
+
+                    list.innerHTML += `
+                        <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-lg">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <b class="text-xs uppercase text-indigo-400">${data.userName || 'User'}</b>
+                                    <p class="text-[10px] text-slate-500">${data.createdAt?.toDate().toLocaleString() || ''}</p>
+                                </div>
+                                <span class="bg-indigo-500/10 text-indigo-400 text-[9px] font-black px-2 py-1 rounded-lg uppercase border border-indigo-500/20">Open Ticket</span>
+                            </div>
+                            <div class="bg-slate-900/50 p-4 rounded-2xl mb-4 border border-slate-700/50">
+                                <p class="text-sm text-slate-200">"${data.message}"</p>
+                            </div>
+                            ${data.adminReply ? `
+                                <div class="bg-indigo-600/10 border border-indigo-500/20 p-3 rounded-xl mb-4">
+                                    <p class="text-[9px] font-black text-indigo-300 uppercase mb-1">Previous Reply:</p>
+                                    <p class="text-xs text-indigo-100 italic">"${data.adminReply}"</p>
+                                </div>
+                            ` : ''}
+                            <div class="flex gap-2">
+                                <button onclick="replyTicket('${d.id}')" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-xl text-xs font-black transition-all">REPLY</button>
+                                <button onclick="closeTicket('${d.id}')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-xl text-xs font-black transition-all">CLOSE</button>
+                            </div>
+                        </div>`;
+                });
+                if(!hasActive) list.innerHTML = '<p class="text-slate-500 italic text-center py-10">No active support tickets found.</p>';
             });
         }
 
@@ -205,6 +254,24 @@
             document.getElementById("pending-list").innerHTML = pendingList.length ? pendingList.join('') : '<p class="text-slate-500 italic">No pending requests...</p>';
             document.getElementById("history-list").innerHTML = historyList.length ? historyList.join('') : '<p class="text-slate-500 italic">No history...</p>';
         }
+
+        // --- NEW TICKET ACTIONS ---
+        window.replyTicket = async (id) => {
+            const r = prompt("Your Response to User:");
+            if(r) {
+                await updateDoc(doc(db, "support_tickets", id), { 
+                    adminReply: r, 
+                    lastUpdated: Date.now() 
+                });
+                alert("Reply Sent!");
+            }
+        };
+
+        window.closeTicket = async (id) => {
+            if(confirm("Are you sure you want to close this ticket?")) {
+                await updateDoc(doc(db, "support_tickets", id), { status: "closed" });
+            }
+        };
 
         document.getElementById("set-ann").onclick = async () => {
             const text = document.getElementById("ann-text").value;
