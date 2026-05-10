@@ -5,12 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Craft Simulator Pro</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         
-        /* Mobile UI Overlays */
+        /* UI Layers */
         #ui-container {
             position: absolute; width: 100%; height: 100%;
             pointer-events: none; z-index: 10;
+        }
+
+        /* Top Left Back Button */
+        #back-btn {
+            position: absolute; top: 20px; left: 20px;
+            width: 50px; height: 50px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: auto; cursor: pointer;
+            text-decoration: none; color: white; font-size: 24px;
         }
 
         #crosshair {
@@ -20,7 +32,7 @@
             transform: translate(-50%, -50%);
         }
 
-        /* Joystick Styling */
+        /* Joystick */
         #joystick-wrapper {
             position: absolute; bottom: 40px; left: 40px;
             width: 120px; height: 120px;
@@ -32,53 +44,58 @@
             position: absolute; top: 35px; left: 35px;
             width: 50px; height: 50px;
             background: white; border-radius: 50%;
-            transition: transform 0.1s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* Action Buttons */
+        /* Jump Button */
         #jump-btn {
             position: absolute; bottom: 60px; right: 40px;
-            width: 70px; height: 70px;
+            width: 80px; height: 80px;
             background: rgba(255,255,255,0.2);
             border: 2px solid white; border-radius: 50%;
-            color: white; font-weight: bold;
+            color: white; font-weight: bold; font-size: 14px;
             display: flex; align-items: center; justify-content: center;
-            pointer-events: auto;
+            pointer-events: auto; backdrop-filter: blur(5px);
         }
 
-        #landscape-warning {
-            display: none; position: fixed; top:0; left:0; width:100%; height:100%;
-            background: #222; color: white; z-index: 100;
-            text-align: center; padding-top: 20%;
-        }
-        @media (orientation: portrait) { #landscape-warning { display: block; } }
+        #back-btn:active, #jump-btn:active { background: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body>
 
-    <div id="landscape-warning">Please rotate your device to Landscape mode.</div>
-
     <div id="ui-container">
+        <a href="index.html" id="back-btn">⬅</a>
         <div id="crosshair"></div>
         <div id="joystick-wrapper"><div id="joystick-knob"></div></div>
         <div id="jump-btn">JUMP</div>
     </div>
 
     <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-            }
-        }
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
     </script>
 
     <script type="module">
         import * as THREE from 'three';
 
-        // --- Core Setup ---
+        // --- Automation Logic (Fullscreen & Rotation) ---
+        const startInteraction = () => {
+            // Request Fullscreen
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            }
+            // Request Landscape
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(e => console.log("Orientation lock not supported or failed"));
+            }
+        };
+
+        // Trigger automation on first touch
+        window.addEventListener('touchstart', startInteraction, { once: true });
+
+        // --- Core 3D Engine ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
+        scene.fog = new THREE.Fog(0x87CEEB, 15, 60);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -86,108 +103,97 @@
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.body.appendChild(renderer.domElement);
 
-        // --- Lighting ---
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
-        scene.add(hemiLight);
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        sunLight.position.set(5, 10, 7.5);
-        scene.add(sunLight);
+        // Lighting
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.8));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+        sun.position.set(10, 20, 10);
+        scene.add(sun);
 
-        // --- Environment ---
-        const floorGeo = new THREE.PlaneGeometry(100, 100);
-        const floorMat = new THREE.MeshLambertMaterial({ color: 0x4e9a06 });
-        const floor = new THREE.Mesh(floorGeo, floorMat);
+        // Ground
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(200, 200),
+            new THREE.MeshLambertMaterial({ color: 0x567d46 })
+        );
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // Grid for 3D depth perception
-        const grid = new THREE.GridHelper(100, 50, 0x000000, 0x333333);
-        grid.material.opacity = 0.2;
-        grid.material.transparent = true;
+        // Grid for 3D feeling
+        const grid = new THREE.GridHelper(200, 80, 0x446633, 0x446633);
+        grid.position.y = 0.01;
         scene.add(grid);
 
-        // --- Input State ---
+        // --- Controls State ---
         const move = { forward: 0, right: 0 };
         const velocity = new THREE.Vector3();
-        let isJumping = false;
-        let lookPhi = 0, lookTheta = 0; // Camera angles
+        let lookPhi = 0, lookTheta = 0;
 
-        // --- Joystick Logic ---
+        // Joystick Input
         const knob = document.getElementById('joystick-knob');
         const wrapper = document.getElementById('joystick-wrapper');
         
-        wrapper.addEventListener('touchstart', (e) => handleJoystick(e));
-        wrapper.addEventListener('touchmove', (e) => handleJoystick(e));
-        wrapper.addEventListener('touchend', () => {
-            knob.style.transform = `translate(0, 0)`;
-            move.forward = 0; move.right = 0;
-        });
-
-        function handleJoystick(e) {
+        const updateJoystick = (e) => {
             e.preventDefault();
             const touch = e.touches[0];
             const rect = wrapper.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            let dx = touch.clientX - centerX;
-            let dy = touch.clientY - centerY;
+            const dx = touch.clientX - (rect.left + rect.width / 2);
+            const dy = touch.clientY - (rect.top + rect.height / 2);
             const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
             const angle = Math.atan2(dy, dx);
             
-            const tx = Math.cos(angle) * dist;
-            const ty = Math.sin(angle) * dist;
-            knob.style.transform = `translate(${tx}px, ${ty}px)`;
+            knob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+            move.right = (Math.cos(angle)*dist) / 50;
+            move.forward = -(Math.sin(angle)*dist) / 50;
+        };
 
-            move.right = tx / 50;
-            move.forward = -ty / 50;
-        }
+        wrapper.addEventListener('touchstart', updateJoystick);
+        wrapper.addEventListener('touchmove', updateJoystick);
+        wrapper.addEventListener('touchend', () => {
+            knob.style.transform = `translate(0,0)`;
+            move.forward = 0; move.right = 0;
+        });
 
-        // --- Look Around Logic (Right Side of Screen) ---
-        let lastTouchX, lastTouchY;
+        // Camera Look (Right side of screen)
+        let lastX, lastY;
         window.addEventListener('touchstart', (e) => {
             if (e.touches[0].clientX > window.innerWidth / 2) {
-                lastTouchX = e.touches[0].clientX;
-                lastTouchY = e.touches[0].clientY;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
             }
-        }, {passive: false});
+        });
 
         window.addEventListener('touchmove', (e) => {
             if (e.touches[0].clientX > window.innerWidth / 2) {
-                const dx = e.touches[0].clientX - lastTouchX;
-                const dy = e.touches[0].clientY - lastTouchY;
-                lookTheta -= dx * 0.005;
-                lookPhi = Math.max(-1.5, Math.min(1.5, lookPhi - dy * 0.005));
-                lastTouchX = e.touches[0].clientX;
-                lastTouchY = e.touches[0].clientY;
+                const dx = e.touches[0].clientX - lastX;
+                const dy = e.touches[0].clientY - lastY;
+                lookTheta -= dx * 0.006;
+                lookPhi = Math.max(-1.5, Math.min(1.5, lookPhi - dy * 0.006));
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
             }
-        }, {passive: false});
-
-        // --- Jump Logic ---
-        document.getElementById('jump-btn').addEventListener('touchstart', () => {
-            if (camera.position.y <= 1.7) velocity.y = 8;
         });
 
-        // --- Animation Loop ---
-        camera.position.set(0, 1.7, 5); // 1.7m is average eye height
+        document.getElementById('jump-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (camera.position.y <= 1.75) velocity.y = 8;
+        });
+
+        // --- Render Loop ---
+        camera.position.set(0, 1.7, 5);
 
         function animate() {
             requestAnimationFrame(animate);
 
-            // Update Camera Rotation
             camera.rotation.order = 'YXZ';
             camera.rotation.set(lookPhi, lookTheta, 0);
 
-            // Calculate movement relative to camera direction
             const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
             const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-            forward.y = 0; right.y = 0; // Keep movement on ground
+            forward.y = 0; right.y = 0;
             forward.normalize(); right.normalize();
 
-            velocity.y -= 20 * 0.016; // Gravity
-            
-            camera.position.addScaledVector(forward, move.forward * 0.15);
-            camera.position.addScaledVector(right, move.right * 0.15);
+            velocity.y -= 22 * 0.016; // Gravity
+            camera.position.addScaledVector(forward, move.forward * 0.18);
+            camera.position.addScaledVector(right, move.right * 0.18);
             camera.position.y += velocity.y * 0.016;
 
             if (camera.position.y < 1.7) {
