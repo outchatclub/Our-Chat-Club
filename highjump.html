@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>High Jump - Pro</title>
+    <title>High Jump - Wallet Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -62,11 +62,17 @@
                 <p class="text-[10px] font-bold uppercase tracking-widest text-blue-300 opacity-70">Target: 10,000m</p>
             </div>
             
-            <button onclick="event.stopPropagation(); resetGame()" class="hud-glass p-3 rounded-full active:rotate-180 transition-transform duration-300">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-            </button>
+            <div class="flex flex-col gap-2 items-end">
+                <div class="hud-glass px-4 py-2 rounded-2xl flex items-center gap-2">
+                    <span class="text-amber-400">💰</span>
+                    <span id="wallet-display" class="font-black text-xl">0</span>
+                </div>
+                <button onclick="event.stopPropagation(); resetGame()" class="hud-glass p-2 rounded-full active:rotate-180 transition-transform duration-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div id="platforms-layer"></div>
@@ -81,9 +87,11 @@
         const playerEl = document.getElementById('player');
         const platLayer = document.getElementById('platforms-layer');
         const heightTxt = document.getElementById('height-txt');
+        const walletDisplay = document.getElementById('wallet-display');
 
-        let posX, posY, velY, score, platforms;
-        let currentPlatform = null; // To track which platform the player is on
+        let posX, posY, velY, score, platforms, wallet;
+        let currentPlatform = null;
+        let lastJumpedPlatform = null; // To prevent double points on same platform
         
         const gravity = 0.35;
         const jumpPower = 12;
@@ -95,10 +103,13 @@
             posY = 150;
             velY = 0;
             score = 0;
+            wallet = 0;
             platforms = [];
             currentPlatform = null;
+            lastJumpedPlatform = null;
             platLayer.innerHTML = '';
             heightTxt.innerText = "0m";
+            walletDisplay.innerText = "0";
             document.getElementById('hint').style.display = 'flex';
             
             // Initial Base Platform
@@ -120,49 +131,57 @@
             div.style.bottom = y + 'px';
             platLayer.appendChild(div);
             
-            platforms.push({ el: div, x: x, y: y, speed: moveSpeed });
+            platforms.push({ 
+                el: div, 
+                x: x, 
+                y: y, 
+                speed: moveSpeed,
+                id: Math.random() // Unique ID to track landing
+            });
         }
 
         function handleJump() {
-            // Player can only jump if they are stationary on a platform or the ground
             if (Math.abs(velY) <= 0.1) { 
                 velY = jumpPower;
-                currentPlatform = null; // Release from platform friction
+                currentPlatform = null;
                 document.getElementById('hint').style.display = 'none';
             }
         }
 
         function update() {
-            // Apply Gravity
             velY -= gravity;
             posY += velY;
 
-            // Update Platforms
             platforms.forEach(p => {
                 p.x += p.speed;
                 if(p.x <= 0 || p.x >= screenWidth - 85) p.speed *= -1;
                 p.el.style.left = p.x + 'px';
 
-                // Collision Detection (Landing)
+                // Collision Detection
                 if(velY < 0) {
                     if(posX + 30 > p.x && posX < p.x + 85 && posY > p.y && posY < p.y + 20) {
                         velY = 0;
                         posY = p.y + 14;
-                        currentPlatform = p; // Hook player to this platform
+                        currentPlatform = p;
+
+                        // Wallet Point Logic: If this is a new platform lended on
+                        if (lastJumpedPlatform !== p.id) {
+                            wallet += 5;
+                            walletDisplay.innerText = wallet;
+                            lastJumpedPlatform = p.id; // Mark as rewarded
+                        }
                     }
                 }
             });
 
-            // Move player with the platform if landed
             if (currentPlatform) {
                 posX += currentPlatform.speed;
             }
 
-            // Screen Wrap for player
             if(posX < -40) posX = screenWidth;
             if(posX > screenWidth) posX = -40;
 
-            // Camera Scroll & Score
+            // Camera Scroll
             if(posY > 350) {
                 let diff = posY - 350;
                 posY = 350;
@@ -172,7 +191,7 @@
                 heightTxt.innerText = currentMeters + "m";
 
                 if(currentMeters >= maxLimit) {
-                    alert("10KM REACHED! YOU ARE A LEGEND!");
+                    alert("10KM ACHIEVED!");
                     resetGame();
                 }
 
@@ -182,17 +201,16 @@
                         p.y = 800 + Math.random() * 50;
                         p.x = Math.random() * (screenWidth - 85);
                         p.speed = (Math.random() * 1.5 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
+                        p.id = Math.random(); // Reset ID so it can give points again
                     }
                     p.el.style.bottom = p.y + 'px';
                 });
             }
 
-            // Fall Off (Game Over)
             if(posY < -50) {
                 resetGame();
             }
 
-            // Render Player
             playerEl.style.transform = `translate3d(${posX}px, ${-posY}px, 0)`;
 
             requestAnimationFrame(update);
