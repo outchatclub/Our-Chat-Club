@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>High Jump - Simple</title>
+    <title>Moving High Jump</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -24,11 +24,11 @@
         }
         .platform { 
             position: absolute; 
-            height: 12px; 
+            height: 14px; 
             background: #ffffff; 
             border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-            width: 70px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+            width: 80px; 
         }
         #player { 
             position: absolute; 
@@ -38,9 +38,10 @@
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            z-index: 100; 
+            z-index: 100;
             bottom: 0;
-            left: 0;
+            left: 50%;
+            margin-left: -20px; /* Center horizontally */
         }
         .hud-glass { 
             background: rgba(0, 0, 0, 0.4); 
@@ -51,20 +52,20 @@
 </head>
 <body>
 
-    <div id="game-container">
+    <div id="game-container" onpointerdown="jump()">
         <div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-[110]">
             <div>
-                <p id="height-txt" class="text-5xl font-black italic tracking-tighter">0m</p>
+                <p id="height-txt" class="text-5xl font-black italic tracking-tighter text-white">0m</p>
                 <p class="text-xs font-bold uppercase tracking-widest text-blue-300 opacity-70">Target: 10,000m</p>
             </div>
             
             <div class="flex gap-3">
-                <button onclick="resetGame()" class="hud-glass p-3 rounded-full active:rotate-180 transition-transform duration-300">
+                <button onclick="event.stopPropagation(); resetGame()" class="hud-glass p-3 rounded-full active:rotate-180 transition-transform duration-300">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                 </button>
-                <button onclick="location.href='index.html'" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
+                <button onclick="event.stopPropagation(); location.href='index.html'" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
             </div>
@@ -73,9 +74,8 @@
         <div id="platforms-layer"></div>
         <div id="player">🧍‍♂️</div>
         
-        <div class="absolute inset-0 flex">
-            <div class="w-1/2 h-full" onpointerdown="moveLeft(true)" onpointerup="moveLeft(false)" onpointerleave="moveLeft(false)"></div>
-            <div class="w-1/2 h-full" onpointerdown="moveRight(true)" onpointerup="moveRight(false)" onpointerleave="moveRight(false)"></div>
+        <div id="hint" class="absolute bottom-20 left-0 right-0 text-center opacity-50 pointer-events-none">
+            <p class="text-sm font-bold animate-pulse">TAP ANYWHERE TO JUMP</p>
         </div>
     </div>
 
@@ -84,62 +84,83 @@
         const platLayer = document.getElementById('platforms-layer');
         const heightTxt = document.getElementById('height-txt');
 
-        let posX, posY, velY, velX, score, platforms;
-        const gravity = 0.3;
-        const friction = 0.85;
-        const jumpPower = 11;
+        let posY, velY, score, platforms;
+        const gravity = 0.35;
+        const jumpPower = 12;
         const maxLimit = 10000;
+        const screenWidth = window.innerWidth;
 
         function resetGame() {
-            posX = (window.innerWidth / 2) - 20;
             posY = 150;
             velY = 0;
-            velX = 0;
             score = 0;
             platforms = [];
             platLayer.innerHTML = '';
             heightTxt.innerText = "0m";
             
-            // Start Platform
-            spawnPlatform(100, window.innerWidth / 2 - 35);
+            // Start Platform (Static)
+            spawnPlatform(100, (screenWidth / 2) - 40, 0);
             
-            // Random Platforms
+            // Random Moving Platforms
             for(let i=1; i<7; i++) {
-                spawnPlatform(i * 130 + 100);
+                spawnPlatform(i * 140 + 100);
             }
         }
 
-        function spawnPlatform(y, customX = null) {
-            const x = customX !== null ? customX : Math.random() * (window.innerWidth - 75);
+        function spawnPlatform(y, customX = null, speed = null) {
+            const x = customX !== null ? customX : Math.random() * (screenWidth - 80);
+            const moveSpeed = speed !== null ? speed : (Math.random() * 2 + 1.5) * (Math.random() > 0.5 ? 1 : -1);
+            
             const div = document.createElement('div');
             div.className = 'platform';
             div.style.left = x + 'px';
             div.style.bottom = y + 'px';
             platLayer.appendChild(div);
-            platforms.push({ el: div, x, y });
+            
+            platforms.push({ 
+                el: div, 
+                x: x, 
+                y: y, 
+                speed: moveSpeed 
+            });
+        }
+
+        function jump() {
+            // Only jump if player is landing or near a platform
+            if (Math.abs(velY) < 1) { // Simple floor/platform check
+                velY = jumpPower;
+                document.getElementById('hint').style.display = 'none';
+            }
         }
 
         function update() {
             velY -= gravity;
             posY += velY;
-            posX += velX;
-            velX *= friction;
 
-            // Screen Wrap
-            if(posX < -40) posX = window.innerWidth;
-            if(posX > window.innerWidth) posX = -40;
+            // Player Horizontal Position is fixed at center
+            const playerX = (screenWidth / 2) - 20;
 
-            // Collision
-            if(velY < 0) {
-                platforms.forEach(p => {
-                    if(posX + 30 > p.x && posX < p.x + 70 && posY > p.y && posY < p.y + 20) {
+            // Update Platforms Movement
+            platforms.forEach(p => {
+                p.x += p.speed;
+                
+                // Bounce platforms from walls
+                if(p.x <= 0 || p.x >= screenWidth - 80) {
+                    p.speed *= -1;
+                }
+                p.el.style.left = p.x + 'px';
+
+                // Collision Detection
+                if(velY < 0) {
+                    // Check if player lands on this platform
+                    if(playerX + 30 > p.x && playerX < p.x + 80 && posY > p.y && posY < p.y + 20) {
                         velY = jumpPower;
-                        posY = p.y + 12;
+                        posY = p.y + 14;
                     }
-                });
-            }
+                }
+            });
 
-            // Camera & Score
+            // Camera & Score Scroll
             if(posY > 350) {
                 let diff = posY - 350;
                 posY = 350;
@@ -149,36 +170,34 @@
                 heightTxt.innerText = currentMeters + "m";
 
                 if(currentMeters >= maxLimit) {
-                    alert("Congratulations! 10km Reached!");
+                    alert("Legendary! 10km Reached!");
                     resetGame();
                 }
 
                 platforms.forEach(p => {
                     p.y -= diff;
                     if(p.y < -30) {
-                        p.y = 750 + Math.random() * 50;
-                        p.x = Math.random() * (window.innerWidth - 75);
-                        p.el.style.left = p.x + 'px';
+                        p.y = 800 + Math.random() * 50;
+                        p.x = Math.random() * (screenWidth - 80);
+                        // New speed for recycled platform
+                        p.speed = (Math.random() * 2 + 1.5) * (Math.random() > 0.5 ? 1 : -1);
                     }
                     p.el.style.bottom = p.y + 'px';
                 });
             }
 
-            // Fall Off
+            // Fall Off (Game Over)
             if(posY < -50) {
                 resetGame();
             }
 
-            // Fixed Position Logic
-            playerEl.style.left = `${posX}px`;
+            // Render Player
             playerEl.style.bottom = `${posY}px`;
 
             requestAnimationFrame(update);
         }
 
-        window.moveLeft = (on) => { if(on) velX = -8; };
-        window.moveRight = (on) => { if(on) velX = 8; };
-
+        // Initialize Game
         resetGame();
         update();
     </script>
