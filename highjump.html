@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>High Jump - Wallet Pro</title>
+    <title>High Jump - Official Wallet</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -63,9 +63,9 @@
             </div>
             
             <div class="flex flex-col gap-2 items-end">
-                <div class="hud-glass px-4 py-2 rounded-2xl flex items-center gap-2">
-                    <span class="text-amber-400">💰</span>
-                    <span id="wallet-display" class="font-black text-xl">0</span>
+                <div class="hud-glass px-4 py-2 rounded-2xl flex items-center gap-2 border-2 border-amber-400/30">
+                    <span class="text-amber-400 text-lg">💰</span>
+                    <span id="wallet-amount" class="font-black text-xl text-amber-400">...</span>
                 </div>
                 <button onclick="event.stopPropagation(); resetGame()" class="hud-glass p-2 rounded-full active:rotate-180 transition-transform duration-300">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,68 +83,85 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
+            authDomain: "our-chat-club.firebaseapp.com", 
+            projectId: "our-chat-club" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
         const playerEl = document.getElementById('player');
         const platLayer = document.getElementById('platforms-layer');
         const heightTxt = document.getElementById('height-txt');
-        const walletDisplay = document.getElementById('wallet-display');
+        const walletTxt = document.getElementById('wallet-amount');
 
-        let posX, posY, velY, score, platforms, wallet;
+        let uid, posX, posY, velY, score, platforms;
         let currentPlatform = null;
-        let lastJumpedPlatform = null; // To prevent double points on same platform
+        let lastLandedId = null; 
         
         const gravity = 0.35;
         const jumpPower = 12;
-        const maxLimit = 10000;
         const screenWidth = window.innerWidth;
+
+        onAuthStateChanged(auth, user => {
+            if (!user) return location.href = 'index.html';
+            uid = user.uid;
+            // Sync with Universal Wallet
+            onSnapshot(doc(db, "users", uid), s => {
+                if(s.exists()) walletTxt.innerText = s.data().wallet || 0;
+            });
+            resetGame();
+            update();
+        });
 
         function resetGame() {
             posX = (screenWidth / 2) - 20;
             posY = 150;
             velY = 0;
             score = 0;
-            wallet = 0;
             platforms = [];
             currentPlatform = null;
-            lastJumpedPlatform = null;
+            lastLandedId = null;
             platLayer.innerHTML = '';
             heightTxt.innerText = "0m";
-            walletDisplay.innerText = "0";
             document.getElementById('hint').style.display = 'flex';
             
-            // Initial Base Platform
             spawnPlatform(100, (screenWidth / 2) - 42, 0);
-            
-            // Random Moving Platforms
-            for(let i=1; i<7; i++) {
-                spawnPlatform(i * 140 + 100);
-            }
+            for(let i=1; i<7; i++) spawnPlatform(i * 140 + 100);
         }
 
         function spawnPlatform(y, customX = null, speed = null) {
             const x = customX !== null ? customX : Math.random() * (screenWidth - 85);
             const moveSpeed = speed !== null ? speed : (Math.random() * 1.5 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
-            
             const div = document.createElement('div');
             div.className = 'platform';
             div.style.left = x + 'px';
             div.style.bottom = y + 'px';
             platLayer.appendChild(div);
-            
-            platforms.push({ 
-                el: div, 
-                x: x, 
-                y: y, 
-                speed: moveSpeed,
-                id: Math.random() // Unique ID to track landing
-            });
+            platforms.push({ el: div, x, y, speed, id: Math.random().toString(36) });
         }
 
-        function handleJump() {
+        window.handleJump = () => {
             if (Math.abs(velY) <= 0.1) { 
                 velY = jumpPower;
                 currentPlatform = null;
                 document.getElementById('hint').style.display = 'none';
+            }
+        };
+
+        async function addPoints(pId) {
+            if (lastLandedId !== pId) {
+                lastLandedId = pId;
+                if(uid) {
+                    await updateDoc(doc(db, "users", uid), { wallet: increment(5) });
+                }
             }
         }
 
@@ -153,71 +170,44 @@
             posY += velY;
 
             platforms.forEach(p => {
-                p.x += p.speed;
+                p.x += (p.speed || 0);
                 if(p.x <= 0 || p.x >= screenWidth - 85) p.speed *= -1;
                 p.el.style.left = p.x + 'px';
 
-                // Collision Detection
-                if(velY < 0) {
-                    if(posX + 30 > p.x && posX < p.x + 85 && posY > p.y && posY < p.y + 20) {
-                        velY = 0;
-                        posY = p.y + 14;
-                        currentPlatform = p;
-
-                        // Wallet Point Logic: If this is a new platform lended on
-                        if (lastJumpedPlatform !== p.id) {
-                            wallet += 5;
-                            walletDisplay.innerText = wallet;
-                            lastJumpedPlatform = p.id; // Mark as rewarded
-                        }
-                    }
+                if(velY < 0 && posX + 30 > p.x && posX < p.x + 85 && posY > p.y && posY < p.y + 20) {
+                    velY = 0;
+                    posY = p.y + 14;
+                    currentPlatform = p;
+                    addPoints(p.id); // Add 5 points to universal wallet
                 }
             });
 
-            if (currentPlatform) {
-                posX += currentPlatform.speed;
-            }
-
+            if (currentPlatform) posX += (currentPlatform.speed || 0);
             if(posX < -40) posX = screenWidth;
             if(posX > screenWidth) posX = -40;
 
-            // Camera Scroll
             if(posY > 350) {
                 let diff = posY - 350;
                 posY = 350;
                 score += diff;
-                
-                let currentMeters = Math.floor(score / 15);
-                heightTxt.innerText = currentMeters + "m";
-
-                if(currentMeters >= maxLimit) {
-                    alert("10KM ACHIEVED!");
-                    resetGame();
-                }
-
+                heightTxt.innerText = Math.floor(score / 15) + "m";
                 platforms.forEach(p => {
                     p.y -= diff;
                     if(p.y < -30) {
                         p.y = 800 + Math.random() * 50;
                         p.x = Math.random() * (screenWidth - 85);
                         p.speed = (Math.random() * 1.5 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
-                        p.id = Math.random(); // Reset ID so it can give points again
+                        p.id = Math.random().toString(36);
                     }
                     p.el.style.bottom = p.y + 'px';
                 });
             }
 
-            if(posY < -50) {
-                resetGame();
-            }
+            if(posY < -50) resetGame();
 
             playerEl.style.transform = `translate3d(${posX}px, ${-posY}px, 0)`;
-
             requestAnimationFrame(update);
         }
-
-        resetGame();
-        update();
     </script>
 </body>
 </html>
