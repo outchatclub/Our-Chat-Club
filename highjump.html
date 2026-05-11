@@ -7,51 +7,98 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: white; overflow: hidden; touch-action: none; }
-        #game-container { position: relative; width: 100%; height: 70vh; background: linear-gradient(to top, #3b82f6, #60a5fa); overflow: hidden; }
-        .platform { position: absolute; height: 15px; background: rgba(255, 255, 255, 0.9); border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 70px; }
-        #player { position: absolute; width: 40px; height: 40px; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; z-index: 100; transition: transform 0.1s linear; }
-        .hud-glass { background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.1); }
-        .upgrade-dock { height: 30vh; background: #0f172a; padding: 20px; border-top: 2px solid #1e293b; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #020617; 
+            color: white; 
+            overflow: hidden; 
+            touch-action: none; 
+            user-select: none;
+        }
+        #game-container { 
+            position: relative; 
+            width: 100%; 
+            height: 70vh; 
+            background: linear-gradient(to top, #1e3a8a, #3b82f6); 
+            overflow: hidden; 
+        }
+        .platform { 
+            position: absolute; 
+            height: 12px; 
+            background: rgba(255, 255, 255, 0.95); 
+            border-radius: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            width: 70px; 
+            transition: bottom 0.05s linear;
+        }
+        #player { 
+            position: absolute; 
+            width: 40px; 
+            height: 40px; 
+            font-size: 2.5rem; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 100; 
+            will-change: transform, bottom, left;
+        }
+        .hud-glass { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255,255,255,0.1); 
+        }
+        .upgrade-dock { 
+            height: 30vh; 
+            background: #0f172a; 
+            padding: 24px; 
+            border-top: 2px solid #1e293b; 
+        }
+        /* Visual feedback for clicking the upgrade */
+        #upgrade-btn:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
 
     <div id="game-container">
         <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-[110]">
-            <button onclick="location.href='index.html'" class="hud-glass p-3 rounded-2xl">
+            <button onclick="location.href='index.html'" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
             </button>
             <div class="text-center">
-                <p id="height-txt" class="text-4xl font-black italic">0m</p>
-                <p id="status-txt" class="text-[9px] font-black uppercase tracking-widest text-blue-200">Climbing...</p>
+                <p id="height-txt" class="text-4xl font-black italic drop-shadow-lg">0m</p>
+                <p id="status-txt" class="text-[10px] font-black uppercase tracking-widest text-blue-200 opacity-80">Skyward Bound</p>
             </div>
             <div class="hud-glass px-4 py-2 rounded-2xl flex items-center gap-2">
                 <span class="text-amber-400">💰</span>
-                <span id="wallet-display" class="font-black">...</span>
+                <span id="wallet-display" class="font-black text-lg">0</span>
             </div>
         </div>
 
-        <div id="player">🧍‍♂️</div>
         <div id="platforms-layer"></div>
+        <div id="player">🧍‍♂️</div>
         
         <div class="absolute inset-0 flex">
-            <div class="w-1/2 h-full" onpointerdown="moveLeft(true)" onpointerup="moveLeft(false)"></div>
-            <div class="w-1/2 h-full" onpointerdown="moveRight(true)" onpointerup="moveRight(false)"></div>
+            <div class="w-1/2 h-full" onpointerdown="moveLeft(true)" onpointerup="moveLeft(false)" onpointerleave="moveLeft(false)"></div>
+            <div class="w-1/2 h-full" onpointerdown="moveRight(true)" onpointerup="moveRight(false)" onpointerleave="moveRight(false)"></div>
         </div>
     </div>
 
     <div class="upgrade-dock">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-black">Rocket Boots</h2>
-            <span id="lvl-tag" class="text-xs bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-full font-black">LVL 1</span>
-        </div>
-        <button id="upgrade-btn" class="w-full bg-indigo-600 p-5 rounded-3xl flex items-center justify-between shadow-xl">
-            <div class="text-left">
-                <p class="text-[10px] font-bold opacity-60 uppercase">Power Up</p>
-                <p id="cost-txt" class="text-xl font-black">💰 500</p>
+            <div>
+                <h2 class="text-xl font-black tracking-tight">Rocket Boots</h2>
+                <p class="text-xs text-slate-400">Jump higher with every level</p>
             </div>
-            <span class="text-2xl">⚡</span>
+            <span id="lvl-tag" class="text-xs bg-indigo-500/20 text-indigo-400 px-4 py-1 rounded-full font-black border border-indigo-500/30">LVL 1</span>
+        </div>
+        <button id="upgrade-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 p-5 rounded-3xl flex items-center justify-between shadow-2xl transition-all">
+            <div class="text-left">
+                <p class="text-[10px] font-bold opacity-70 uppercase tracking-wider">Enhance Power</p>
+                <p id="cost-txt" class="text-2xl font-black">💰 500</p>
+            </div>
+            <div class="bg-white/20 p-2 rounded-2xl">
+                <span class="text-2xl">⚡</span>
+            </div>
         </button>
     </div>
 
@@ -60,22 +107,31 @@
         import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", authDomain: "our-chat-club.firebaseapp.com", projectId: "our-chat-club" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
+            authDomain: "our-chat-club.firebaseapp.com", 
+            projectId: "our-chat-club" 
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
 
         let uid, stats = { wallet: 0, jumpLvl: 1 };
-        const player = document.getElementById('player');
+        const playerEl = document.getElementById('player');
         const platLayer = document.getElementById('platforms-layer');
-        const gameBox = document.getElementById('game-container');
 
-        // Physics Variables
-        let posX = window.innerWidth / 2 - 20, posY = 100;
-        let velY = 0, velX = 0;
+        // Physics Constants
+        let posX = window.innerWidth / 2 - 20;
+        let posY = 150;
+        let velY = 0;
+        let velX = 0;
         let platforms = [];
         let score = 0;
-        let gravity = 0.25;
+        let maxReachedScore = 0;
+        
+        const gravity = 0.3;
+        const friction = 0.88;
+        const terminalVelocity = -12;
 
         onAuthStateChanged(auth, user => {
             if (!user) return location.href = 'index.html';
@@ -84,8 +140,8 @@
                 if(s.exists()){
                     stats = s.data();
                     stats.jumpLvl = stats.jumpLvl || 1;
-                    document.getElementById('wallet-display').innerText = stats.wallet;
-                    document.getElementById('cost-txt').innerText = `💰 ${stats.jumpLvl * 500}`;
+                    document.getElementById('wallet-display').innerText = stats.wallet.toLocaleString();
+                    document.getElementById('cost-txt').innerText = `💰 ${(stats.jumpLvl * 500).toLocaleString()}`;
                     document.getElementById('lvl-tag').innerText = `LVL ${stats.jumpLvl}`;
                 }
             });
@@ -95,13 +151,15 @@
         function initGame() {
             platforms = [];
             platLayer.innerHTML = '';
-            // Initial platforms
-            for(let i=0; i<6; i++) spawnPlatform(i * 100 + 50);
-            gameLoop();
+            // Initial distribution
+            for(let i=0; i<8; i++) {
+                spawnPlatform(i * 90);
+            }
+            requestAnimationFrame(gameLoop);
         }
 
         function spawnPlatform(y) {
-            const x = Math.random() * (window.innerWidth - 80);
+            const x = Math.random() * (window.innerWidth - 70);
             const div = document.createElement('div');
             div.className = 'platform';
             div.style.left = x + 'px';
@@ -111,62 +169,95 @@
         }
 
         function gameLoop() {
+            // Physics Calculations
             velY -= gravity;
+            if (velY < terminalVelocity) velY = terminalVelocity;
+            
             posY += velY;
             posX += velX;
+            velX *= friction; 
 
             // Screen Wrap
             if(posX < -40) posX = window.innerWidth;
             if(posX > window.innerWidth) posX = -40;
 
-            // Collision Detection (Falling down)
+            // Visual "Juice" - Tilt and Stretch
+            const tilt = velX * 3;
+            const stretch = 1 + Math.abs(velY) / 60;
+            playerEl.style.transform = `translate3d(${posX}px, ${-posY}px, 0) rotate(${tilt}deg) scaleY(${stretch})`;
+
+            // Collision Detection (Check while falling)
             if(velY < 0) {
                 platforms.forEach(p => {
-                    if(posX + 30 > p.x && posX < p.x + 70 && posY > p.y && posY < p.y + 15) {
-                        velY = 8 + (stats.jumpLvl * 0.2); // Jump power scales with level
-                        if(p.y > score) {
-                            score = Math.floor(p.y / 10);
-                            document.getElementById('height-txt').innerText = score + 'm';
-                        }
+                    // Optimized hitboxes
+                    if(posX + 30 > p.x && posX < p.x + 60 && posY > p.y && posY < p.y + 20) {
+                        // Base jump 10 + scaling per level
+                        velY = 10 + (stats.jumpLvl * 0.15); 
+                        posY = p.y + 12; // Snap to platform top
                     }
                 });
             }
 
-            // Camera movement
-            if(posY > 250) {
-                let diff = posY - 250;
-                posY = 250;
+            // Camera Scrolling
+            const cameraThreshold = 300;
+            if(posY > cameraThreshold) {
+                let offset = posY - cameraThreshold;
+                posY = cameraThreshold;
+                
+                // Track progress
+                score += Math.floor(offset / 2);
+                if(score > maxReachedScore) {
+                    maxReachedScore = score;
+                    document.getElementById('height-txt').innerText = maxReachedScore + 'm';
+                }
+
                 platforms.forEach(p => {
-                    p.y -= diff;
-                    p.el.style.bottom = p.y + 'px';
+                    p.y -= offset;
+                    // Recycle platform to top
                     if(p.y < -20) {
-                        p.y = 600;
-                        p.x = Math.random() * (window.innerWidth - 80);
+                        p.y = 700 + (Math.random() * 30); 
+                        p.x = Math.random() * (window.innerWidth - 70);
                         p.el.style.left = p.x + 'px';
-                        // Reward for climbing
-                        updateDoc(doc(db, "users", uid), { wallet: increment(1) });
+                        
+                        // Small reward for every recycled platform
+                        if(uid) updateDoc(doc(db, "users", uid), { wallet: increment(5) });
                     }
+                    p.el.style.bottom = p.y + 'px';
                 });
             }
 
             // Game Over
             if(posY < -50) {
-                posY = 100; velY = 10; score = 0;
+                posY = 150; 
+                velY = 12; 
+                score = 0;
+                maxReachedScore = 0;
                 document.getElementById('height-txt').innerText = '0m';
             }
 
-            player.style.bottom = posY + 'px';
-            player.style.left = posX + 'px';
             requestAnimationFrame(gameLoop);
         }
 
-        window.moveLeft = (on) => velX = on ? -5 : 0;
-        window.moveRight = (on) => velX = on ? 5 : 0;
+        // Global control functions for the pointer events
+        window.moveLeft = (on) => { if(on) velX = -7; };
+        window.moveRight = (on) => { if(on) velX = 7; };
 
+        // Upgrade Execution
         document.getElementById('upgrade-btn').onclick = async () => {
             const cost = stats.jumpLvl * 500;
             if(stats.wallet >= cost) {
-                await updateDoc(doc(db, "users", uid), { wallet: increment(-cost), jumpLvl: increment(1) });
+                try {
+                    await updateDoc(doc(db, "users", uid), { 
+                        wallet: increment(-cost), 
+                        jumpLvl: increment(1) 
+                    });
+                } catch (e) {
+                    console.error("Upgrade failed", e);
+                }
+            } else {
+                const btn = document.getElementById('upgrade-btn');
+                btn.classList.add('bg-red-900');
+                setTimeout(() => btn.classList.remove('bg-red-900'), 200);
             }
         };
     </script>
