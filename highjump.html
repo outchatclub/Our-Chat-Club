@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>High Jump - Official Wallet</title>
+    <title>High Jump - Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -113,7 +113,6 @@
         onAuthStateChanged(auth, user => {
             if (!user) return location.href = 'index.html';
             uid = user.uid;
-            // Sync with Universal Wallet
             onSnapshot(doc(db, "users", uid), s => {
                 if(s.exists()) walletTxt.innerText = s.data().wallet || 0;
             });
@@ -133,19 +132,33 @@
             heightTxt.innerText = "0m";
             document.getElementById('hint').style.display = 'flex';
             
+            // Base Static Platform
             spawnPlatform(100, (screenWidth / 2) - 42, 0);
-            for(let i=1; i<7; i++) spawnPlatform(i * 140 + 100);
+            
+            // Moving Platforms
+            for(let i=1; i<7; i++) {
+                spawnPlatform(i * 140 + 100);
+            }
         }
 
-        function spawnPlatform(y, customX = null, speed = null) {
+        function spawnPlatform(y, customX = null, customSpeed = null) {
             const x = customX !== null ? customX : Math.random() * (screenWidth - 85);
-            const moveSpeed = speed !== null ? speed : (Math.random() * 1.5 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
+            // Fix: Ensure speed is assigned correctly
+            const speed = customSpeed !== null ? customSpeed : (Math.random() * 1.6 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
+            
             const div = document.createElement('div');
             div.className = 'platform';
             div.style.left = x + 'px';
             div.style.bottom = y + 'px';
             platLayer.appendChild(div);
-            platforms.push({ el: div, x, y, speed, id: Math.random().toString(36) });
+            
+            platforms.push({ 
+                el: div, 
+                x: x, 
+                y: y, 
+                speed: speed, 
+                id: Math.random().toString(36) 
+            });
         }
 
         window.handleJump = () => {
@@ -170,33 +183,39 @@
             posY += velY;
 
             platforms.forEach(p => {
-                p.x += (p.speed || 0);
+                // Update platform position
+                p.x += p.speed;
                 if(p.x <= 0 || p.x >= screenWidth - 85) p.speed *= -1;
                 p.el.style.left = p.x + 'px';
 
+                // Collision
                 if(velY < 0 && posX + 30 > p.x && posX < p.x + 85 && posY > p.y && posY < p.y + 20) {
                     velY = 0;
                     posY = p.y + 14;
                     currentPlatform = p;
-                    addPoints(p.id); // Add 5 points to universal wallet
+                    addPoints(p.id);
                 }
             });
 
-            if (currentPlatform) posX += (currentPlatform.speed || 0);
+            if (currentPlatform) posX += currentPlatform.speed;
+            
+            // Screen Wrap
             if(posX < -40) posX = screenWidth;
             if(posX > screenWidth) posX = -40;
 
+            // Camera Scroll
             if(posY > 350) {
                 let diff = posY - 350;
                 posY = 350;
                 score += diff;
                 heightTxt.innerText = Math.floor(score / 15) + "m";
+                
                 platforms.forEach(p => {
                     p.y -= diff;
                     if(p.y < -30) {
                         p.y = 800 + Math.random() * 50;
                         p.x = Math.random() * (screenWidth - 85);
-                        p.speed = (Math.random() * 1.5 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
+                        p.speed = (Math.random() * 1.6 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
                         p.id = Math.random().toString(36);
                     }
                     p.el.style.bottom = p.y + 'px';
