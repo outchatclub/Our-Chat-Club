@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>High Jump - OCC</title>
+    <title>High Jump - Simple</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -18,18 +18,17 @@
         #game-container { 
             position: relative; 
             width: 100%; 
-            height: 70vh; 
-            background: linear-gradient(to top, #1e3a8a, #3b82f6); 
+            height: 100vh; 
+            background: linear-gradient(to top, #0f172a, #1e3a8a, #3b82f6); 
             overflow: hidden; 
         }
         .platform { 
             position: absolute; 
             height: 12px; 
-            background: rgba(255, 255, 255, 0.95); 
+            background: #ffffff; 
             border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
             width: 70px; 
-            transition: bottom 0.05s linear;
         }
         #player { 
             position: absolute; 
@@ -40,37 +39,34 @@
             align-items: center; 
             justify-content: center; 
             z-index: 100; 
-            will-change: transform, bottom, left;
+            will-change: transform;
         }
         .hud-glass { 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(12px); 
+            background: rgba(0, 0, 0, 0.4); 
+            backdrop-filter: blur(10px); 
             border: 1px solid rgba(255,255,255,0.1); 
         }
-        .upgrade-dock { 
-            height: 30vh; 
-            background: #0f172a; 
-            padding: 24px; 
-            border-top: 2px solid #1e293b; 
-        }
-        /* Visual feedback for clicking the upgrade */
-        #upgrade-btn:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
 
     <div id="game-container">
-        <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-[110]">
-            <button onclick="location.href='index.html'" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
-            </button>
-            <div class="text-center">
-                <p id="height-txt" class="text-4xl font-black italic drop-shadow-lg">0m</p>
-                <p id="status-txt" class="text-[10px] font-black uppercase tracking-widest text-blue-200 opacity-80">Skyward Bound</p>
+        <div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-[110]">
+            <div>
+                <p id="height-txt" class="text-5xl font-black italic tracking-tighter">0m</p>
+                <p class="text-xs font-bold uppercase tracking-widest text-blue-300 opacity-70">Target: 10,000m</p>
             </div>
-            <div class="hud-glass px-4 py-2 rounded-2xl flex items-center gap-2">
-                <span class="text-amber-400">💰</span>
-                <span id="wallet-display" class="font-black text-lg">0</span>
+            
+            <div class="flex gap-3">
+                <button onclick="resetGame()" class="hud-glass p-3 rounded-full active:rotate-180 transition-transform duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
+                
+                <button onclick="location.href='index.html'" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
             </div>
         </div>
 
@@ -83,83 +79,38 @@
         </div>
     </div>
 
-    <div class="upgrade-dock">
-        <div class="flex justify-between items-center mb-4">
-            <div>
-                <h2 class="text-xl font-black tracking-tight">Rocket Boots</h2>
-                <p class="text-xs text-slate-400">Jump higher with every level</p>
-            </div>
-            <span id="lvl-tag" class="text-xs bg-indigo-500/20 text-indigo-400 px-4 py-1 rounded-full font-black border border-indigo-500/30">LVL 1</span>
-        </div>
-        <button id="upgrade-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 p-5 rounded-3xl flex items-center justify-between shadow-2xl transition-all">
-            <div class="text-left">
-                <p class="text-[10px] font-bold opacity-70 uppercase tracking-wider">Enhance Power</p>
-                <p id="cost-txt" class="text-2xl font-black">💰 500</p>
-            </div>
-            <div class="bg-white/20 p-2 rounded-2xl">
-                <span class="text-2xl">⚡</span>
-            </div>
-        </button>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
-
-        const firebaseConfig = { 
-            apiKey: "AIzaSyAbVPpVAil1q8qiyPDaw9BMrHo9PrAdtlE", 
-            authDomain: "our-chat-club.firebaseapp.com", 
-            projectId: "our-chat-club" 
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        let uid, stats = { wallet: 0, jumpLvl: 1 };
+    <script>
         const playerEl = document.getElementById('player');
         const platLayer = document.getElementById('platforms-layer');
+        const heightTxt = document.getElementById('height-txt');
 
-        // Physics Constants
-        let posX = window.innerWidth / 2 - 20;
-        let posY = 150;
-        let velY = 0;
-        let velX = 0;
-        let platforms = [];
-        let score = 0;
-        let maxReachedScore = 0;
-        
-        const gravity = 0.3;
-        const friction = 0.88;
-        const terminalVelocity = -12;
+        let posX, posY, velY, velX, score, platforms;
+        const gravity = 0.28;
+        const friction = 0.85;
+        const jumpPower = 10;
+        const maxLimit = 10000;
 
-        onAuthStateChanged(auth, user => {
-            if (!user) return location.href = 'index.html';
-            uid = user.uid;
-            onSnapshot(doc(db, "users", uid), s => {
-                if(s.exists()){
-                    stats = s.data();
-                    stats.jumpLvl = stats.jumpLvl || 1;
-                    document.getElementById('wallet-display').innerText = stats.wallet.toLocaleString();
-                    document.getElementById('cost-txt').innerText = `💰 ${(stats.jumpLvl * 500).toLocaleString()}`;
-                    document.getElementById('lvl-tag').innerText = `LVL ${stats.jumpLvl}`;
-                }
-            });
-            initGame();
-        });
-
-        function initGame() {
+        function resetGame() {
+            posX = window.innerWidth / 2 - 20;
+            posY = 100;
+            velY = 0;
+            velX = 0;
+            score = 0;
             platforms = [];
             platLayer.innerHTML = '';
-            // Initial distribution
-            for(let i=0; i<8; i++) {
-                spawnPlatform(i * 90);
+            heightTxt.innerText = "0m";
+            
+            // Initial Start Platform
+            spawnPlatform(80, window.innerWidth / 2 - 35);
+            
+            // Random Platforms
+            for(let i=1; i<8; i++) {
+                spawnPlatform(i * 120);
             }
-            requestAnimationFrame(gameLoop);
         }
 
-        function spawnPlatform(y) {
-            const x = Math.random() * (window.innerWidth - 70);
+        function spawnPlatform(y, customX = null) {
+            const x = customX !== null ? customX : Math.random() * (window.innerWidth - 75);
             const div = document.createElement('div');
             div.className = 'platform';
             div.style.left = x + 'px';
@@ -168,98 +119,68 @@
             platforms.push({ el: div, x, y });
         }
 
-        function gameLoop() {
-            // Physics Calculations
+        function update() {
             velY -= gravity;
-            if (velY < terminalVelocity) velY = terminalVelocity;
-            
             posY += velY;
             posX += velX;
-            velX *= friction; 
+            velX *= friction;
 
             // Screen Wrap
             if(posX < -40) posX = window.innerWidth;
             if(posX > window.innerWidth) posX = -40;
 
-            // Visual "Juice" - Tilt and Stretch
-            const tilt = velX * 3;
-            const stretch = 1 + Math.abs(velY) / 60;
-            playerEl.style.transform = `translate3d(${posX}px, ${-posY}px, 0) rotate(${tilt}deg) scaleY(${stretch})`;
-
-            // Collision Detection (Check while falling)
+            // Collision
             if(velY < 0) {
                 platforms.forEach(p => {
-                    // Optimized hitboxes
-                    if(posX + 30 > p.x && posX < p.x + 60 && posY > p.y && posY < p.y + 20) {
-                        // Base jump 10 + scaling per level
-                        velY = 10 + (stats.jumpLvl * 0.15); 
-                        posY = p.y + 12; // Snap to platform top
+                    if(posX + 30 > p.x && posX < p.x + 70 && posY > p.y && posY < p.y + 15) {
+                        velY = jumpPower;
+                        posY = p.y + 12;
                     }
                 });
             }
 
-            // Camera Scrolling
-            const cameraThreshold = 300;
-            if(posY > cameraThreshold) {
-                let offset = posY - cameraThreshold;
-                posY = cameraThreshold;
+            // Camera Move & Score
+            if(posY > 300) {
+                let diff = posY - 300;
+                posY = 300;
+                score += Math.round(diff);
                 
-                // Track progress
-                score += Math.floor(offset / 2);
-                if(score > maxReachedScore) {
-                    maxReachedScore = score;
-                    document.getElementById('height-txt').innerText = maxReachedScore + 'm';
+                // Update Meter
+                let currentMeters = Math.floor(score / 10);
+                heightTxt.innerText = currentMeters + "m";
+
+                // Max Limit Check
+                if(currentMeters >= maxLimit) {
+                    alert("Congratulations! You reached 10km!");
+                    resetGame();
                 }
 
                 platforms.forEach(p => {
-                    p.y -= offset;
-                    // Recycle platform to top
+                    p.y -= diff;
                     if(p.y < -20) {
-                        p.y = 700 + (Math.random() * 30); 
-                        p.x = Math.random() * (window.innerWidth - 70);
+                        p.y = 750 + Math.random() * 20;
+                        p.x = Math.random() * (window.innerWidth - 75);
                         p.el.style.left = p.x + 'px';
-                        
-                        // Small reward for every recycled platform
-                        if(uid) updateDoc(doc(db, "users", uid), { wallet: increment(5) });
                     }
                     p.el.style.bottom = p.y + 'px';
                 });
             }
 
-            // Game Over
+            // Fall Off (Game Over)
             if(posY < -50) {
-                posY = 150; 
-                velY = 12; 
-                score = 0;
-                maxReachedScore = 0;
-                document.getElementById('height-txt').innerText = '0m';
+                resetGame();
             }
 
-            requestAnimationFrame(gameLoop);
+            playerEl.style.transform = `translate3d(${posX}px, ${-posY}px, 0)`;
+            requestAnimationFrame(update);
         }
 
-        // Global control functions for the pointer events
         window.moveLeft = (on) => { if(on) velX = -7; };
         window.moveRight = (on) => { if(on) velX = 7; };
 
-        // Upgrade Execution
-        document.getElementById('upgrade-btn').onclick = async () => {
-            const cost = stats.jumpLvl * 500;
-            if(stats.wallet >= cost) {
-                try {
-                    await updateDoc(doc(db, "users", uid), { 
-                        wallet: increment(-cost), 
-                        jumpLvl: increment(1) 
-                    });
-                } catch (e) {
-                    console.error("Upgrade failed", e);
-                }
-            } else {
-                const btn = document.getElementById('upgrade-btn');
-                btn.classList.add('bg-red-900');
-                setTimeout(() => btn.classList.remove('bg-red-900'), 200);
-            }
-        };
+        // Start
+        resetGame();
+        update();
     </script>
 </body>
 </html>
