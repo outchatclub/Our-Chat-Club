@@ -39,7 +39,8 @@
             align-items: center; 
             justify-content: center; 
             z-index: 100; 
-            will-change: transform;
+            bottom: 0;
+            left: 0;
         }
         .hud-glass { 
             background: rgba(0, 0, 0, 0.4); 
@@ -63,7 +64,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                 </button>
-                
                 <button onclick="location.href='index.html'" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
@@ -85,14 +85,14 @@
         const heightTxt = document.getElementById('height-txt');
 
         let posX, posY, velY, velX, score, platforms;
-        const gravity = 0.28;
+        const gravity = 0.3;
         const friction = 0.85;
-        const jumpPower = 10;
+        const jumpPower = 11;
         const maxLimit = 10000;
 
         function resetGame() {
-            posX = window.innerWidth / 2 - 20;
-            posY = 100;
+            posX = (window.innerWidth / 2) - 20;
+            posY = 150;
             velY = 0;
             velX = 0;
             score = 0;
@@ -100,12 +100,12 @@
             platLayer.innerHTML = '';
             heightTxt.innerText = "0m";
             
-            // Initial Start Platform
-            spawnPlatform(80, window.innerWidth / 2 - 35);
+            // Start Platform
+            spawnPlatform(100, window.innerWidth / 2 - 35);
             
             // Random Platforms
-            for(let i=1; i<8; i++) {
-                spawnPlatform(i * 120);
+            for(let i=1; i<7; i++) {
+                spawnPlatform(i * 130 + 100);
             }
         }
 
@@ -132,33 +132,31 @@
             // Collision
             if(velY < 0) {
                 platforms.forEach(p => {
-                    if(posX + 30 > p.x && posX < p.x + 70 && posY > p.y && posY < p.y + 15) {
+                    if(posX + 30 > p.x && posX < p.x + 70 && posY > p.y && posY < p.y + 20) {
                         velY = jumpPower;
                         posY = p.y + 12;
                     }
                 });
             }
 
-            // Camera Move & Score
-            if(posY > 300) {
-                let diff = posY - 300;
-                posY = 300;
-                score += Math.round(diff);
+            // Camera & Score
+            if(posY > 350) {
+                let diff = posY - 350;
+                posY = 350;
+                score += diff;
                 
-                // Update Meter
-                let currentMeters = Math.floor(score / 10);
+                let currentMeters = Math.floor(score / 15);
                 heightTxt.innerText = currentMeters + "m";
 
-                // Max Limit Check
                 if(currentMeters >= maxLimit) {
-                    alert("Congratulations! You reached 10km!");
+                    alert("Congratulations! 10km Reached!");
                     resetGame();
                 }
 
                 platforms.forEach(p => {
                     p.y -= diff;
-                    if(p.y < -20) {
-                        p.y = 750 + Math.random() * 20;
+                    if(p.y < -30) {
+                        p.y = 750 + Math.random() * 50;
                         p.x = Math.random() * (window.innerWidth - 75);
                         p.el.style.left = p.x + 'px';
                     }
@@ -166,19 +164,21 @@
                 });
             }
 
-            // Fall Off (Game Over)
+            // Fall Off
             if(posY < -50) {
                 resetGame();
             }
 
-            playerEl.style.transform = `translate3d(${posX}px, ${-posY}px, 0)`;
+            // Fixed Position Logic
+            playerEl.style.left = `${posX}px`;
+            playerEl.style.bottom = `${posY}px`;
+
             requestAnimationFrame(update);
         }
 
-        window.moveLeft = (on) => { if(on) velX = -7; };
-        window.moveRight = (on) => { if(on) velX = 7; };
+        window.moveLeft = (on) => { if(on) velX = -8; };
+        window.moveRight = (on) => { if(on) velX = 8; };
 
-        // Start
         resetGame();
         update();
     </script>
