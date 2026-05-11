@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>High Jump - Fix</title>
+    <title>High Jump - Final Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -51,9 +51,9 @@
 </head>
 <body>
 
-    <div id="game-container" onpointerdown="handleJump()">
+    <div id="game-container">
         <div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-[110]">
-            <button onclick="event.stopPropagation(); location.href='index.html'" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
+            <button id="btn-back" class="hud-glass p-3 rounded-2xl active:scale-90 transition-transform">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
             </button>
 
@@ -67,7 +67,7 @@
                     <span class="text-amber-400 text-lg">💰</span>
                     <span id="wallet-amount" class="font-black text-xl text-amber-400">...</span>
                 </div>
-                <button onclick="event.stopPropagation(); resetGame()" class="hud-glass p-2 rounded-full active:rotate-180 transition-transform duration-300">
+                <button id="btn-restart" class="hud-glass p-2 rounded-full active:rotate-180 transition-transform duration-300">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -101,6 +101,7 @@
         const platLayer = document.getElementById('platforms-layer');
         const heightTxt = document.getElementById('height-txt');
         const walletTxt = document.getElementById('wallet-amount');
+        const gameContainer = document.getElementById('game-container');
 
         let uid, posX, posY, velY, score, platforms;
         let currentPlatform = null;
@@ -132,10 +133,7 @@
             heightTxt.innerText = "0m";
             document.getElementById('hint').style.display = 'flex';
             
-            // Base Static Platform
             spawnPlatform(100, (screenWidth / 2) - 42, 0);
-            
-            // Moving Platforms
             for(let i=1; i<7; i++) {
                 spawnPlatform(i * 140 + 100);
             }
@@ -143,7 +141,6 @@
 
         function spawnPlatform(y, customX = null, customSpeed = null) {
             const x = customX !== null ? customX : Math.random() * (screenWidth - 85);
-            // Fix: Ensure speed is assigned correctly
             const speed = customSpeed !== null ? customSpeed : (Math.random() * 1.6 + 1.2) * (Math.random() > 0.5 ? 1 : -1);
             
             const div = document.createElement('div');
@@ -152,22 +149,29 @@
             div.style.bottom = y + 'px';
             platLayer.appendChild(div);
             
-            platforms.push({ 
-                el: div, 
-                x: x, 
-                y: y, 
-                speed: speed, 
-                id: Math.random().toString(36) 
-            });
+            platforms.push({ el: div, x, y, speed, id: Math.random().toString(36) });
         }
 
-        window.handleJump = () => {
+        function handleJump() {
             if (Math.abs(velY) <= 0.1) { 
                 velY = jumpPower;
                 currentPlatform = null;
                 document.getElementById('hint').style.display = 'none';
             }
+        }
+
+        // Fix for Module function scope
+        document.getElementById('btn-restart').onclick = (e) => {
+            e.stopPropagation();
+            resetGame();
         };
+
+        document.getElementById('btn-back').onclick = (e) => {
+            e.stopPropagation();
+            location.href = 'index.html';
+        };
+
+        gameContainer.onpointerdown = () => handleJump();
 
         async function addPoints(pId) {
             if (lastLandedId !== pId) {
@@ -183,12 +187,10 @@
             posY += velY;
 
             platforms.forEach(p => {
-                // Update platform position
                 p.x += p.speed;
                 if(p.x <= 0 || p.x >= screenWidth - 85) p.speed *= -1;
                 p.el.style.left = p.x + 'px';
 
-                // Collision
                 if(velY < 0 && posX + 30 > p.x && posX < p.x + 85 && posY > p.y && posY < p.y + 20) {
                     velY = 0;
                     posY = p.y + 14;
@@ -198,12 +200,9 @@
             });
 
             if (currentPlatform) posX += currentPlatform.speed;
-            
-            // Screen Wrap
             if(posX < -40) posX = screenWidth;
             if(posX > screenWidth) posX = -40;
 
-            // Camera Scroll
             if(posY > 350) {
                 let diff = posY - 350;
                 posY = 350;
